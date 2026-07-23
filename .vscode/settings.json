@@ -1,0 +1,18 @@
+{
+    "mssql.connections": [
+        {
+            "profileName": "ERPAccountDB",
+            "server": "localhost",
+            "port": 1433,
+            "database": "ERPAccountDB",
+            "authenticationType": "SqlLogin",
+            "user": "sa",
+            "password": "",
+            "savePassword": true,
+            "encrypt": "Optional",
+            "trustServerCertificate": true,
+            "groupId": "ROOT",
+            "id": "0d0a18ff-8e1d-4e31-8a41-ae41b2a3b6dd"
+        }
+    ]
+}

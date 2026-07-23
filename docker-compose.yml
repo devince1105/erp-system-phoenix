@@ -1,0 +1,29 @@
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    # On Apple Silicon (macOS Arm64), use platform: linux/amd64 with Docker Desktop Rosetta / emulation
+    platform: linux/amd64
+    container_name: erp-mssql
+    user: root
+    restart: always
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD:-ERP_Phoenix_2026_Secured!}
+      - MSSQL_PID=Developer
+    ports:
+      - "${MSSQL_PORT:-1433}:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql/data
+      - mssql_log:/var/opt/mssql/log
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -Q \"SELECT 1\" -C || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -Q \"SELECT 1\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mssql_data:
+    driver: local
+  mssql_log:
+    driver: local

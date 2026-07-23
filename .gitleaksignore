@@ -1,0 +1,17 @@
+title = "gitleaks ignore rules"
+
+# Ignore false positive rules in specific files/folders
+[allowlist]
+description = "Allowlist for Next.js build cache and known mock secrets"
+
+# Ignore the entire Next.js build cache where temporary encryption keys are generated
+paths = [
+    '''frontend/\.next/.*'''
+]
+
+# (Optional) If you have a specific mock API key that is safe to be committed, you can ignore the exact value
+# For example, our CATHAY_SANDBOX_KEY seeded in the DB context:
+regexes = [
+    '''CATHAY_SANDBOX_KEY''',
+    '''ESUN_ERP_CLIENT_2026'''
+]

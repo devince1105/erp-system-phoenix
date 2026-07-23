@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(nc -zv localhost 1433)",
+      "Bash(python3 -c \"import pyodbc\")",
+      "Bash(python3 -c \"import pymssql\")",
+      "Bash(odbcinst -q -d)",
+      "Bash(code --list-extensions --show-versions)",
+      "Bash(find ~/.vscode/extensions -maxdepth 1 -iname \"ms-mssql.mssql-*\" 2>/dev/null)",
+      "Read(//Users/vincelo/.vscode/extensions/**)",
+      "Read(//Users/vincelo/.vscode/extensions/ms-mssql.mssql-1.44.0/**)",
+      "Bash(python3 -c ' *)",
+      "Bash(nc -zv -w3 localhost 1433)"
+    ]
+  }
+}

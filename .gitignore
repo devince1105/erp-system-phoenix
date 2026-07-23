@@ -1,0 +1,41 @@
+# =======================
+# Backend (.NET C#)
+# =======================
+**/bin/
+**/obj/
+backend/appsettings.Development.json
+
+# =======================
+# Frontend (Next.js & Node)
+# =======================
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.pnp
+frontend/.pnp.js
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# =======================
+# Database & Docker
+# =======================
+mssql_data/
+mssql_log/
+.env
+
+# =======================
+# OS specific
+# =======================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
