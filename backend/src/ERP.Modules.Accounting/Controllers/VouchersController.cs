@@ -1,5 +1,6 @@
 using ERP.Modules.Accounting.Data;
 using ERP.Modules.Accounting.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,6 +24,7 @@ public class CreateVoucherDetailDto
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class VouchersController : ControllerBase
 {
     private readonly AccountingDbContext _context;
