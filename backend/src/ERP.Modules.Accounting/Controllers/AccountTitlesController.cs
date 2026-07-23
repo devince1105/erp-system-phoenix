@@ -1,5 +1,6 @@
 using ERP.Modules.Accounting.Data;
 using ERP.Modules.Accounting.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,6 +8,7 @@ namespace ERP.Modules.Accounting.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class AccountTitlesController : ControllerBase
 {
     private readonly AccountingDbContext _context;

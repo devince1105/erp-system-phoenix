@@ -38,11 +38,7 @@ export const Navbar: React.FC<NavbarProps> = () => {
             <div className="flex items-center space-x-4 text-sm font-medium">
               <ThemeToggle />
               
-              <span className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-slate-600 dark:text-slate-300">
-                <ShieldCheck className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                {user?.roles?.[0] || "User"}
-              </span>
-              <div className="flex items-center gap-2 border-l border-gray-200 dark:border-slate-800 pl-4 ml-2">
+              <div className="flex items-center gap-2">
                 <span className="text-slate-800 dark:text-slate-200">{user?.fullName || "Guest"}</span>
                 <button 
                   onClick={logout}
