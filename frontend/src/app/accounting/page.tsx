@@ -8,9 +8,9 @@ import {
   BalanceSheetReport
 } from "@/features/accounting/types/accounting";
 import {
-  fetchVouchers,
-  accountingApi
+  fetchVouchers
 } from "@/features/accounting/api";
+import { accountingApi } from "@/features/accounting/api/accountingApi";
 import { 
   FileText, 
   TrendingUp, 
