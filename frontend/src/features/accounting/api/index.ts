@@ -84,6 +84,24 @@ export async function deleteVoucher(id: number): Promise<{ success: boolean; err
   }
 }
 
+export async function postVoucher(id: number): Promise<{ success: boolean; data?: Voucher; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/Vouchers/${id}/post`, {
+      method: "POST"
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      return { success: false, error: errorText || `過帳失敗 (Status ${res.status})` };
+    }
+
+    const data = await res.json();
+    return { success: true, data };
+  } catch (err: any) {
+    return { success: false, error: err.message || "過帳連線失敗" };
+  }
+}
+
 // Bank Account APIs
 export async function fetchBankAccounts(): Promise<BankAccount[]> {
   try {

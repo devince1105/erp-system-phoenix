@@ -129,6 +129,10 @@ export const accountingApi = {
     const res = await axiosClient.delete(`/vouchers/${id}`);
     return res.data;
   },
+  postVoucher: async (id: number) => {
+    const res = await axiosClient.post(`/vouchers/${id}/post`);
+    return res.data;
+  },
 
   // Reports
   getProfitAndLoss: async (startDate: string, endDate: string) => {

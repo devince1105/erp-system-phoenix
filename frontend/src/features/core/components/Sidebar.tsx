@@ -12,20 +12,31 @@ import {
   PackageSearch,
   BarChart3,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  FolderTree
 } from "lucide-react";
 
 export const Sidebar = () => {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const navItems = [
+  const [isAccountingOpen, setIsAccountingOpen] = useState(true);
+
+  const mainNavItems = [
     { name: "總覽 (Dashboard)", href: "/accounting", icon: LayoutDashboard },
+  ];
+
+  const accountingItems = [
     { name: "傳票管理 (Vouchers)", href: "/accounting/vouchers", icon: Landmark },
     { name: "會計科目 (Accounts)", href: "/accounting/accounts", icon: Puzzle },
     { name: "銀行帳戶 (Banks)", href: "/accounting/banks", icon: Users },
     { name: "損益表 (P&L)", href: "/accounting/reports/profit-and-loss", icon: BarChart3 },
     { name: "資產負債表 (Balance Sheet)", href: "/accounting/reports/balance-sheet", icon: BarChart3 },
+  ];
+
+  const settingsItems = [
     { name: "系統設定 (Settings)", href: "/settings", icon: Settings },
   ];
 
@@ -44,11 +55,83 @@ export const Sidebar = () => {
         {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
       </button>
 
-      <div className="flex-1 overflow-y-auto py-6 space-y-8 no-scrollbar overflow-x-hidden">
+      <div className="flex-1 overflow-y-auto py-6 space-y-6 no-scrollbar overflow-x-hidden">
         
         {/* Main Navigation */}
         <div className="space-y-0.5">
-          {navItems.map((item) => {
+          {mainNavItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`flex items-center gap-3 py-2 text-sm font-medium transition-all duration-200 relative ${
+                  isCollapsed ? 'justify-center px-0' : 'pl-5 pr-4 mx-2 rounded-md'
+                } ${
+                  isActive
+                    ? "bg-blue-50/80 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
+                    : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-gray-200/50 dark:hover:bg-slate-800/50"
+                }`}
+              >
+                {isActive && !isCollapsed && <div className="absolute left-0 top-1 bottom-1 w-[3px] bg-blue-600 dark:bg-blue-500 rounded-r" />}
+                <item.icon className={`h-5 w-5 shrink-0 ${isActive ? "text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-400"}`} />
+                {!isCollapsed && <span className="truncate">{item.name}</span>}
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Accounting Accordion */}
+        <div className="space-y-0.5">
+          {!isCollapsed && (
+            <button
+              onClick={() => setIsAccountingOpen(!isAccountingOpen)}
+              className="w-full flex items-center justify-between py-2 pl-5 pr-4 mx-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition-colors rounded-md hover:bg-gray-200/50 dark:hover:bg-slate-800/50"
+            >
+              <div className="flex items-center gap-3">
+                <FolderTree className="h-5 w-5 shrink-0 text-slate-500 dark:text-slate-400" />
+                <span className="truncate">會計系統 (Accounting)</span>
+              </div>
+              {isAccountingOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+          )}
+
+          {isCollapsed && (
+            <div className="flex justify-center py-2 text-slate-500 dark:text-slate-400" title="會計系統 (Accounting)">
+              <FolderTree className="h-5 w-5" />
+            </div>
+          )}
+
+          {(isAccountingOpen || isCollapsed) && (
+            <div className={`space-y-0.5 ${!isCollapsed ? "mt-1 mb-2 ml-4 border-l-2 border-gray-200 dark:border-slate-800" : ""}`}>
+              {accountingItems.map((item) => {
+                const isActive = pathname.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`flex items-center gap-3 py-2 text-sm font-medium transition-all duration-200 relative ${
+                      isCollapsed ? 'justify-center px-0' : 'pl-5 pr-4 mx-2 rounded-md'
+                    } ${
+                      isActive
+                        ? "bg-blue-50/80 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-gray-200/50 dark:hover:bg-slate-800/50"
+                    }`}
+                    title={isCollapsed ? item.name : undefined}
+                  >
+                    {isActive && !isCollapsed && <div className="absolute left-0 top-1 bottom-1 w-[3px] bg-blue-600 dark:bg-blue-500 rounded-r" />}
+                    <item.icon className={`h-4 w-4 shrink-0 ${isActive ? "text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-500"}`} />
+                    {!isCollapsed && <span className="truncate">{item.name}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Settings Navigation */}
+        <div className="space-y-0.5 border-t border-gray-200 dark:border-slate-800 pt-4">
+          {settingsItems.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link

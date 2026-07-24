@@ -20,12 +20,14 @@ import {
   createVoucher,
   updateVoucher,
   deleteVoucher,
+  postVoucher,
   createBankAccount,
   updateBankAccount,
   syncBankAccountApi,
   deleteBankAccount
 } from "@/features/accounting/api";
 import { BookOpen, FileSpreadsheet, Landmark, ShieldCheck, Database, RefreshCw, PlusCircle } from "lucide-react";
+import { VoucherPrintView } from "@/features/accounting/components/VoucherPrintView";
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<"vouchers" | "accountTitles" | "bankAccounts">("vouchers");
@@ -42,6 +44,7 @@ export default function DashboardPage() {
   const [isBankModalOpen, setIsBankModalOpen] = useState<boolean>(false);
   const [editingBankAccount, setEditingBankAccount] = useState<BankAccount | null>(null);
 
+  const [voucherToPrint, setVoucherToPrint] = useState<Voucher | null>(null);
   const [toastMessage, setToastMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const loadData = async () => {
@@ -120,6 +123,27 @@ export default function DashboardPage() {
     }
   };
 
+  const handlePostVoucher = async (id: number) => {
+    if (!confirm("確定要將此傳票過帳嗎？過帳後將無法修改或刪除！")) return;
+
+    const result = await postVoucher(id);
+    if (result.success) {
+      setToastMessage({ type: "success", text: "傳票已成功過帳！" });
+      await loadData();
+      setTimeout(() => setToastMessage(null), 4000);
+    } else {
+      setToastMessage({ type: "error", text: result.error || "傳票過帳失敗" });
+      setTimeout(() => setToastMessage(null), 5000);
+    }
+  };
+
+  const handlePrintVoucher = (voucher: Voucher) => {
+    setVoucherToPrint(voucher);
+    setTimeout(() => {
+      window.print();
+    }, 100);
+  };
+
   // Bank Account Handlers
   const handleOpenCreateBankModal = () => {
     setEditingBankAccount(null);
@@ -186,10 +210,11 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex flex-col text-slate-100">
+    <>
+      <div className="flex flex-col text-slate-100 print:hidden">
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Main Content Area */}
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
         {/* Toast Alert Notification */}
         {toastMessage && (
@@ -298,6 +323,8 @@ export default function DashboardPage() {
             onOpenCreateModal={handleOpenCreateModal}
             onEditVoucher={handleOpenEditModal}
             onDeleteVoucher={handleDeleteVoucher}
+            onPostVoucher={handlePostVoucher}
+            onPrintVoucher={handlePrintVoucher}
           />
         ) : activeTab === "accountTitles" ? (
           <AccountTitlesTab accountTitles={accountTitles} />
@@ -334,5 +361,11 @@ export default function DashboardPage() {
       />
 
     </div>
+    
+    {/* Hidden Print View */}
+    <div className="hidden print:block">
+      {voucherToPrint && <VoucherPrintView voucher={voucherToPrint} />}
+    </div>
+    </>
   );
 }
