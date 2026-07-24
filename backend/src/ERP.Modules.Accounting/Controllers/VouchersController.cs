@@ -74,6 +74,16 @@ public class VouchersController : ControllerBase
             return BadRequest("傳票必須包含至少一筆明細！");
         }
 
+        // 0. 檢核關帳日
+        var closedSetting = await _context.SystemSettings.FirstOrDefaultAsync(s => s.Key == "Accounting:ClosedUntilDate");
+        if (closedSetting != null && DateTime.TryParse(closedSetting.Value, out var closedDate))
+        {
+            if (dto.VoucherDate <= closedDate)
+            {
+                return BadRequest($"此傳票日期已關帳 (關帳日: {closedDate:yyyy-MM-dd})，不得新增！");
+            }
+        }
+
         // 1. 檢核借貸金額是否平衡 (Debit Total == Credit Total)
         var totalDebit = dto.Details.Where(d => d.IsDebit).Sum(d => d.Amount);
         var totalCredit = dto.Details.Where(d => !d.IsDebit).Sum(d => d.Amount);
@@ -140,6 +150,16 @@ public class VouchersController : ControllerBase
             return BadRequest("傳票必須包含至少一筆明細！");
         }
 
+        // 0. 檢核關帳日
+        var closedSetting = await _context.SystemSettings.FirstOrDefaultAsync(s => s.Key == "Accounting:ClosedUntilDate");
+        if (closedSetting != null && DateTime.TryParse(closedSetting.Value, out var closedDate))
+        {
+            if (voucher.VoucherDate <= closedDate || dto.VoucherDate <= closedDate)
+            {
+                return BadRequest($"此傳票日期已關帳 (關帳日: {closedDate:yyyy-MM-dd})，不得修改！");
+            }
+        }
+
         // 1. 檢核借貸金額平衡
         var totalDebit = dto.Details.Where(d => d.IsDebit).Sum(d => d.Amount);
         var totalCredit = dto.Details.Where(d => !d.IsDebit).Sum(d => d.Amount);
@@ -189,6 +209,16 @@ public class VouchersController : ControllerBase
         if (voucher.Status == VoucherStatus.Posted)
         {
             return BadRequest("已過帳之傳票不得刪除！");
+        }
+
+        // 0. 檢核關帳日
+        var closedSetting = await _context.SystemSettings.FirstOrDefaultAsync(s => s.Key == "Accounting:ClosedUntilDate");
+        if (closedSetting != null && DateTime.TryParse(closedSetting.Value, out var closedDate))
+        {
+            if (voucher.VoucherDate <= closedDate)
+            {
+                return BadRequest($"此傳票日期已關帳 (關帳日: {closedDate:yyyy-MM-dd})，不得刪除！");
+            }
         }
 
         _context.Vouchers.Remove(voucher);

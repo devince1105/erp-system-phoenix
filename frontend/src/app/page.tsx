@@ -40,21 +40,21 @@ export default function DashboardPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Executive Dashboard</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Real-time overview of your company's financial performance.</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">企業營運總覽</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">即時掌握公司整體財務與營運績效。</p>
         </div>
       </div>
 
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-32 bg-gray-50 dark:bg-slate-900/40 border border-gray-200 dark:border-slate-800 rounded-xl">
           <div className="h-8 w-8 rounded-full border-2 border-blue-600 dark:border-cyan-500 border-t-transparent animate-spin mb-3"></div>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Loading metrics and compiling charts...</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">載入數據與圖表中...</p>
         </div>
       ) : (
         <div className="space-y-6">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-cyan-500/10 text-blue-700 dark:text-cyan-400 text-xs font-semibold tracking-wider border border-blue-200 dark:border-cyan-500/20 shadow-sm dark:shadow-inner">
             <Activity className="h-3.5 w-3.5" />
-            <span>Live Data from Accounting Module</span>
+            <span>財務會計模組即時數據</span>
           </div>
           
           {/* Dashboard Overview Cards */}

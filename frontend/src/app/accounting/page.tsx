@@ -209,15 +209,15 @@ export default function DashboardPage() {
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Accounting Module</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage vouchers, bank accounts, and charts of accounts.</p>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">財務會計模組</h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">管理傳票、銀行帳戶與會計科目。</p>
           </div>
           <div className="flex items-center gap-3 mt-4 sm:mt-0">
             <button
               onClick={loadData}
               disabled={isRefreshing}
               className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition disabled:opacity-50"
-              title="Refresh Data"
+              title="重新整理資料"
             >
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin text-emerald-600 dark:text-emerald-400" : ""}`} />
             </button>
@@ -226,7 +226,7 @@ export default function DashboardPage() {
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition shadow-sm active:scale-[0.98]"
             >
               <PlusCircle className="h-4 w-4" />
-              <span>New Voucher</span>
+              <span>新增傳票</span>
             </button>
           </div>
         </div>

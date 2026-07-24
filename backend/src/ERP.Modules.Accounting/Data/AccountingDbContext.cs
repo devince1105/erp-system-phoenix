@@ -14,6 +14,7 @@ public class AccountingDbContext : DbContext
     public DbSet<Voucher> Vouchers => Set<Voucher>();
     public DbSet<VoucherDetail> VoucherDetails => Set<VoucherDetail>();
     public DbSet<BankAccount> BankAccounts => Set<BankAccount>();
+    public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -95,6 +96,11 @@ public class AccountingDbContext : DbContext
                 IsActive = true,
                 LastSyncedAt = DateTime.UtcNow
             }
+        );
+
+        // Seed Default System Settings
+        modelBuilder.Entity<SystemSetting>().HasData(
+            new SystemSetting { Key = "Accounting:ClosedUntilDate", Value = "2000-01-01" }
         );
     }
 }

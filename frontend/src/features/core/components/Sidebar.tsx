@@ -20,9 +20,13 @@ export const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const navItems = [
-    { name: "Dashboard", href: "/", icon: LayoutDashboard },
-    { name: "Accounting", href: "/accounting", icon: Landmark },
-    { name: "Settings", href: "/settings", icon: Settings },
+    { name: "總覽 (Dashboard)", href: "/accounting", icon: LayoutDashboard },
+    { name: "傳票管理 (Vouchers)", href: "/accounting/vouchers", icon: Landmark },
+    { name: "會計科目 (Accounts)", href: "/accounting/accounts", icon: Puzzle },
+    { name: "銀行帳戶 (Banks)", href: "/accounting/banks", icon: Users },
+    { name: "損益表 (P&L)", href: "/accounting/reports/profit-and-loss", icon: BarChart3 },
+    { name: "資產負債表 (Balance Sheet)", href: "/accounting/reports/balance-sheet", icon: BarChart3 },
+    { name: "系統設定 (Settings)", href: "/settings", icon: Settings },
   ];
 
   return (
@@ -85,27 +89,27 @@ export const Sidebar = () => {
         {!isCollapsed && (
           <div className="px-6">
             <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 truncate">
-              Active Plugins
+              已啟用模組 (Active Plugins)
             </h3>
             <div className="space-y-2">
               <div className="flex items-center justify-between px-3 py-2 rounded-md bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30">
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse shrink-0" />
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">Accounting</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">財務會計 (Accounting)</span>
                 </div>
               </div>
               
               <div className="flex items-center justify-between px-3 py-2 rounded-md border border-transparent">
                 <div className="flex items-center gap-2 opacity-50">
                   <div className="h-2 w-2 rounded-full bg-slate-400 dark:bg-slate-600 shrink-0" />
-                  <span className="text-sm text-slate-500 truncate">Human Resources</span>
+                  <span className="text-sm text-slate-500 truncate">人力資源 (HR)</span>
                 </div>
               </div>
               
               <div className="flex items-center justify-between px-3 py-2 rounded-md border border-transparent">
                 <div className="flex items-center gap-2 opacity-50">
                   <div className="h-2 w-2 rounded-full bg-slate-400 dark:bg-slate-600 shrink-0" />
-                  <span className="text-sm text-slate-500 truncate">Inventory</span>
+                  <span className="text-sm text-slate-500 truncate">進銷存 (Inventory)</span>
                 </div>
               </div>
             </div>
