@@ -31,30 +31,15 @@ export const Sidebar = () => {
 
   return (
     <aside 
-      className={`border-r border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 hidden lg:flex flex-col h-screen z-30 transition-all duration-300 relative ${
+      className={`border-r border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 hidden lg:flex flex-col h-full z-30 transition-all duration-300 relative ${
         isCollapsed ? "w-16" : "w-64"
       }`}
     >
-      {/* Brand & Logo */}
-      <div className={`h-16 flex items-center border-b border-gray-200 dark:border-slate-800 shrink-0 ${isCollapsed ? 'justify-center px-0' : 'px-6'}`}>
-        <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-md shrink-0">
-            <Puzzle className="h-5 w-5 text-white stroke-[2.5]" />
-          </div>
-          {!isCollapsed && (
-            <div className="overflow-hidden whitespace-nowrap transition-all">
-              <h1 className="text-base font-bold text-slate-900 dark:text-white tracking-wide">
-                Phoenix ERP
-              </h1>
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* Toggle Button */}
       <button 
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3.5 top-20 bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 text-slate-500 hover:text-blue-600 dark:text-slate-400 p-1 rounded-full border border-gray-200 dark:border-slate-700 z-40 transition-colors shadow-sm"
+        className="absolute -right-3.5 top-6 bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 text-slate-500 hover:text-blue-600 dark:text-slate-400 p-1 rounded-full border border-gray-200 dark:border-slate-700 z-40 transition-colors shadow-sm"
       >
         {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
       </button>
