@@ -226,4 +226,47 @@ public class VouchersController : ControllerBase
 
         return NoContent();
     }
+
+    /// <summary>
+    /// 過帳會計傳票 (Post Voucher)
+    /// </summary>
+    [HttpPost("{id}/post")]
+    public async Task<IActionResult> PostVoucher(int id)
+    {
+        var voucher = await _context.Vouchers
+            .Include(v => v.Details)
+            .FirstOrDefaultAsync(v => v.Id == id);
+
+        if (voucher == null) return NotFound($"找不到 ID 為 {id} 的傳票！");
+
+        if (voucher.Status == VoucherStatus.Posted)
+        {
+            return BadRequest("已過帳之傳票不得重複過帳！");
+        }
+
+        // 0. 檢核關帳日
+        var closedSetting = await _context.SystemSettings.FirstOrDefaultAsync(s => s.Key == "Accounting:ClosedUntilDate");
+        if (closedSetting != null && DateTime.TryParse(closedSetting.Value, out var closedDate))
+        {
+            if (voucher.VoucherDate <= closedDate)
+            {
+                return BadRequest($"此傳票日期已關帳 (關帳日: {closedDate:yyyy-MM-dd})，無法過帳！");
+            }
+        }
+
+        // 1. 檢核借貸餘額是否平衡
+        var totalDebit = voucher.Details.Where(d => d.IsDebit).Sum(d => d.Amount);
+        var totalCredit = voucher.Details.Where(d => !d.IsDebit).Sum(d => d.Amount);
+
+        if (totalDebit != totalCredit)
+        {
+            return BadRequest($"傳票借貸不平衡，無法過帳！借方總額: ${totalDebit}, 貸方總額: ${totalCredit}");
+        }
+
+        // 2. 更改狀態為已過帳
+        voucher.Status = VoucherStatus.Posted;
+        await _context.SaveChangesAsync();
+
+        return Ok(voucher);
+    }
 }

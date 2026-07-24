@@ -79,7 +79,7 @@ export default function BalanceSheetPage() {
           <button 
             onClick={handleExportExcel}
             disabled={!report}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-sm font-medium rounded-sm transition-colors disabled:opacity-50"
           >
             <Download className="w-4 h-4" />
             匯出 Excel
@@ -87,7 +87,7 @@ export default function BalanceSheetPage() {
           <button 
             onClick={handlePrint}
             disabled={!report}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-sm font-medium rounded-sm transition-colors disabled:opacity-50"
           >
             <Printer className="w-4 h-4" />
             列印 PDF
@@ -96,27 +96,27 @@ export default function BalanceSheetPage() {
       </div>
 
       {/* Toolbar (Hidden when printing) */}
-      <div className="print:hidden flex items-end gap-4 bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+      <div className="print:hidden flex items-end gap-4 bg-white dark:bg-slate-900 p-4 rounded-sm shadow-sm border border-slate-200 dark:border-slate-800">
         <div className="space-y-1.5 flex-1 max-w-[300px]">
           <label className="block text-xs font-medium text-slate-500">報表基準日 (As Of Date)</label>
           <input 
             type="date" 
             value={asOfDate}
             onChange={e => setAsOfDate(e.target.value)}
-            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:text-slate-200"
+            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:text-slate-200"
           />
         </div>
         <button 
           onClick={fetchReport}
           disabled={isLoading}
-          className="inline-flex items-center justify-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm shadow-blue-600/20 transition-all focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-sm shadow-sm shadow-blue-600/20 transition-all focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 disabled:opacity-50"
         >
           {isLoading ? '產生中...' : '產生報表'}
         </button>
       </div>
 
       {/* Report Container (Printable Area) */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm p-8 print:p-0 print:border-none print:shadow-none print:bg-white print:text-black print:font-serif">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm shadow-sm p-8 print:p-0 print:border-none print:shadow-none print:bg-white print:text-black print:font-serif">
         
         {/* Report Header */}
         <div className="text-center mb-8 border-b border-slate-200 dark:border-slate-700 pb-6 print:border-none">

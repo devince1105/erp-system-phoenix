@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { FileSpreadsheet, PlusCircle, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Scale, Pencil, Trash2 } from "lucide-react";
+import { FileSpreadsheet, PlusCircle, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Scale, Pencil, Trash2, Send, Printer, Lock } from "lucide-react";
 import { Voucher, VoucherStatus, VoucherType } from "@/features/accounting/types/accounting";
 
 interface VouchersTabProps {
@@ -9,13 +9,17 @@ interface VouchersTabProps {
   onOpenCreateModal: () => void;
   onEditVoucher: (voucher: Voucher) => void;
   onDeleteVoucher: (id: number) => void;
+  onPostVoucher: (id: number) => void;
+  onPrintVoucher: (voucher: Voucher) => void;
 }
 
 export const VouchersTab: React.FC<VouchersTabProps> = ({
   vouchers,
   onOpenCreateModal,
   onEditVoucher,
-  onDeleteVoucher
+  onDeleteVoucher,
+  onPostVoucher,
+  onPrintVoucher
 }) => {
   const [expandedVoucherId, setExpandedVoucherId] = useState<number | null>(null);
 
@@ -119,19 +123,46 @@ export const VouchersTab: React.FC<VouchersTabProps> = ({
                       <td className="py-3 px-4 text-center font-sans" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-center space-x-1">
                           <button
-                            onClick={() => onEditVoucher(v)}
-                            className="p-1 rounded text-slate-400 hover:text-blue-600 dark:hover:text-emerald-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition"
-                            title="編輯傳票"
+                            onClick={() => onPrintVoucher(v)}
+                            className="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition"
+                            title="列印傳票"
                           >
-                            <Pencil className="h-3.5 w-3.5" />
+                            <Printer className="h-3.5 w-3.5" />
                           </button>
-                          <button
-                            onClick={() => onDeleteVoucher(v.id)}
-                            className="p-1 rounded text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition"
-                            title="刪除傳票"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
+                          
+                          {v.status === VoucherStatus.Draft ? (
+                            <>
+                              <button
+                                onClick={() => onPostVoucher(v.id)}
+                                className="p-1 rounded text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition"
+                                title="過帳傳票"
+                              >
+                                <Send className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                onClick={() => onEditVoucher(v)}
+                                className="p-1 rounded text-slate-400 hover:text-blue-600 dark:hover:text-emerald-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition"
+                                title="編輯傳票"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                onClick={() => onDeleteVoucher(v.id)}
+                                className="p-1 rounded text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition"
+                                title="刪除傳票"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              disabled
+                              className="p-1 rounded text-slate-300 dark:text-slate-600 cursor-not-allowed"
+                              title="已過帳鎖定"
+                            >
+                              <Lock className="h-3.5 w-3.5" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
