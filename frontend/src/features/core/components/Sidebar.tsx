@@ -11,6 +11,7 @@ import {
   Users,
   PackageSearch,
   BarChart3,
+  TrendingUp,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
@@ -23,6 +24,7 @@ export const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const [isAccountingOpen, setIsAccountingOpen] = useState(true);
+  const [isInventoryOpen, setIsInventoryOpen] = useState(true);
 
   const mainNavItems = [
     { name: "總覽 (Dashboard)", href: "/accounting", icon: LayoutDashboard },
@@ -34,6 +36,14 @@ export const Sidebar = () => {
     { name: "銀行帳戶 (Banks)", href: "/accounting/banks", icon: Users },
     { name: "損益表 (P&L)", href: "/accounting/reports/profit-and-loss", icon: BarChart3 },
     { name: "資產負債表 (Balance Sheet)", href: "/accounting/reports/balance-sheet", icon: BarChart3 },
+  ];
+
+  const inventoryItems = [
+    { name: "進銷存總覽 (Dashboard)", href: "/inventory", icon: LayoutDashboard },
+    { name: "商品管理 (Products)", href: "/inventory/products", icon: PackageSearch },
+    { name: "客戶與廠商 (Partners)", href: "/inventory/partners", icon: Users },
+    { name: "銷貨管理 (Sales)", href: "/inventory/sales", icon: TrendingUp },
+    { name: "採購管理 (Purchases)", href: "/inventory/purchases", icon: FolderTree },
   ];
 
   const settingsItems = [
@@ -129,6 +139,54 @@ export const Sidebar = () => {
           )}
         </div>
 
+        {/* Inventory Accordion */}
+        <div className="space-y-0.5 mt-4">
+          {!isCollapsed && (
+            <button
+              onClick={() => setIsInventoryOpen(!isInventoryOpen)}
+              className="w-full flex items-center justify-between py-2 pl-5 pr-4 mx-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition-colors rounded-md hover:bg-gray-200/50 dark:hover:bg-slate-800/50"
+            >
+              <div className="flex items-center gap-3">
+                <PackageSearch className="h-5 w-5 shrink-0 text-slate-500 dark:text-slate-400" />
+                <span className="truncate">進銷存系統 (Inventory)</span>
+              </div>
+              {isInventoryOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+          )}
+
+          {isCollapsed && (
+            <div className="flex justify-center py-2 text-slate-500 dark:text-slate-400" title="進銷存系統 (Inventory)">
+              <PackageSearch className="h-5 w-5" />
+            </div>
+          )}
+
+          {(isInventoryOpen || isCollapsed) && (
+            <div className={`space-y-0.5 ${!isCollapsed ? "mt-1 mb-2 ml-4 border-l-2 border-gray-200 dark:border-slate-800" : ""}`}>
+              {inventoryItems.map((item) => {
+                const isActive = pathname === item.href || (item.href !== "/inventory" && pathname.startsWith(item.href));
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`flex items-center gap-3 py-2 text-sm font-medium transition-all duration-200 relative ${
+                      isCollapsed ? 'justify-center px-0' : 'pl-5 pr-4 mx-2 rounded-md'
+                    } ${
+                      isActive
+                        ? "bg-blue-50/80 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-gray-200/50 dark:hover:bg-slate-800/50"
+                    }`}
+                    title={isCollapsed ? item.name : undefined}
+                  >
+                    {isActive && !isCollapsed && <div className="absolute left-0 top-1 bottom-1 w-[3px] bg-blue-600 dark:bg-blue-500 rounded-r" />}
+                    <item.icon className={`h-4 w-4 shrink-0 ${isActive ? "text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-500"}`} />
+                    {!isCollapsed && <span className="truncate">{item.name}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
         {/* Settings Navigation */}
         <div className="space-y-0.5 border-t border-gray-200 dark:border-slate-800 pt-4">
           {settingsItems.map((item) => {
@@ -174,10 +232,10 @@ export const Sidebar = () => {
                 </div>
               </div>
               
-              <div className="flex items-center justify-between px-3 py-2 rounded-md border border-transparent">
-                <div className="flex items-center gap-2 opacity-50">
-                  <div className="h-2 w-2 rounded-full bg-slate-400 dark:bg-slate-600 shrink-0" />
-                  <span className="text-sm text-slate-500 truncate">進銷存 (Inventory)</span>
+              <div className="flex items-center justify-between px-3 py-2 rounded-md bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30">
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">進銷存 (Inventory)</span>
                 </div>
               </div>
             </div>

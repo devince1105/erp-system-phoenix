@@ -2,6 +2,8 @@ using ERP.Modules.Identity;
 using ERP.Modules.Identity.Data;
 using ERP.Modules.Accounting;
 using ERP.Modules.Accounting.Data;
+using ERP.Modules.Inventory;
+using ERP.Modules.Inventory.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -52,6 +54,7 @@ builder.Services.AddAuthentication(options =>
 // 2. Load Modular Plugins
 builder.Services.AddAccountingModule(builder.Configuration);
 builder.Services.AddIdentityModule(builder.Configuration);
+builder.Services.AddInventoryModule(builder.Configuration);
 
 // 3. Configure OpenAPI
 builder.Services.AddOpenApi();
@@ -79,6 +82,10 @@ using (var scope = app.Services.CreateScope())
     // Migrate Accounting Module Database
     var accountingDb = scope.ServiceProvider.GetRequiredService<AccountingDbContext>();
     accountingDb.Database.Migrate();
+    
+    // Migrate Inventory Module Database
+    var inventoryDb = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
+    inventoryDb.Database.Migrate();
 }
 
 app.Run();

@@ -2,14 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import {
+import { 
   Voucher,
   ProfitAndLossReport,
-  BalanceSheetReport
-} from "@/features/accounting/types/accounting";
-import {
-  fetchVouchers
-} from "@/features/accounting/api";
+  BalanceSheetReport 
+} from "@/features/accounting/api/accountingApi";
 import { accountingApi } from "@/features/accounting/api/accountingApi";
 import { 
   FileText, 
@@ -32,7 +29,7 @@ export default function AccountingDashboardPage() {
     const loadDashboardData = async () => {
       try {
         // 1. Fetch recent vouchers
-        const vouchersData = await fetchVouchers();
+        const vouchersData = await accountingApi.getVouchers();
         // Sort by date descending and take top 5
         const sortedVouchers = [...vouchersData].sort((a, b) => 
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
