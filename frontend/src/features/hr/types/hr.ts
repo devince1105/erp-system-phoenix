@@ -40,10 +40,6 @@ export interface Employee {
   id: number;
   name: string;
   email: string;
-  departmentId?: number;
-  department?: Department;
-  jobTitle?: string;
-  hireDate: string;
   status: EmployeeStatus;
 
   // --- Personal & Contact Info ---
@@ -56,10 +52,72 @@ export interface Employee {
   bloodType?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
+  departmentId?: number;
+  department?: Department;
+  jobTitle: string;
+  baseSalary: number;
+  hireDate: string;
 
   createdAt: string;
   updatedAt?: string;
   educations?: Education[];
   experiences?: Experience[];
   jobHistories?: JobHistory[];
+}
+
+export interface AttendanceRecord {
+  id: number;
+  employeeId: number;
+  employee?: Employee;
+  date: string;
+  checkInTime: string | null;
+  breakOutTime: string | null;
+  breakInTime: string | null;
+  checkOutTime: string | null;
+  status: string; // Present, Absent, Late, Leave
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface LeaveRequest {
+  id: number;
+  employeeId: number;
+  employee?: Employee;
+  leaveType: string; // Annual, Sick, Personal, Official
+  startDate: string;
+  endDate: string;
+  reason: string;
+  status: string; // Pending, Approved, Rejected
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface OvertimeRequest {
+  id: number;
+  employeeId: number;
+  employee?: Employee;
+  date: string;
+  hours: number;
+  reason: string;
+  status: string; // Pending, Approved, Rejected
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+
+
+export interface PayrollRecord {
+  id: number;
+  employeeId: number;
+  employee?: Employee;
+  year: number;
+  month: number;
+  baseSalary: number;
+  bonus: number;
+  deductions: number;
+  netSalary: number;
+  paymentDate?: string;
+  status: string; // Draft, Processed, Paid
+  createdAt?: string;
+  updatedAt?: string;
 }
