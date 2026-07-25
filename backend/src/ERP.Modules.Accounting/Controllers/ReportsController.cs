@@ -32,42 +32,45 @@ public class ReportsController : ControllerBase
             .Where(v => v.VoucherDate >= start && v.VoucherDate <= end && v.Status != VoucherStatus.Draft)
             .ToListAsync();
 
-        var revenues = new Dictionary<string, decimal>();
-        var expenses = new Dictionary<string, decimal>();
+        var revenues = new Dictionary<int, (string Code, string Title, decimal Amount)>();
+        var expenses = new Dictionary<int, (string Code, string Title, decimal Amount)>();
 
         foreach (var v in vouchers)
         {
             foreach (var d in v.Details)
             {
                 if (d.AccountTitle == null) continue;
+                var accId = d.AccountTitle.Id;
 
                 if (d.AccountTitle.Category == AccountCategory.Revenue)
                 {
                     // 貸方為增加收入，借方為減少收入
                     var netAmount = d.IsDebit ? -d.Amount : d.Amount;
-                    if (!revenues.ContainsKey(d.AccountTitle.Name)) revenues[d.AccountTitle.Name] = 0;
-                    revenues[d.AccountTitle.Name] += netAmount;
+                    if (!revenues.ContainsKey(accId)) revenues[accId] = (d.AccountTitle.Code, d.AccountTitle.Name, 0);
+                    var entry = revenues[accId];
+                    revenues[accId] = (entry.Code, entry.Title, entry.Amount + netAmount);
                 }
                 else if (d.AccountTitle.Category == AccountCategory.Expense)
                 {
                     // 借方為增加費用，貸方為減少費用
                     var netAmount = d.IsDebit ? d.Amount : -d.Amount;
-                    if (!expenses.ContainsKey(d.AccountTitle.Name)) expenses[d.AccountTitle.Name] = 0;
-                    expenses[d.AccountTitle.Name] += netAmount;
+                    if (!expenses.ContainsKey(accId)) expenses[accId] = (d.AccountTitle.Code, d.AccountTitle.Name, 0);
+                    var entry = expenses[accId];
+                    expenses[accId] = (entry.Code, entry.Title, entry.Amount + netAmount);
                 }
             }
         }
 
-        var totalRevenue = revenues.Values.Sum();
-        var totalExpense = expenses.Values.Sum();
+        var totalRevenue = revenues.Values.Sum(x => x.Amount);
+        var totalExpense = expenses.Values.Sum(x => x.Amount);
         var netProfit = totalRevenue - totalExpense;
 
         return Ok(new
         {
             StartDate = start.ToString("yyyy-MM-dd"),
             EndDate = end.ToString("yyyy-MM-dd"),
-            Revenues = revenues.Select(kvp => new { Title = kvp.Key, Amount = kvp.Value }).ToList(),
-            Expenses = expenses.Select(kvp => new { Title = kvp.Key, Amount = kvp.Value }).ToList(),
+            Revenues = revenues.Values.Select(v => new { Code = v.Code, Title = v.Title, Amount = v.Amount }).OrderBy(x => x.Code).ToList(),
+            Expenses = expenses.Values.Select(v => new { Code = v.Code, Title = v.Title, Amount = v.Amount }).OrderBy(x => x.Code).ToList(),
             TotalRevenue = totalRevenue,
             TotalExpense = totalExpense,
             NetProfit = netProfit
@@ -89,9 +92,9 @@ public class ReportsController : ControllerBase
             .Where(v => v.VoucherDate <= date && v.Status != VoucherStatus.Draft)
             .ToListAsync();
 
-        var assets = new Dictionary<string, decimal>();
-        var liabilities = new Dictionary<string, decimal>();
-        var equity = new Dictionary<string, decimal>();
+        var assets = new Dictionary<int, (string Code, string Title, decimal Amount)>();
+        var liabilities = new Dictionary<int, (string Code, string Title, decimal Amount)>();
+        var equity = new Dictionary<int, (string Code, string Title, decimal Amount)>();
 
         decimal currentYearNetProfit = 0; // Simplified handling for retained earnings calculation
 
@@ -100,27 +103,31 @@ public class ReportsController : ControllerBase
             foreach (var d in v.Details)
             {
                 if (d.AccountTitle == null) continue;
+                var accId = d.AccountTitle.Id;
 
                 if (d.AccountTitle.Category == AccountCategory.Asset)
                 {
                     // 借方增加，貸方減少
                     var netAmount = d.IsDebit ? d.Amount : -d.Amount;
-                    if (!assets.ContainsKey(d.AccountTitle.Name)) assets[d.AccountTitle.Name] = 0;
-                    assets[d.AccountTitle.Name] += netAmount;
+                    if (!assets.ContainsKey(accId)) assets[accId] = (d.AccountTitle.Code, d.AccountTitle.Name, 0);
+                    var entry = assets[accId];
+                    assets[accId] = (entry.Code, entry.Title, entry.Amount + netAmount);
                 }
                 else if (d.AccountTitle.Category == AccountCategory.Liability)
                 {
                     // 貸方增加，借方減少
                     var netAmount = d.IsDebit ? -d.Amount : d.Amount;
-                    if (!liabilities.ContainsKey(d.AccountTitle.Name)) liabilities[d.AccountTitle.Name] = 0;
-                    liabilities[d.AccountTitle.Name] += netAmount;
+                    if (!liabilities.ContainsKey(accId)) liabilities[accId] = (d.AccountTitle.Code, d.AccountTitle.Name, 0);
+                    var entry = liabilities[accId];
+                    liabilities[accId] = (entry.Code, entry.Title, entry.Amount + netAmount);
                 }
                 else if (d.AccountTitle.Category == AccountCategory.Equity)
                 {
                     // 貸方增加，借方減少
                     var netAmount = d.IsDebit ? -d.Amount : d.Amount;
-                    if (!equity.ContainsKey(d.AccountTitle.Name)) equity[d.AccountTitle.Name] = 0;
-                    equity[d.AccountTitle.Name] += netAmount;
+                    if (!equity.ContainsKey(accId)) equity[accId] = (d.AccountTitle.Code, d.AccountTitle.Name, 0);
+                    var entry = equity[accId];
+                    equity[accId] = (entry.Code, entry.Title, entry.Amount + netAmount);
                 }
                 else if (d.AccountTitle.Category == AccountCategory.Revenue)
                 {
@@ -136,20 +143,19 @@ public class ReportsController : ControllerBase
         // Add net profit to equity automatically (Retained Earnings)
         if (currentYearNetProfit != 0)
         {
-            if (!equity.ContainsKey("本期淨利 (自動結算)")) equity["本期淨利 (自動結算)"] = 0;
-            equity["本期淨利 (自動結算)"] += currentYearNetProfit;
+            equity[-1] = ("3301", "本期淨利 (自動結算)", currentYearNetProfit);
         }
 
-        var totalAssets = assets.Values.Sum();
-        var totalLiabilities = liabilities.Values.Sum();
-        var totalEquity = equity.Values.Sum();
+        var totalAssets = assets.Values.Sum(x => x.Amount);
+        var totalLiabilities = liabilities.Values.Sum(x => x.Amount);
+        var totalEquity = equity.Values.Sum(x => x.Amount);
 
         return Ok(new
         {
             AsOfDate = date.ToString("yyyy-MM-dd"),
-            Assets = assets.Select(kvp => new { Title = kvp.Key, Amount = kvp.Value }).ToList(),
-            Liabilities = liabilities.Select(kvp => new { Title = kvp.Key, Amount = kvp.Value }).ToList(),
-            Equity = equity.Select(kvp => new { Title = kvp.Key, Amount = kvp.Value }).ToList(),
+            Assets = assets.Values.Select(v => new { Code = v.Code, Title = v.Title, Amount = v.Amount }).OrderBy(x => x.Code).ToList(),
+            Liabilities = liabilities.Values.Select(v => new { Code = v.Code, Title = v.Title, Amount = v.Amount }).OrderBy(x => x.Code).ToList(),
+            Equity = equity.Values.Select(v => new { Code = v.Code, Title = v.Title, Amount = v.Amount }).OrderBy(x => x.Code).ToList(),
             TotalAssets = totalAssets,
             TotalLiabilities = totalLiabilities,
             TotalEquity = totalEquity,

@@ -54,6 +54,7 @@ public class ProductsController : ControllerBase
 
         existing.Name = product.Name;
         existing.Sku = product.Sku;
+        existing.SerialNumber = product.SerialNumber;
         existing.Description = product.Description;
         existing.UnitPrice = product.UnitPrice;
         existing.CostPrice = product.CostPrice;

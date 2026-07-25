@@ -27,10 +27,11 @@ export const Sidebar = () => {
   const [isInventoryOpen, setIsInventoryOpen] = useState(true);
 
   const mainNavItems = [
-    { name: "總覽 (Dashboard)", href: "/accounting", icon: LayoutDashboard },
+    { name: "企業總覽 (Dashboard)", href: "/", icon: LayoutDashboard },
   ];
 
   const accountingItems = [
+    { name: "會計總覽 (Overview)", href: "/accounting", icon: LayoutDashboard },
     { name: "傳票管理 (Vouchers)", href: "/accounting/vouchers", icon: Landmark },
     { name: "會計科目 (Accounts)", href: "/accounting/accounts", icon: Puzzle },
     { name: "銀行帳戶 (Banks)", href: "/accounting/banks", icon: Users },
@@ -115,7 +116,7 @@ export const Sidebar = () => {
           {(isAccountingOpen || isCollapsed) && (
             <div className={`space-y-0.5 ${!isCollapsed ? "mt-1 mb-2 ml-4 border-l-2 border-gray-200 dark:border-slate-800" : ""}`}>
               {accountingItems.map((item) => {
-                const isActive = pathname.startsWith(item.href);
+                const isActive = pathname === item.href || (item.href !== "/accounting" && pathname.startsWith(item.href));
                 return (
                   <Link
                     key={item.name}
