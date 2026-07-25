@@ -24,16 +24,21 @@ export const inventoryApi = {
   getPartners: (type?: number) => fetchApi<Partner[]>(type ? `/Partners?type=${type}` : "/Partners"),
   createPartner: (data: Partial<Partner>) => fetchApi<Partner>("/Partners", { method: "POST", body: JSON.stringify(data) }),
   updatePartner: (id: number, data: Partial<Partner>) => fetchApi<void>(`/Partners/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  deletePartner: (id: number) => fetchApi<void>(`/Partners/${id}`, { method: "DELETE" }),
 
   // Sales Orders
   getSalesOrders: () => fetchApi<SalesOrder[]>("/SalesOrders"),
   getSalesOrder: (id: number) => fetchApi<SalesOrder>(`/SalesOrders/${id}`),
   createSalesOrder: (data: Partial<SalesOrder>) => fetchApi<SalesOrder>("/SalesOrders", { method: "POST", body: JSON.stringify(data) }),
+  updateSalesOrder: (id: number, data: Partial<SalesOrder>) => fetchApi<void>(`/SalesOrders/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  deleteSalesOrder: (id: number) => fetchApi<void>(`/SalesOrders/${id}`, { method: "DELETE" }),
   confirmSalesOrder: (id: number) => fetchApi<SalesOrder>(`/SalesOrders/${id}/confirm`, { method: "POST" }),
 
   // Purchase Orders
   getPurchaseOrders: () => fetchApi<PurchaseOrder[]>("/PurchaseOrders"),
   getPurchaseOrder: (id: number) => fetchApi<PurchaseOrder>(`/PurchaseOrders/${id}`),
   createPurchaseOrder: (data: Partial<PurchaseOrder>) => fetchApi<PurchaseOrder>("/PurchaseOrders", { method: "POST", body: JSON.stringify(data) }),
+  updatePurchaseOrder: (id: number, data: Partial<PurchaseOrder>) => fetchApi<void>(`/PurchaseOrders/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  deletePurchaseOrder: (id: number) => fetchApi<void>(`/PurchaseOrders/${id}`, { method: "DELETE" }),
   confirmPurchaseOrder: (id: number) => fetchApi<PurchaseOrder>(`/PurchaseOrders/${id}/confirm`, { method: "POST" }),
 };

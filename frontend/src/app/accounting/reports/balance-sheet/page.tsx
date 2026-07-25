@@ -64,9 +64,65 @@ export default function BalanceSheetPage() {
     XLSX.writeFile(wb, `資產負債表_${asOfDate}.xlsx`);
   };
 
+  const currentAssets = report?.assets.filter(a => a.code && /^(11|12|13)/.test(a.code)) || [];
+  const nonCurrentAssets = report?.assets.filter(a => a.code && /^(14|15|16|17|18|19)/.test(a.code)) || [];
+  
+  const currentLiabilities = report?.liabilities.filter(l => l.code && /^(21|22|23)/.test(l.code)) || [];
+  const nonCurrentLiabilities = report?.liabilities.filter(l => l.code && /^(24|25|26|27|28|29)/.test(l.code)) || [];
+
+  const sum = (items: {amount: number}[]) => items.reduce((acc, curr) => acc + curr.amount, 0);
+
+  const renderPrintSection = (title: string, items: typeof report.assets) => {
+    if (!items || items.length === 0) return null;
+    const total = sum(items);
+    return (
+      <>
+        <tr>
+          <td colSpan={2} className="py-1.5 text-black font-bold pt-4">{title}</td>
+        </tr>
+        {items.map((item, idx) => (
+          <tr key={idx}>
+            <td className="py-1 text-black pl-6">{item.title}</td>
+            <td className="py-1 text-right font-mono text-black">{item.amount.toLocaleString()}</td>
+          </tr>
+        ))}
+        <tr>
+          <td className="py-2 text-black pl-6">{title}合計</td>
+          <td className="py-2 text-right font-mono text-black border-t border-black">
+            {total.toLocaleString()}
+          </td>
+        </tr>
+      </>
+    );
+  };
+
+  const renderWebSection = (title: string, items: typeof report.assets) => {
+    if (!items || items.length === 0) return null;
+    const total = sum(items);
+    return (
+      <>
+        <tr>
+          <td colSpan={2} className="py-3 font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/30 pl-2">{title}</td>
+        </tr>
+        {items.map((item, idx) => (
+          <tr key={idx} className="border-b border-slate-100 dark:border-slate-800/50">
+            <td className="py-2 text-slate-600 dark:text-slate-400 pl-8">{item.title}</td>
+            <td className="py-2 text-right font-mono text-slate-700 dark:text-slate-300 pr-4">{item.amount.toLocaleString()}</td>
+          </tr>
+        ))}
+        <tr>
+          <td className="py-3 text-slate-700 dark:text-slate-300 pl-8 font-medium border-b border-slate-200 dark:border-slate-700">{title}合計</td>
+          <td className="py-3 text-right font-mono font-medium text-slate-900 dark:text-slate-100 pr-4 border-b border-slate-200 dark:border-slate-700">
+            {total.toLocaleString()}
+          </td>
+        </tr>
+      </>
+    );
+  };
+
   return (
     <>
-      <div className="p-6 max-w-5xl mx-auto space-y-6 print:hidden">
+      <div className="p-6 max-w-6xl mx-auto space-y-6 print:hidden">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -131,21 +187,15 @@ export default function BalanceSheetPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-12">
               {/* Left Column: Assets */}
               <div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 pb-2 border-b-2 border-slate-800 dark:border-slate-300">資產 (Assets)</h3>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 pb-2 border-b-2 border-slate-800 dark:border-slate-300">資產</h3>
                 <table className="w-full text-sm">
                   <tbody>
-                    {report.assets.map((item, idx) => (
-                      <tr key={idx} className="border-b border-slate-100 dark:border-slate-800/50">
-                        <td className="py-2.5 text-slate-700 dark:text-slate-300">{item.title}</td>
-                        <td className="py-2.5 pr-4 text-right font-mono text-slate-700 dark:text-slate-300">
-                          {item.amount.toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                        </td>
-                      </tr>
-                    ))}
-                    <tr className="bg-slate-50 dark:bg-slate-800/30">
-                      <td className="py-3 font-semibold text-slate-900 dark:text-white">資產總計</td>
-                      <td className="py-3 pr-4 text-right font-bold font-mono text-slate-900 dark:text-white text-base">
-                        {report.totalAssets.toLocaleString(undefined, { minimumFractionDigits: 0 })}
+                    {renderWebSection('流動資產', currentAssets)}
+                    {renderWebSection('非流動資產', nonCurrentAssets)}
+                    <tr>
+                      <td className="py-4 font-bold text-slate-900 dark:text-white text-base">資產總計</td>
+                      <td className="py-4 pr-4 text-right font-bold font-mono text-emerald-600 dark:text-emerald-400 text-lg border-b-4 border-double border-emerald-200 dark:border-emerald-900/50">
+                        {report.totalAssets.toLocaleString()}
                       </td>
                     </tr>
                   </tbody>
@@ -153,65 +203,36 @@ export default function BalanceSheetPage() {
               </div>
 
               {/* Right Column: Liabilities & Equity */}
-              <div className="space-y-12">
-                {/* Liabilities */}
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 pb-2 border-b-2 border-slate-800 dark:border-slate-300">負債 (Liabilities)</h3>
-                  <table className="w-full text-sm">
-                    <tbody>
-                      {report.liabilities.map((item, idx) => (
-                        <tr key={idx} className="border-b border-slate-100 dark:border-slate-800/50">
-                          <td className="py-2.5 text-slate-700 dark:text-slate-300">{item.title}</td>
-                          <td className="py-2.5 pr-4 text-right font-mono text-slate-700 dark:text-slate-300">
-                            {item.amount.toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                          </td>
-                        </tr>
-                      ))}
-                      <tr className="bg-slate-50 dark:bg-slate-800/30">
-                        <td className="py-3 font-semibold text-slate-900 dark:text-white">負債總計</td>
-                        <td className="py-3 pr-4 text-right font-bold font-mono text-slate-900 dark:text-white text-base">
-                          {report.totalLiabilities.toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Equity */}
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 pb-2 border-b-2 border-slate-800 dark:border-slate-300">權益 (Equity)</h3>
-                  <table className="w-full text-sm">
-                    <tbody>
-                      {report.equity.map((item, idx) => (
-                        <tr key={idx} className="border-b border-slate-100 dark:border-slate-800/50">
-                          <td className="py-2.5 text-slate-700 dark:text-slate-300">{item.title}</td>
-                          <td className="py-2.5 pr-4 text-right font-mono text-slate-700 dark:text-slate-300">
-                            {item.amount.toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                          </td>
-                        </tr>
-                      ))}
-                      <tr className="bg-slate-50 dark:bg-slate-800/30">
-                        <td className="py-3 font-semibold text-slate-900 dark:text-white">權益總計</td>
-                        <td className="py-3 pr-4 text-right font-bold font-mono text-slate-900 dark:text-white text-base">
-                          {report.totalEquity.toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                
-                {/* Total Liabilities & Equity */}
-                <div className="bg-blue-50/50 dark:bg-blue-900/10 rounded-sm p-4 flex items-center justify-between border border-blue-100 dark:border-blue-800/50">
-                  <span className="font-bold text-slate-900 dark:text-white text-base">負債及權益總計</span>
-                  <span className="font-bold font-mono text-xl text-blue-600 dark:text-blue-400">
-                    ${report.totalLiabilitiesAndEquity.toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                  </span>
-                </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 pb-2 border-b-2 border-slate-800 dark:border-slate-300">負債及權益</h3>
+                <table className="w-full text-sm">
+                  <tbody>
+                    {renderWebSection('流動負債', currentLiabilities)}
+                    {renderWebSection('非流動負債', nonCurrentLiabilities)}
+                    <tr>
+                      <td className="py-3 font-semibold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800/30 pl-2">負債總計</td>
+                      <td className="py-3 pr-4 text-right font-bold font-mono text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800/30">
+                        {report.totalLiabilities.toLocaleString()}
+                      </td>
+                    </tr>
+                    
+                    <tr><td colSpan={2} className="py-2"></td></tr>
+                    
+                    {renderWebSection('權益', report.equity)}
+                    
+                    <tr>
+                      <td className="py-4 font-bold text-slate-900 dark:text-white text-base">負債及權益總計</td>
+                      <td className="py-4 pr-4 text-right font-bold font-mono text-blue-600 dark:text-blue-400 text-lg border-b-4 border-double border-blue-200 dark:border-blue-900/50">
+                        {report.totalLiabilitiesAndEquity.toLocaleString()}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
               
               {/* Balance Check */}
-              <div className="lg:col-span-2 pt-6 mt-6 border-t-4 double border-slate-300 dark:border-slate-600">
-                <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800 px-6 py-4 rounded-sm">
+              <div className="lg:col-span-2 mt-2">
+                <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800 px-6 py-4 rounded-sm border border-slate-200 dark:border-slate-700">
                   <span className="font-semibold text-slate-700 dark:text-slate-300">試算平衡檢查</span>
                   <span className={`font-bold ${report.totalAssets === report.totalLiabilitiesAndEquity ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                     {report.totalAssets === report.totalLiabilitiesAndEquity ? '借貸平衡 (Balanced)' : '不平衡 (Unbalanced)'}
@@ -228,31 +249,26 @@ export default function BalanceSheetPage() {
         </div>
       </div>
 
-      {/* Print View */}
+      {/* Print View (Word Style) */}
       {report && (
         <ReportPrintView 
           title="資產負債表" 
           companyName={companyName} 
-          dateString={`基準日：${asOfDate}`}
+          dateString={`中華民國 ${new Date(asOfDate).getFullYear() - 1911} 年 ${new Date(asOfDate).getMonth() + 1} 月 ${new Date(asOfDate).getDate()} 日`}
         >
-          <div className="grid grid-cols-2 gap-x-8 gap-y-8 w-full">
+          <div className="grid grid-cols-2 gap-x-12 w-full text-[13px] leading-tight">
             {/* Left Column: Assets */}
             <div>
-              <h3 className="text-lg font-bold text-black mb-4 pb-2 border-b-2 border-black">資產 (Assets)</h3>
-              <table className="w-full text-base border-collapse [&_td]:border [&_td]:border-black [&_td]:px-3 [&_td]:py-2">
+              <h3 className="font-bold text-black mb-2 text-center text-base border-b border-black pb-1">資產</h3>
+              <table className="w-full border-collapse">
                 <tbody>
-                  {report.assets.map((item, idx) => (
-                    <tr key={idx}>
-                      <td className="py-2.5 text-black">{item.title}</td>
-                      <td className="py-2.5 pr-4 text-right font-mono text-black">
-                        {item.amount.toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                      </td>
-                    </tr>
-                  ))}
-                  <tr className="bg-gray-100">
-                    <td className="py-3 font-bold text-black">資產總計</td>
-                    <td className="py-3 pr-4 text-right font-bold font-mono text-black text-lg">
-                      {report.totalAssets.toLocaleString(undefined, { minimumFractionDigits: 0 })}
+                  {renderPrintSection('流動資產', currentAssets)}
+                  {renderPrintSection('非流動資產', nonCurrentAssets)}
+                  <tr><td colSpan={2} className="py-2"></td></tr>
+                  <tr>
+                    <td className="py-2 font-bold text-black text-sm">資產總計</td>
+                    <td className="py-2 text-right font-bold font-mono text-black text-sm border-t border-b-4 border-double border-black">
+                      ${report.totalAssets.toLocaleString()}
                     </td>
                   </tr>
                 </tbody>
@@ -260,72 +276,36 @@ export default function BalanceSheetPage() {
             </div>
 
             {/* Right Column: Liabilities & Equity */}
-            <div className="space-y-8">
-              {/* Liabilities */}
-              <div>
-                <h3 className="text-lg font-bold text-black mb-4 pb-2 border-b-2 border-black">負債 (Liabilities)</h3>
-                <table className="w-full text-base border-collapse [&_td]:border [&_td]:border-black [&_td]:px-3 [&_td]:py-2">
-                  <tbody>
-                    {report.liabilities.map((item, idx) => (
-                      <tr key={idx}>
-                        <td className="py-2.5 text-black">{item.title}</td>
-                        <td className="py-2.5 pr-4 text-right font-mono text-black">
-                          {item.amount.toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                        </td>
-                      </tr>
-                    ))}
-                    <tr className="bg-gray-100">
-                      <td className="py-3 font-bold text-black">負債總計</td>
-                      <td className="py-3 pr-4 text-right font-bold font-mono text-black text-lg">
-                        {report.totalLiabilities.toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Equity */}
-              <div>
-                <h3 className="text-lg font-bold text-black mb-4 pb-2 border-b-2 border-black">權益 (Equity)</h3>
-                <table className="w-full text-base border-collapse [&_td]:border [&_td]:border-black [&_td]:px-3 [&_td]:py-2">
-                  <tbody>
-                    {report.equity.map((item, idx) => (
-                      <tr key={idx}>
-                        <td className="py-2.5 text-black">{item.title}</td>
-                        <td className="py-2.5 pr-4 text-right font-mono text-black">
-                          {item.amount.toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                        </td>
-                      </tr>
-                    ))}
-                    <tr className="bg-gray-100">
-                      <td className="py-3 font-bold text-black">權益總計</td>
-                      <td className="py-3 pr-4 text-right font-bold font-mono text-black text-lg">
-                        {report.totalEquity.toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              
-              {/* Total Liabilities & Equity */}
-              <div className="bg-gray-200 border-2 border-black p-4 flex items-center justify-between">
-                <span className="font-bold text-black text-lg">負債及權益總計</span>
-                <span className="font-bold font-mono text-xl text-black">
-                  ${report.totalLiabilitiesAndEquity.toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                </span>
-              </div>
+            <div>
+              <h3 className="font-bold text-black mb-2 text-center text-base border-b border-black pb-1">負債及權益</h3>
+              <table className="w-full border-collapse">
+                <tbody>
+                  {renderPrintSection('流動負債', currentLiabilities)}
+                  {renderPrintSection('非流動負債', nonCurrentLiabilities)}
+                  
+                  <tr><td colSpan={2} className="py-1"></td></tr>
+                  <tr>
+                    <td className="py-1.5 font-bold text-black">負債總計</td>
+                    <td className="py-1.5 text-right font-bold font-mono text-black border-t border-black">
+                      {report.totalLiabilities.toLocaleString()}
+                    </td>
+                  </tr>
+                  
+                  <tr><td colSpan={2} className="py-2"></td></tr>
+                  
+                  {renderPrintSection('權益', report.equity)}
+                  
+                  <tr><td colSpan={2} className="py-2"></td></tr>
+                  <tr>
+                    <td className="py-2 font-bold text-black text-sm">負債及權益總計</td>
+                    <td className="py-2 text-right font-bold font-mono text-black text-sm border-t border-b-4 border-double border-black">
+                      ${report.totalLiabilitiesAndEquity.toLocaleString()}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
             
-            {/* Balance Check */}
-            <div className="col-span-2 pt-6 mt-2 border-t-2 border-black">
-              <div className="flex justify-between items-center border border-black px-6 py-4">
-                <span className="font-bold text-black">試算平衡檢查</span>
-                <span className={`font-bold text-black`}>
-                  {report.totalAssets === report.totalLiabilitiesAndEquity ? '借貸平衡 (Balanced)' : '不平衡 (Unbalanced)'}
-                </span>
-              </div>
-            </div>
-
           </div>
         </ReportPrintView>
       )}

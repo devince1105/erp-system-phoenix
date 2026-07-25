@@ -64,6 +64,7 @@ export interface CreateVoucherDto {
 }
 
 export interface ReportItem {
+  code?: string;
   title: string;
   amount: number;
 }

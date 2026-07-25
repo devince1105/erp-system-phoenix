@@ -66,9 +66,79 @@ export default function ProfitAndLossPage() {
     XLSX.writeFile(wb, `損益表_${startDate}_${endDate}.xlsx`);
   };
 
+  const opRevenues = report?.revenues.filter(r => r.code && r.code.startsWith('4')) || [];
+  const opCosts = report?.expenses.filter(e => e.code && e.code.startsWith('5')) || [];
+  const opExpenses = report?.expenses.filter(e => e.code && e.code.startsWith('6')) || [];
+  const nonOpItems = [
+    ...(report?.revenues.filter(r => r.code && r.code.startsWith('7')) || []),
+    ...(report?.expenses.filter(e => e.code && e.code.startsWith('7')).map(e => ({...e, amount: -e.amount})) || [])
+  ];
+
+  const sum = (items: {amount: number}[]) => items.reduce((acc, curr) => acc + curr.amount, 0);
+
+  const totalOpRev = sum(opRevenues);
+  const totalOpCost = sum(opCosts);
+  const grossProfit = totalOpRev - totalOpCost;
+  const totalOpExp = sum(opExpenses);
+  const opProfit = grossProfit - totalOpExp;
+  const totalNonOp = sum(nonOpItems);
+  const preTaxProfit = opProfit + totalNonOp;
+
+  const renderPrintSection = (title: string, items: typeof report.revenues, isDeduction = false) => {
+    if (!items || items.length === 0) return null;
+    const total = sum(items);
+    return (
+      <>
+        <tr>
+          <td colSpan={2} className="py-1.5 text-black font-bold pt-4">{title}</td>
+        </tr>
+        {items.map((item, idx) => (
+          <tr key={idx}>
+            <td className="py-1 text-black pl-6">{item.title}</td>
+            <td className="py-1 text-right font-mono text-black">
+              {isDeduction ? `(${item.amount.toLocaleString()})` : item.amount.toLocaleString()}
+            </td>
+          </tr>
+        ))}
+        <tr>
+          <td className="py-2 text-black pl-6">{title}合計</td>
+          <td className="py-2 text-right font-mono text-black border-t border-black">
+            {isDeduction ? `(${total.toLocaleString()})` : total.toLocaleString()}
+          </td>
+        </tr>
+      </>
+    );
+  };
+
+  const renderWebSection = (title: string, items: typeof report.revenues, isDeduction = false) => {
+    if (!items || items.length === 0) return null;
+    const total = sum(items);
+    return (
+      <>
+        <tr>
+          <td colSpan={2} className="py-3 font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/30 pl-2">{title}</td>
+        </tr>
+        {items.map((item, idx) => (
+          <tr key={idx} className="border-b border-slate-100 dark:border-slate-800/50">
+            <td className="py-2 text-slate-600 dark:text-slate-400 pl-8">{item.title}</td>
+            <td className="py-2 text-right font-mono text-slate-700 dark:text-slate-300 pr-4">
+              {isDeduction ? `(${item.amount.toLocaleString()})` : item.amount.toLocaleString()}
+            </td>
+          </tr>
+        ))}
+        <tr>
+          <td className="py-3 text-slate-700 dark:text-slate-300 pl-8 font-medium border-b border-slate-200 dark:border-slate-700">{title}合計</td>
+          <td className="py-3 text-right font-mono font-medium text-slate-900 dark:text-slate-100 pr-4 border-b border-slate-200 dark:border-slate-700">
+            {isDeduction ? `(${total.toLocaleString()})` : total.toLocaleString()}
+          </td>
+        </tr>
+      </>
+    );
+  };
+
   return (
     <>
-      <div className="p-6 max-w-5xl mx-auto space-y-6 print:hidden">
+      <div className="p-6 max-w-4xl mx-auto space-y-6 print:hidden">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -139,58 +209,39 @@ export default function ProfitAndLossPage() {
           </div>
 
           {report ? (
-            <div className="max-w-3xl mx-auto">
+            <div className="max-w-2xl mx-auto">
               <table className="w-full text-sm">
                 <tbody>
-                  {/* Revenues */}
-                  <tr>
-                    <td colSpan={2} className="py-3 font-bold text-slate-900 dark:text-white text-base">營業收入</td>
-                  </tr>
-                  {report.revenues.map((item, idx) => (
-                    <tr key={idx} className="border-b border-slate-100 dark:border-slate-800/50">
-                      <td className="py-2.5 pl-6 text-slate-700 dark:text-slate-300">{item.title}</td>
-                      <td className="py-2.5 pr-4 text-right font-mono text-slate-700 dark:text-slate-300">
-                        {item.amount.toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                      </td>
-                    </tr>
-                  ))}
-                  <tr className="bg-slate-50 dark:bg-slate-800/30">
-                    <td className="py-3 pl-6 font-semibold text-slate-900 dark:text-white">營業收入合計</td>
-                    <td className="py-3 pr-4 text-right font-bold font-mono text-slate-900 dark:text-white">
-                      {report.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 0 })}
+                  {renderWebSection('營業收入', opRevenues)}
+                  {renderWebSection('營業成本', opCosts, true)}
+                  
+                  <tr className="bg-blue-50/30 dark:bg-blue-900/10">
+                    <td className="py-3 font-bold text-slate-900 dark:text-white text-base pl-2">營業毛利</td>
+                    <td className="py-3 pr-4 text-right font-bold font-mono text-blue-600 dark:text-blue-400 text-base">
+                      {grossProfit.toLocaleString()}
                     </td>
                   </tr>
 
-                  <tr><td colSpan={2} className="py-4"></td></tr>
-
-                  {/* Expenses */}
-                  <tr>
-                    <td colSpan={2} className="py-3 font-bold text-slate-900 dark:text-white text-base">營業費用</td>
-                  </tr>
-                  {report.expenses.map((item, idx) => (
-                    <tr key={idx} className="border-b border-slate-100 dark:border-slate-800/50">
-                      <td className="py-2.5 pl-6 text-slate-700 dark:text-slate-300">{item.title}</td>
-                      <td className="py-2.5 pr-4 text-right font-mono text-slate-700 dark:text-slate-300">
-                        {item.amount.toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                      </td>
-                    </tr>
-                  ))}
-                  <tr className="bg-slate-50 dark:bg-slate-800/30">
-                    <td className="py-3 pl-6 font-semibold text-slate-900 dark:text-white">營業費用合計</td>
-                    <td className="py-3 pr-4 text-right font-bold font-mono text-slate-900 dark:text-white">
-                      {report.totalExpense.toLocaleString(undefined, { minimumFractionDigits: 0 })}
+                  {renderWebSection('營業費用', opExpenses, true)}
+                  
+                  <tr className="bg-blue-50/30 dark:bg-blue-900/10">
+                    <td className="py-3 font-bold text-slate-900 dark:text-white text-base pl-2">營業淨利</td>
+                    <td className="py-3 pr-4 text-right font-bold font-mono text-blue-600 dark:text-blue-400 text-base">
+                      {opProfit.toLocaleString()}
                     </td>
                   </tr>
+                  
+                  {renderWebSection('營業外收入及支出', nonOpItems)}
 
-                  <tr><td colSpan={2} className="py-6 border-b-2 border-slate-300 dark:border-slate-600"></td></tr>
+                  <tr><td colSpan={2} className="py-2"></td></tr>
 
                   {/* Net Profit */}
-                  <tr className="bg-blue-50/50 dark:bg-blue-900/10">
-                    <td className="py-4 pl-4 text-lg font-bold text-slate-900 dark:text-white">本期淨利</td>
+                  <tr className="bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800/50">
+                    <td className="py-4 pl-4 text-lg font-bold text-slate-900 dark:text-emerald-400">本期淨利</td>
                     <td className={`py-4 pr-4 text-right text-xl font-bold font-mono ${
-                      report.netProfit >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'
+                      preTaxProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
                     }`}>
-                      ${report.netProfit.toLocaleString(undefined, { minimumFractionDigits: 0 })}
+                      ${preTaxProfit.toLocaleString()}
                     </td>
                   </tr>
                 </tbody>
@@ -207,56 +258,46 @@ export default function ProfitAndLossPage() {
       {/* Print View */}
       {report && (
         <ReportPrintView 
-          title="損益表" 
+          title="綜合損益表" 
           companyName={companyName} 
-          dateString={`期間：${startDate} 至 ${endDate}`}
+          dateString={`民國 ${new Date(startDate).getFullYear() - 1911} 年 ${new Date(startDate).getMonth() + 1} 月 ${new Date(startDate).getDate()} 日 至 民國 ${new Date(endDate).getFullYear() - 1911} 年 ${new Date(endDate).getMonth() + 1} 月 ${new Date(endDate).getDate()} 日`}
         >
-          <table className="w-full text-base border-collapse [&_td]:border [&_td]:border-black [&_td]:px-3 [&_td]:py-2">
-            <tbody>
-              <tr>
-                <td colSpan={2} className="py-3 font-bold text-black text-lg bg-gray-100">營業收入</td>
-              </tr>
-              {report.revenues.map((item, idx) => (
-                <tr key={idx}>
-                  <td className="py-2.5 pl-6 text-black">{item.title}</td>
-                  <td className="py-2.5 pr-4 text-right font-mono text-black">
-                    {item.amount.toLocaleString(undefined, { minimumFractionDigits: 0 })}
+          <div className="w-[80%] mx-auto text-[13px] leading-tight">
+            <table className="w-full border-collapse">
+              <tbody>
+                {renderPrintSection('營業收入', opRevenues)}
+                {renderPrintSection('營業成本', opCosts, true)}
+                
+                <tr><td colSpan={2} className="py-1"></td></tr>
+                <tr>
+                  <td className="py-1.5 font-bold text-black text-sm">營業毛利</td>
+                  <td className="py-1.5 text-right font-bold font-mono text-black border-t border-black text-sm">
+                    {grossProfit.toLocaleString()}
                   </td>
                 </tr>
-              ))}
-              <tr className="bg-gray-100">
-                <td className="py-3 pl-6 font-bold text-black">營業收入合計</td>
-                <td className="py-3 pr-4 text-right font-bold font-mono text-black">
-                  {report.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                </td>
-              </tr>
-
-              <tr>
-                <td colSpan={2} className="py-3 font-bold text-black text-lg bg-gray-100">營業費用</td>
-              </tr>
-              {report.expenses.map((item, idx) => (
-                <tr key={idx}>
-                  <td className="py-2.5 pl-6 text-black">{item.title}</td>
-                  <td className="py-2.5 pr-4 text-right font-mono text-black">
-                    {item.amount.toLocaleString(undefined, { minimumFractionDigits: 0 })}
+                
+                {renderPrintSection('營業費用', opExpenses, true)}
+                
+                <tr><td colSpan={2} className="py-1"></td></tr>
+                <tr>
+                  <td className="py-1.5 font-bold text-black text-sm">營業淨利</td>
+                  <td className="py-1.5 text-right font-bold font-mono text-black border-t border-black text-sm">
+                    {opProfit.toLocaleString()}
                   </td>
                 </tr>
-              ))}
-              <tr className="bg-gray-100">
-                <td className="py-3 pl-6 font-bold text-black">營業費用合計</td>
-                <td className="py-3 pr-4 text-right font-bold font-mono text-black">
-                  {report.totalExpense.toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                </td>
-              </tr>
-
-              <tr className="bg-gray-200">
-                <td className="py-4 pl-4 text-xl font-bold text-black">本期淨利</td>
-                <td className="py-4 pr-4 text-right text-xl font-bold font-mono text-black">
-                  ${report.netProfit.toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                
+                {renderPrintSection('營業外收入及支出', nonOpItems)}
+                
+                <tr><td colSpan={2} className="py-3"></td></tr>
+                <tr>
+                  <td className="py-2 font-bold text-black text-base">本期淨利 (稅前)</td>
+                  <td className="py-2 text-right font-bold font-mono text-black border-t border-b-4 border-double border-black text-base">
+                    ${preTaxProfit.toLocaleString()}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </ReportPrintView>
       )}
     </>

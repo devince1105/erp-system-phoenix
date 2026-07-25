@@ -3,11 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import { inventoryApi } from '@/features/inventory/api/inventoryApi';
 import { PurchaseOrder } from '@/features/inventory/types/inventory';
-import { FolderTree, Plus, CheckCircle2, Clock } from 'lucide-react';
+import { FolderTree, Plus, CheckCircle2, Clock, Pencil, Trash2 } from 'lucide-react';
+import { PurchaseOrderModal } from '@/features/inventory/components/PurchaseOrderModal';
 
 export default function PurchasesPage() {
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<PurchaseOrder | undefined>(undefined);
 
   useEffect(() => {
     fetchOrders();
@@ -25,13 +28,47 @@ export default function PurchasesPage() {
   };
 
   const handleConfirm = async (id: number) => {
+    if (confirm("確定要確認入庫嗎？確認後將無法修改，並自動更新庫存。")) {
+      try {
+        await inventoryApi.confirmPurchaseOrder(id);
+        fetchOrders();
+      } catch (err) {
+        console.error(err);
+        alert('Failed to confirm purchase order');
+      }
+    }
+  };
+
+  const handleEdit = async (id: number) => {
     try {
-      await inventoryApi.confirmPurchaseOrder(id);
-      fetchOrders();
+      const order = await inventoryApi.getPurchaseOrder(id);
+      setEditingOrder(order);
+      setIsModalOpen(true);
     } catch (err) {
       console.error(err);
-      alert('Failed to confirm purchase order');
+      alert('Failed to fetch purchase order details');
     }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (confirm("確定要刪除這筆採購單嗎？")) {
+      try {
+        await inventoryApi.deletePurchaseOrder(id);
+        fetchOrders();
+      } catch (err) {
+        console.error(err);
+        alert('Failed to delete purchase order');
+      }
+    }
+  };
+
+  const handleSave = async (data: Partial<PurchaseOrder>) => {
+    if (editingOrder) {
+      await inventoryApi.updatePurchaseOrder(editingOrder.id, data);
+    } else {
+      await inventoryApi.createPurchaseOrder(data);
+    }
+    fetchOrders();
   };
 
   return (
@@ -45,7 +82,13 @@ export default function PurchasesPage() {
           </h1>
           <p className="text-sm text-slate-500 mt-1">管理進貨採購單與到貨狀態。確認進貨將自動更新庫存餘額。</p>
         </div>
-        <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-sm shadow-sm shadow-blue-600/20 transition-all focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900">
+        <button 
+          onClick={() => {
+            setEditingOrder(undefined);
+            setIsModalOpen(true);
+          }}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-sm shadow-sm shadow-blue-600/20 transition-all focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+        >
           <Plus className="w-4 h-4" />
           建立採購單
         </button>
@@ -103,17 +146,32 @@ export default function PurchasesPage() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {order.status === 0 && (
-                        <button 
-                          onClick={() => handleConfirm(order.id)}
-                          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium text-sm mr-4 transition-colors"
-                        >
-                          確認入庫
+                      {order.status === 0 ? (
+                        <div className="flex items-center justify-end gap-3">
+                          <button 
+                            onClick={() => handleConfirm(order.id)}
+                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium text-sm transition-colors"
+                          >
+                            確認入庫
+                          </button>
+                          <button
+                            onClick={() => handleEdit(order.id)}
+                            className="text-amber-500 hover:text-amber-600 transition-colors"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(order.id)}
+                            className="text-rose-500 hover:text-rose-600 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium text-sm transition-colors">
+                          檢視明細
                         </button>
                       )}
-                      <button className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium text-sm transition-colors">
-                        檢視明細
-                      </button>
                     </td>
                   </tr>
                 ))
@@ -122,6 +180,13 @@ export default function PurchasesPage() {
           </table>
         </div>
       </div>
+
+      <PurchaseOrderModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSave}
+        initialData={editingOrder}
+      />
     </div>
   );
 }

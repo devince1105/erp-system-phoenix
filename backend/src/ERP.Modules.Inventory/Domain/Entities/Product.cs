@@ -13,6 +13,9 @@ public class Product
     [MaxLength(50)]
     public string Sku { get; set; } = string.Empty;
     
+    [MaxLength(100)]
+    public string? SerialNumber { get; set; }
+    
     [Required]
     [MaxLength(100)]
     public string Name { get; set; } = string.Empty;

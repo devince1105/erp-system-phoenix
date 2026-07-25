@@ -60,6 +60,45 @@ public class PurchaseOrdersController : ControllerBase
         return order;
     }
 
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdatePurchaseOrder(int id, PurchaseOrder dto)
+    {
+        var order = await _context.PurchaseOrders
+            .Include(po => po.Items)
+            .FirstOrDefaultAsync(po => po.Id == id);
+            
+        if (order == null) return NotFound();
+        if (order.Status != OrderStatus.Draft) return BadRequest("Only draft orders can be updated.");
+
+        order.SupplierId = dto.SupplierId;
+        order.Memo = dto.Memo;
+        order.TotalAmount = dto.Items.Sum(i => i.Quantity * i.UnitPrice);
+        
+        // Replace items
+        _context.Set<PurchaseOrderItem>().RemoveRange(order.Items);
+        order.Items = dto.Items.Select(i => new PurchaseOrderItem
+        {
+            ProductId = i.ProductId,
+            Quantity = i.Quantity,
+            UnitPrice = i.UnitPrice
+        }).ToList();
+
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeletePurchaseOrder(int id)
+    {
+        var order = await _context.PurchaseOrders.FindAsync(id);
+        if (order == null) return NotFound();
+        if (order.Status != OrderStatus.Draft) return BadRequest("Only draft orders can be deleted.");
+
+        _context.PurchaseOrders.Remove(order);
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
     [HttpPost("{id}/confirm")]
     public async Task<IActionResult> ConfirmPurchaseOrder(int id)
     {

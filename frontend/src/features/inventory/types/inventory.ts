@@ -1,6 +1,7 @@
 export interface Product {
   id: number;
   sku: string;
+  serialNumber?: string;
   name: string;
   description?: string;
   unitPrice: number;
