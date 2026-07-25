@@ -16,8 +16,10 @@ import {
   PlusCircle, 
   ArrowRight,
   BarChart3,
-  BookOpen
+  BookOpen,
+  PieChart
 } from "lucide-react";
+import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from 'recharts';
 
 export default function AccountingDashboardPage() {
   const [recentVouchers, setRecentVouchers] = useState<Voucher[]>([]);
@@ -78,6 +80,12 @@ export default function AccountingDashboardPage() {
       </div>
     );
   }
+
+  const plChartData = plReport ? [
+    { name: '營業收入', value: plReport.totalRevenue, color: '#4f46e5' },
+    { name: '營業費用', value: plReport.totalExpense, color: '#ea580c' },
+    { name: '本期淨利', value: plReport.netProfit, color: plReport.netProfit >= 0 ? '#10b981' : '#ef4444' }
+  ] : [];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -178,8 +186,46 @@ export default function AccountingDashboardPage() {
       {/* Main Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Recent Vouchers List */}
-        <div className="lg:col-span-2 space-y-4">
+        {/* Left Column: Chart & Vouchers */}
+        <div className="lg:col-span-2 space-y-8">
+          
+          {/* Revenue vs Expense Chart */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm shadow-sm p-5">
+            <div className="flex items-center gap-2 mb-6">
+              <PieChart className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+              <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">本月收支結構分析</h2>
+            </div>
+            <div className="h-64 w-full">
+              {plChartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsBarChart data={plChartData} margin={{ top: 10, right: 10, bottom: 5, left: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                    <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <YAxis 
+                      tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} 
+                      tick={{ fontSize: 12, fill: '#64748b' }} 
+                      axisLine={false} 
+                      tickLine={false} 
+                    />
+                    <RechartsTooltip 
+                      formatter={(value: number) => [`$${value.toLocaleString()}`, '金額']}
+                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    />
+                    <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={40}>
+                      {plChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </RechartsBarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-slate-500 text-sm">無收支資料</div>
+              )}
+            </div>
+          </div>
+
+          {/* Recent Vouchers List */}
+          <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">近期傳票</h2>
             <Link href="/accounting/vouchers" className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 flex items-center gap-1 font-medium transition-colors">
@@ -234,6 +280,7 @@ export default function AccountingDashboardPage() {
               </div>
             )}
           </div>
+        </div>
         </div>
 
         {/* Quick Actions / Shortcuts */}

@@ -21,6 +21,7 @@
     <ProjectReference Include="..\ERP.Shared\ERP.Shared.csproj" />
     <ProjectReference Include="..\ERP.Modules.Identity\ERP.Modules.Identity.csproj" />
     <ProjectReference Include="..\ERP.Modules.Inventory\ERP.Modules.Inventory.csproj" />
+    <ProjectReference Include="..\ERP.Modules.HR\ERP.Modules.HR.csproj" />
   </ItemGroup>
 
 </Project>
