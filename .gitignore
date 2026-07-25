@@ -27,6 +27,9 @@ frontend/yarn-error.log*
 # =======================
 mssql_data/
 mssql_log/
+*.db
+*.db-shm
+*.db-wal
 .env
 
 # =======================

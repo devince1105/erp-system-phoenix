@@ -3,6 +3,11 @@
 import React, { useEffect, useState } from "react";
 import { PackageSearch, Users, TrendingUp, FolderTree, AlertCircle } from "lucide-react";
 import { inventoryApi } from "@/features/inventory/api/inventoryApi";
+import { SalesOrder, PurchaseOrder } from "@/features/inventory/types/inventory";
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
+  BarChart, Bar, Cell
+} from 'recharts';
 
 export default function InventoryDashboard() {
   const [stats, setStats] = useState({
@@ -11,6 +16,8 @@ export default function InventoryDashboard() {
     salesCount: 0,
     salesTotal: 0,
   });
+  const [salesData, setSalesData] = useState<any[]>([]);
+  const [topProductsData, setTopProductsData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,6 +35,33 @@ export default function InventoryDashboard() {
           salesCount: sales.length,
           salesTotal: sales.reduce((acc, curr) => acc + curr.totalAmount, 0)
         });
+
+        // Calculate sales trend (by month)
+        const trendMap: Record<string, number> = {};
+        sales.forEach(s => {
+          const d = new Date(s.orderDate);
+          const month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          trendMap[month] = (trendMap[month] || 0) + s.totalAmount;
+        });
+        const trendData = Object.entries(trendMap)
+          .map(([name, total]) => ({ name, total }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+        setSalesData(trendData);
+
+        // Calculate top products
+        const productMap: Record<string, number> = {};
+        sales.forEach(s => {
+          s.items?.forEach(i => {
+            const pName = i.product?.name || `Product ID ${i.productId}`;
+            productMap[pName] = (productMap[pName] || 0) + i.quantity;
+          });
+        });
+        const topProducts = Object.entries(productMap)
+          .map(([name, value]) => ({ name, value }))
+          .sort((a, b) => b.value - a.value)
+          .slice(0, 5);
+        setTopProductsData(topProducts);
+
       } catch (err) {
         console.error("Failed to load inventory stats", err);
       } finally {
@@ -89,20 +123,65 @@ export default function InventoryDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Sales Trend Chart */}
         <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-sm shadow-sm p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <AlertCircle className="h-5 w-5 text-rose-500" />
-            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">低庫存警示 (Low Stock)</h2>
+          <div className="flex items-center gap-2 mb-6">
+            <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-500" />
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">營收趨勢分析 (Sales Trend)</h2>
           </div>
-          <p className="text-sm text-slate-500 mb-4">目前沒有低於安全庫存的商品。</p>
+          <div className="h-72 w-full">
+            {salesData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={salesData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                  <YAxis 
+                    tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} 
+                    tick={{ fontSize: 12, fill: '#64748b' }} 
+                    axisLine={false} 
+                    tickLine={false} 
+                  />
+                  <RechartsTooltip 
+                    formatter={(value: number) => [`$${value.toLocaleString()}`, '營收']}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Line type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6' }} activeDot={{ r: 6 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-slate-500 text-sm">無足夠的銷貨資料</div>
+            )}
+          </div>
         </div>
         
+        {/* Top Products Chart */}
         <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-sm shadow-sm p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="h-5 w-5 text-blue-500" />
-            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">近期動態 (Recent Activity)</h2>
+          <div className="flex items-center gap-2 mb-6">
+            <PackageSearch className="h-5 w-5 text-emerald-600 dark:text-emerald-500" />
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">熱銷商品排行 (Top Products)</h2>
           </div>
-          <p className="text-sm text-slate-500 mb-4">尚無近期動態。</p>
+          <div className="h-72 w-full">
+            {topProductsData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={topProductsData} layout="vertical" margin={{ top: 5, right: 20, left: 40, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+                  <XAxis type="number" hide />
+                  <YAxis dataKey="name" type="category" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                  <RechartsTooltip 
+                    formatter={(value: number) => [value, '銷售數量']}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>
+                    {topProductsData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#d1fae5'][index % 5]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-slate-500 text-sm">無商品銷售資料</div>
+            )}
+          </div>
         </div>
       </div>
     </div>

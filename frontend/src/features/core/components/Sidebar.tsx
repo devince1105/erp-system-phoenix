@@ -25,6 +25,7 @@ export const Sidebar = () => {
 
   const [isAccountingOpen, setIsAccountingOpen] = useState(true);
   const [isInventoryOpen, setIsInventoryOpen] = useState(true);
+  const [isHROpen, setIsHROpen] = useState(true);
 
   const mainNavItems = [
     { name: "企業總覽 (Dashboard)", href: "/", icon: LayoutDashboard },
@@ -45,6 +46,12 @@ export const Sidebar = () => {
     { name: "客戶與廠商 (Partners)", href: "/inventory/partners", icon: Users },
     { name: "銷貨管理 (Sales)", href: "/inventory/sales", icon: TrendingUp },
     { name: "採購管理 (Purchases)", href: "/inventory/purchases", icon: FolderTree },
+  ];
+
+  const hrItems = [
+    { name: "人資總覽 (Dashboard)", href: "/hr", icon: LayoutDashboard },
+    { name: "員工管理 (Employees)", href: "/hr/employees", icon: Users },
+    { name: "部門架構 (Departments)", href: "/hr/departments", icon: FolderTree },
   ];
 
   const settingsItems = [
@@ -188,6 +195,54 @@ export const Sidebar = () => {
           )}
         </div>
 
+        {/* HR Accordion */}
+        <div className="space-y-0.5 mt-4">
+          {!isCollapsed && (
+            <button
+              onClick={() => setIsHROpen(!isHROpen)}
+              className="w-full flex items-center justify-between py-2 pl-5 pr-4 mx-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition-colors rounded-md hover:bg-gray-200/50 dark:hover:bg-slate-800/50"
+            >
+              <div className="flex items-center gap-3">
+                <Users className="h-5 w-5 shrink-0 text-slate-500 dark:text-slate-400" />
+                <span className="truncate">人力資源 (HR)</span>
+              </div>
+              {isHROpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+          )}
+
+          {isCollapsed && (
+            <div className="flex justify-center py-2 text-slate-500 dark:text-slate-400" title="人力資源 (HR)">
+              <Users className="h-5 w-5" />
+            </div>
+          )}
+
+          {(isHROpen || isCollapsed) && (
+            <div className={`space-y-0.5 ${!isCollapsed ? "mt-1 mb-2 ml-4 border-l-2 border-gray-200 dark:border-slate-800" : ""}`}>
+              {hrItems.map((item) => {
+                const isActive = pathname === item.href || (item.href !== "/hr" && pathname.startsWith(item.href));
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`flex items-center gap-3 py-2 text-sm font-medium transition-all duration-200 relative ${
+                      isCollapsed ? 'justify-center px-0' : 'pl-5 pr-4 mx-2 rounded-md'
+                    } ${
+                      isActive
+                        ? "bg-blue-50/80 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-gray-200/50 dark:hover:bg-slate-800/50"
+                    }`}
+                    title={isCollapsed ? item.name : undefined}
+                  >
+                    {isActive && !isCollapsed && <div className="absolute left-0 top-1 bottom-1 w-[3px] bg-blue-600 dark:bg-blue-500 rounded-r" />}
+                    <item.icon className={`h-4 w-4 shrink-0 ${isActive ? "text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-500"}`} />
+                    {!isCollapsed && <span className="truncate">{item.name}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
         {/* Settings Navigation */}
         <div className="space-y-0.5 border-t border-gray-200 dark:border-slate-800 pt-4">
           {settingsItems.map((item) => {
@@ -226,10 +281,10 @@ export const Sidebar = () => {
                 </div>
               </div>
               
-              <div className="flex items-center justify-between px-3 py-2 rounded-md border border-transparent">
-                <div className="flex items-center gap-2 opacity-50">
-                  <div className="h-2 w-2 rounded-full bg-slate-400 dark:bg-slate-600 shrink-0" />
-                  <span className="text-sm text-slate-500 truncate">人力資源 (HR)</span>
+              <div className="flex items-center justify-between px-3 py-2 rounded-md bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-900/30">
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-purple-500 animate-pulse shrink-0" />
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">人力資源 (HR)</span>
                 </div>
               </div>
               

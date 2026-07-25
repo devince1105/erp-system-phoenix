@@ -4,6 +4,8 @@ using ERP.Modules.Accounting;
 using ERP.Modules.Accounting.Data;
 using ERP.Modules.Inventory;
 using ERP.Modules.Inventory.Infrastructure.Database;
+using ERP.Modules.HR;
+using ERP.Modules.HR.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -26,6 +28,7 @@ builder.Services.AddControllers()
     .AddApplicationPart(typeof(ERP.Modules.Identity.IdentityModuleExtensions).Assembly)
     .AddApplicationPart(typeof(ERP.Modules.Accounting.AccountingModuleExtensions).Assembly)
     .AddApplicationPart(typeof(ERP.Modules.Inventory.InventoryModuleExtensions).Assembly)
+    .AddApplicationPart(typeof(ERP.Modules.HR.HRModuleExtensions).Assembly)
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
@@ -58,6 +61,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAccountingModule(builder.Configuration);
 builder.Services.AddIdentityModule(builder.Configuration);
 builder.Services.AddInventoryModule(builder.Configuration);
+builder.Services.AddHRModule(builder.Configuration);
 
 // 3. Configure OpenAPI
 builder.Services.AddOpenApi();
@@ -89,6 +93,10 @@ using (var scope = app.Services.CreateScope())
     // Migrate Inventory Module Database
     var inventoryDb = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
     inventoryDb.Database.Migrate();
+
+    // Migrate HR Module Database
+    var hrDb = scope.ServiceProvider.GetRequiredService<HRDbContext>();
+    hrDb.Database.Migrate();
 }
 
 app.Run();
