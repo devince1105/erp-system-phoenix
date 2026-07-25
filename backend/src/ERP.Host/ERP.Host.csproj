@@ -20,6 +20,7 @@
     <ProjectReference Include="..\ERP.Modules.Accounting\ERP.Modules.Accounting.csproj" />
     <ProjectReference Include="..\ERP.Shared\ERP.Shared.csproj" />
     <ProjectReference Include="..\ERP.Modules.Identity\ERP.Modules.Identity.csproj" />
+    <ProjectReference Include="..\ERP.Modules.Inventory\ERP.Modules.Inventory.csproj" />
   </ItemGroup>
 
 </Project>
