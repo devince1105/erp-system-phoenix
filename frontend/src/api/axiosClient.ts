@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // 預設的 API 基礎網址
-const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
 
 const axiosClient = axios.create({
   baseURL,

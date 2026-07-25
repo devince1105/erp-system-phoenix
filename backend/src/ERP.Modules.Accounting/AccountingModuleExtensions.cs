@@ -2,6 +2,8 @@ using ERP.Modules.Accounting.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ERP.Modules.Accounting.Services;
+using ERP.Shared.Interfaces.Accounting;
 
 namespace ERP.Modules.Accounting;
 
@@ -12,7 +14,9 @@ public static class AccountingModuleExtensions
         services.AddDbContext<AccountingDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
             
-        // You can register module-specific services or repositories here
+        // Register module-specific services or repositories here
+        services.AddScoped<IAccountingIntegrationService, AccountingIntegrationService>();
+        
         return services;
     }
 }
