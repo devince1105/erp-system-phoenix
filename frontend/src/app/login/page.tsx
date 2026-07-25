@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@/features/core/contexts/AuthContext";
 import { Hexagon, Lock, User, Loader2, Eye, EyeOff } from "lucide-react";
+import axiosClient from "@/api/axiosClient";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -18,24 +19,16 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api";
-      const res = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "登入失敗");
-      }
+      const res = await axiosClient.post("/auth/login", { username, password });
+      const data = res.data;
 
       login(data.token, data.user);
     } catch (err: any) {
-      setError(err.message);
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message);
+      } else {
+        setError(err.message || "登入失敗，請檢查網路連線");
+      }
     } finally {
       setLoading(false);
     }
