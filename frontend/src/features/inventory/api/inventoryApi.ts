@@ -1,21 +1,15 @@
 import { Product, Partner, PurchaseOrder, SalesOrder } from "../types/inventory";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api";
+import axiosClient from "@/api/axiosClient";
 
 // Helper for API calls
-async function fetchApi<T>(url: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${url}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
+async function fetchApi<T>(url: string, options?: { method?: string; body?: string }): Promise<T> {
+  const response = await axiosClient.request<T>({
+    url,
+    method: options?.method || "GET",
+    data: options?.body ? JSON.parse(options.body) : undefined,
   });
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(errText || `API Error: ${response.status}`);
-  }
-  return response.status !== 204 ? response.json() : (null as T);
+  return response.data;
 }
 
 export const inventoryApi = {

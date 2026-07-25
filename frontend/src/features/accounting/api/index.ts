@@ -1,16 +1,14 @@
 import { AccountTitle, AccountCategory, Voucher, CreateVoucherPayload, BankAccount, BankApiIntegrationType, CreateBankAccountPayload } from "@/features/accounting/types/accounting";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api";
+import axiosClient from "@/api/axiosClient";
 
 export async function fetchAccountTitles(category?: AccountCategory): Promise<AccountTitle[]> {
   try {
     const url = category 
-      ? `${API_BASE_URL}/AccountTitles?category=${category}`
-      : `${API_BASE_URL}/AccountTitles`;
+      ? `/AccountTitles?category=${category}`
+      : `/AccountTitles`;
     
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-    return await res.json();
+    const res = await axiosClient.get(url);
+    return res.data;
   } catch (err) {
     console.warn("Backend API fetch failed, using fallback/demo data:", err);
     return getFallbackAccountTitles();
@@ -19,9 +17,8 @@ export async function fetchAccountTitles(category?: AccountCategory): Promise<Ac
 
 export async function fetchVouchers(): Promise<Voucher[]> {
   try {
-    const res = await fetch(`${API_BASE_URL}/Vouchers`, { cache: "no-store" });
-    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-    return await res.json();
+    const res = await axiosClient.get("/Vouchers");
+    return res.data;
   } catch (err) {
     console.warn("Backend API fetch failed for vouchers:", err);
     return getFallbackVouchers();
@@ -30,37 +27,16 @@ export async function fetchVouchers(): Promise<Voucher[]> {
 
 export async function createVoucher(payload: CreateVoucherPayload): Promise<{ success: boolean; data?: Voucher; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE_URL}/Vouchers`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      return { success: false, error: errorText || `建立失敗 (Status ${res.status})` };
-    }
-
-    const data = await res.json();
-    return { success: true, data };
+    const res = await axiosClient.post("/Vouchers", payload);
+    return { success: true, data: res.data };
   } catch (err: any) {
-    return { success: false, error: err.message || "無法連線至 .NET 後端 API Server" };
+    return { success: false, error: err.response?.data?.message || err.message || "建立連線失敗" };
   }
 }
 
 export async function updateVoucher(id: number, payload: CreateVoucherPayload): Promise<{ success: boolean; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE_URL}/Vouchers/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      return { success: false, error: errorText || `修改失敗 (Status ${res.status})` };
-    }
-
+    await axiosClient.put(`/Vouchers/${id}`, payload);
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err.message || "修改連線失敗" };
@@ -69,15 +45,7 @@ export async function updateVoucher(id: number, payload: CreateVoucherPayload): 
 
 export async function deleteVoucher(id: number): Promise<{ success: boolean; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE_URL}/Vouchers/${id}`, {
-      method: "DELETE"
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      return { success: false, error: errorText || `刪除失敗 (Status ${res.status})` };
-    }
-
+    await axiosClient.delete(`/Vouchers/${id}`);
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err.message || "刪除連線失敗" };
@@ -86,17 +54,8 @@ export async function deleteVoucher(id: number): Promise<{ success: boolean; err
 
 export async function postVoucher(id: number): Promise<{ success: boolean; data?: Voucher; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE_URL}/Vouchers/${id}/post`, {
-      method: "POST"
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      return { success: false, error: errorText || `過帳失敗 (Status ${res.status})` };
-    }
-
-    const data = await res.json();
-    return { success: true, data };
+    const res = await axiosClient.post(`/Vouchers/${id}/post`);
+    return { success: true, data: res.data };
   } catch (err: any) {
     return { success: false, error: err.message || "過帳連線失敗" };
   }
@@ -105,9 +64,8 @@ export async function postVoucher(id: number): Promise<{ success: boolean; data?
 // Bank Account APIs
 export async function fetchBankAccounts(): Promise<BankAccount[]> {
   try {
-    const res = await fetch(`${API_BASE_URL}/BankAccounts`, { cache: "no-store" });
-    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-    return await res.json();
+    const res = await axiosClient.get("/BankAccounts");
+    return res.data;
   } catch (err) {
     console.warn("Backend API fetch failed for bank accounts:", err);
     return getFallbackBankAccounts();

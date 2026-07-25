@@ -1,5 +1,6 @@
 using ERP.Modules.Inventory.Domain.Entities;
 using ERP.Modules.Inventory.Infrastructure.Database;
+using ERP.Shared.Interfaces.Accounting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,10 +11,12 @@ namespace ERP.Modules.Inventory.Controllers;
 public class SalesOrdersController : ControllerBase
 {
     private readonly InventoryDbContext _context;
+    private readonly IAccountingIntegrationService _accounting;
 
-    public SalesOrdersController(InventoryDbContext context)
+    public SalesOrdersController(InventoryDbContext context, IAccountingIntegrationService accounting)
     {
         _context = context;
+        _accounting = accounting;
     }
 
     [HttpGet]
@@ -67,6 +70,7 @@ public class SalesOrdersController : ControllerBase
     {
         var order = await _context.SalesOrders
             .Include(so => so.Items)
+            .ThenInclude(i => i.Product)
             .FirstOrDefaultAsync(so => so.Id == id);
             
         if (order == null)
@@ -77,17 +81,22 @@ public class SalesOrdersController : ControllerBase
 
         order.Status = OrderStatus.Confirmed;
         
-        // Deduct inventory
+        // Deduct inventory and calculate total cost
+        decimal totalCost = 0;
         foreach (var item in order.Items)
         {
-            var product = await _context.Products.FindAsync(item.ProductId);
+            var product = item.Product;
             if (product != null)
             {
                 product.StockQuantity -= item.Quantity;
+                totalCost += item.Quantity * product.CostPrice;
             }
         }
 
         await _context.SaveChangesAsync();
+        
+        // Trigger Auto-Voucher Integration
+        await _accounting.CreateSalesVoucherAsync(order.OrderNo, order.OrderDate, order.TotalAmount, totalCost);
         
         return Ok(order);
     }

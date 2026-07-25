@@ -23,6 +23,9 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers()
+    .AddApplicationPart(typeof(ERP.Modules.Identity.IdentityModuleExtensions).Assembly)
+    .AddApplicationPart(typeof(ERP.Modules.Accounting.AccountingModuleExtensions).Assembly)
+    .AddApplicationPart(typeof(ERP.Modules.Inventory.InventoryModuleExtensions).Assembly)
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
