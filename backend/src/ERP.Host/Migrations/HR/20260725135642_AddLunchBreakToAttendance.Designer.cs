@@ -3,6 +3,7 @@ using System;
 using ERP.Modules.HR.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ERP.Host.Migrations.HR
 {
     [DbContext(typeof(HRDbContext))]
-    partial class HRDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260725135642_AddLunchBreakToAttendance")]
+    partial class AddLunchBreakToAttendance
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.10");
@@ -313,44 +316,6 @@ namespace ERP.Host.Migrations.HR
                     b.ToTable("LeaveRequests");
                 });
 
-            modelBuilder.Entity("ERP.Modules.HR.Models.OvertimeRequest", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("EmployeeId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("Hours")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EmployeeId");
-
-                    b.ToTable("OvertimeRequests");
-                });
-
             modelBuilder.Entity("ERP.Modules.HR.Models.PayrollRecord", b =>
                 {
                     b.Property<int>("Id")
@@ -481,17 +446,6 @@ namespace ERP.Host.Migrations.HR
                     b.Navigation("Employee");
                 });
 
-            modelBuilder.Entity("ERP.Modules.HR.Models.OvertimeRequest", b =>
-                {
-                    b.HasOne("ERP.Modules.HR.Models.Employee", "Employee")
-                        .WithMany("OvertimeRequests")
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Employee");
-                });
-
             modelBuilder.Entity("ERP.Modules.HR.Models.PayrollRecord", b =>
                 {
                     b.HasOne("ERP.Modules.HR.Models.Employee", "Employee")
@@ -514,8 +468,6 @@ namespace ERP.Host.Migrations.HR
                     b.Navigation("JobHistories");
 
                     b.Navigation("LeaveRequests");
-
-                    b.Navigation("OvertimeRequests");
 
                     b.Navigation("Payrolls");
                 });

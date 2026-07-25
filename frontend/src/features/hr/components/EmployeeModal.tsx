@@ -18,6 +18,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, o
     email: "",
     departmentId: undefined,
     jobTitle: "",
+    baseSalary: 30000,
     hireDate: new Date().toISOString().split("T")[0],
     status: 1,
     phone: "",
@@ -313,6 +314,16 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, o
                       className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       value={formData.jobTitle || ""}
                       onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">底薪 (Base Salary)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={formData.baseSalary || 0}
+                      onChange={(e) => setFormData({ ...formData, baseSalary: Number(e.target.value) })}
                     />
                   </div>
                 </div>

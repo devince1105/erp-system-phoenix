@@ -22,7 +22,9 @@ public class Employee
     public Department? Department { get; set; }
 
     [MaxLength(100)]
-    public string? JobTitle { get; set; }
+    public string JobTitle { get; set; } = string.Empty;
+
+    public decimal BaseSalary { get; set; } = 30000;
 
     public DateTime HireDate { get; set; }
 
@@ -61,6 +63,10 @@ public class Employee
     public ICollection<Education> Educations { get; set; } = new List<Education>();
     public ICollection<Experience> Experiences { get; set; } = new List<Experience>();
     public ICollection<JobHistory> JobHistories { get; set; } = new List<JobHistory>();
+    public ICollection<AttendanceRecord> Attendances { get; set; } = new List<AttendanceRecord>();
+    public ICollection<LeaveRequest> LeaveRequests { get; set; } = new List<LeaveRequest>();
+    public ICollection<OvertimeRequest> OvertimeRequests { get; set; } = new List<OvertimeRequest>();
+    public ICollection<PayrollRecord> Payrolls { get; set; } = new List<PayrollRecord>();
 }
 
 public enum EmployeeStatus

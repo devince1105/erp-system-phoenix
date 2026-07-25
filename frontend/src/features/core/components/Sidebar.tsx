@@ -52,6 +52,8 @@ export const Sidebar = () => {
     { name: "人資總覽 (Dashboard)", href: "/hr", icon: LayoutDashboard },
     { name: "員工管理 (Employees)", href: "/hr/employees", icon: Users },
     { name: "部門架構 (Departments)", href: "/hr/departments", icon: FolderTree },
+    { name: "出勤與請假 (Attendance)", href: "/hr/attendance", icon: Landmark },
+    { name: "薪資結算 (Payroll)", href: "/hr/payroll", icon: TrendingUp },
   ];
 
   const settingsItems = [
