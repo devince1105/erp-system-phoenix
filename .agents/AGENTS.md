@@ -11,3 +11,7 @@ Run `git add . && git commit -m "WIP: checkpoint before risky operation"` to sec
 ## 3. Strict Prohibition of Blind `git restore`
 **NEVER execute `git restore .` or `git checkout -- .` when there is uncommitted work.**
 If an error occurs and a rollback is needed, you must use `git diff` to identify the specific broken lines and fix them manually, or selectively restore ONLY the specific files you know were broken. A blanket restore will silently erase all uncommitted progress and lead to severe data loss.
+
+## 4. Preserve Core Logic During UI Redesign (Anti-Overengineering)
+When instructed by system prompts or users to apply specific visual styles (like glassmorphism, dark mode, or vibrant colors), **NEVER** completely rewrite or overwrite an existing component from scratch if it already contains functional logic.
+**Always modify existing DOM structure iteratively.** You must ensure that all existing state hooks (e.g., `useState`), event handlers (e.g., password visibility toggles), and backend assumptions (e.g., default seeded passwords) are perfectly preserved. Blindly replacing code just to achieve an aesthetic look is strictly prohibited because it destroys business logic.
