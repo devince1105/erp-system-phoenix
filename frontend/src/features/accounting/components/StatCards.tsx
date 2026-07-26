@@ -29,13 +29,15 @@ export const StatCards: React.FC<StatCardsProps> = ({ vouchers, accountTitles })
             <FileText className="h-4 w-4" />
           </div>
         </div>
-        <div className="mt-3 flex items-baseline justify-between">
-          <h3 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+        <div className="mt-3 flex flex-col gap-2">
+          <h3 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight break-all">
             ${totalVouchersAmount.toLocaleString("zh-TW", { minimumFractionDigits: 2 })}
           </h3>
-          <span className="text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 font-mono">
-            {totalVouchersCount} 筆傳票
-          </span>
+          <div className="flex items-center">
+            <span className="text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 font-mono inline-flex">
+              {totalVouchersCount} 筆傳票
+            </span>
+          </div>
         </div>
         <div className="mt-2 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
           <ArrowUpRight className="h-3 w-3 text-emerald-400" />
@@ -51,13 +53,15 @@ export const StatCards: React.FC<StatCardsProps> = ({ vouchers, accountTitles })
             <Wallet className="h-4 w-4" />
           </div>
         </div>
-        <div className="mt-3 flex items-baseline justify-between">
+        <div className="mt-3 flex flex-col gap-2">
           <h3 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             {totalAssetsTitles} <span className="text-sm font-normal text-slate-400">個科目</span>
           </h3>
-          <span className="text-xs text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20 font-mono">
-            Asset
-          </span>
+          <div className="flex items-center">
+            <span className="text-xs text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20 font-mono inline-flex">
+              Asset
+            </span>
+          </div>
         </div>
         <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">包含現金、銀行存款、應收帳款</div>
       </div>
@@ -70,13 +74,15 @@ export const StatCards: React.FC<StatCardsProps> = ({ vouchers, accountTitles })
             <TrendingUp className="h-4 w-4" />
           </div>
         </div>
-        <div className="mt-3 flex items-baseline justify-between">
+        <div className="mt-3 flex flex-col gap-2">
           <h3 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             {totalRevenueTitles} <span className="text-sm font-normal text-slate-400">個科目</span>
           </h3>
-          <span className="text-xs text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded-full border border-teal-500/20 font-mono">
-            Revenue
-          </span>
+          <div className="flex items-center">
+            <span className="text-xs text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded-full border border-teal-500/20 font-mono inline-flex">
+              Revenue
+            </span>
+          </div>
         </div>
         <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">包含銷貨收入、勞務收入</div>
       </div>
@@ -89,13 +95,15 @@ export const StatCards: React.FC<StatCardsProps> = ({ vouchers, accountTitles })
             <TrendingDown className="h-4 w-4" />
           </div>
         </div>
-        <div className="mt-3 flex items-baseline justify-between">
+        <div className="mt-3 flex flex-col gap-2">
           <h3 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             {totalExpenseTitles} <span className="text-sm font-normal text-slate-400">個科目</span>
           </h3>
-          <span className="text-xs text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20 font-mono">
-            Expense
-          </span>
+          <div className="flex items-center">
+            <span className="text-xs text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20 font-mono inline-flex">
+              Expense
+            </span>
+          </div>
         </div>
         <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">包含銷貨成本、薪資與租金支出</div>
       </div>

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Navbar } from "./Navbar";
 import { Sidebar } from "./Sidebar";
+import { CommandPalette } from "./CommandPalette";
 import { usePathname } from "next/navigation";
 
 interface AppLayoutProps {
@@ -19,6 +20,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
   return (
     <div className="h-screen flex flex-col bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors overflow-hidden print:h-auto print:block">
+      <CommandPalette />
+      
       <div className="print:hidden">
         <Navbar />
       </div>
