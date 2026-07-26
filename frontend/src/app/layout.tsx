@@ -21,6 +21,8 @@ import { AuthProvider } from "@/features/core/contexts/AuthContext";
 import { AppLayout } from "@/features/core/components/AppLayout";
 import { ThemeProvider } from "@/features/core/components/ThemeProvider";
 
+import { CommandPaletteProvider } from "@/features/core/contexts/CommandPaletteContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -35,9 +37,11 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
-            <AppLayout>
-              {children}
-            </AppLayout>
+            <CommandPaletteProvider>
+              <AppLayout>
+                {children}
+              </AppLayout>
+            </CommandPaletteProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

@@ -1,14 +1,16 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Puzzle, ShieldCheck, LogOut, PlusCircle, RefreshCw, ChevronDown, User } from "lucide-react";
+import { Puzzle, ShieldCheck, LogOut, PlusCircle, RefreshCw, ChevronDown, User, Search } from "lucide-react";
 import { useAuth } from "@/features/core/contexts/AuthContext";
+import { useCommandPalette } from "@/features/core/contexts/CommandPaletteContext";
 import { ThemeToggle } from "./ThemeToggle";
 
 interface NavbarProps {}
 
 export const Navbar: React.FC<NavbarProps> = () => {
   const { user, logout } = useAuth();
+  const { setIsOpen } = useCommandPalette();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -40,16 +42,20 @@ export const Navbar: React.FC<NavbarProps> = () => {
         <div className="flex-1 flex justify-start lg:justify-center">
           <div className="w-full max-w-md hidden sm:flex items-center">
             <div className="relative w-full">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <input
-                type="text"
-                placeholder="Search..."
-                className="block w-full pl-10 pr-3 py-1.5 border border-gray-300 dark:border-slate-700 rounded-md leading-5 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-gray-500 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 sm:text-sm transition-colors"
-              />
+              <button
+                onClick={() => setIsOpen(true)}
+                className="w-full flex items-center justify-between pl-3 pr-3 py-1.5 border border-gray-300 dark:border-slate-700 rounded-md leading-5 bg-gray-50/50 hover:bg-white dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors focus:outline-none"
+              >
+                <div className="flex items-center">
+                  <Search className="h-4 w-4 mr-2" />
+                  <span className="text-sm">搜尋全站或輸入指令...</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <kbd className="hidden sm:inline-block bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-600 rounded px-1.5 py-0.5 text-[10px] font-sans text-gray-500 shadow-sm">
+                    Cmd K
+                  </kbd>
+                </div>
+              </button>
             </div>
           </div>
         </div>
