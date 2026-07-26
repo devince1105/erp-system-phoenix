@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Users, Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Users, Plus, Pencil, Trash2, Search, Mail, Phone, Briefcase, Building2, MoreHorizontal, UserCheck, Filter } from "lucide-react";
 import dynamic from "next/dynamic";
+import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { Employee, Department } from "@/features/hr/types/hr";
 
@@ -88,9 +89,17 @@ export default function EmployeesPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      <Breadcrumbs items={[
+        { label: '首頁', href: '/' },
+        { label: '人力資源系統 (HRM)', href: '/hr' },
+        { label: '員工管理' }
+      ]} />
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">員工管理 (Employees)</h1>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+            <Users className="w-6 h-6 text-blue-600 dark:text-blue-500" />
+            員工管理 (Employees)
+          </h1>
           <p className="text-sm text-slate-500 mt-1">管理公司人員名單與基本資料</p>
         </div>
         <div className="flex items-center gap-3">

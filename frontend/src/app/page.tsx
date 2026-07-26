@@ -15,7 +15,7 @@ import { StatCards } from "@/features/accounting/components/StatCards";
 import { FinancialCharts } from "@/features/accounting/components/FinancialCharts";
 import { HRDashboard } from "@/features/hr/components/HRDashboard";
 import { InventoryDashboard } from "@/features/inventory/components/InventoryDashboard";
-import { Activity, LayoutDashboard } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Package, Users, ShoppingCart, DollarSign, Activity, TrendingUp, Calendar, AlertCircle, LayoutDashboard } from "lucide-react";
 
 export default function DashboardPage() {
   const [accountTitles, setAccountTitles] = useState<AccountTitle[]>([]);
@@ -66,7 +66,10 @@ export default function DashboardPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">企業營運總覽</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <LayoutDashboard className="w-6 h-6 text-blue-600 dark:text-blue-500" />
+            企業營運總覽
+          </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">即時掌握公司整體財務與營運績效。</p>
         </div>
       </div>

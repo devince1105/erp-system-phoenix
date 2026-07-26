@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Users, FolderTree, ArrowRight, UserPlus } from "lucide-react";
+import { Users, Building2, Calendar, ClipboardCheck, ArrowUpRight, Clock, MapPin, Activity, FolderTree, ArrowRight, UserPlus } from "lucide-react";
+import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
 import Link from "next/link";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { LeaveRequest, OvertimeRequest, CalendarEvent } from "@/features/hr/types/hr";
@@ -68,8 +69,15 @@ export default function HRPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      <Breadcrumbs items={[
+        { label: '首頁', href: '/' },
+        { label: '人力資源系統 (HRM)' }
+      ]} />
       <div>
-        <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">人力資源總覽 (HR Dashboard)</h1>
+        <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+          <Users className="w-6 h-6 text-blue-600 dark:text-blue-500" />
+          人力資源總覽 (HR Dashboard)
+        </h1>
         <p className="text-sm text-slate-500 mt-1">管理與檢視企業內部組織及人員狀態</p>
       </div>
 

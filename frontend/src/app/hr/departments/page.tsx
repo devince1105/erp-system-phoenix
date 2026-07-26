@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { FolderTree, Plus, Pencil, Trash2 } from "lucide-react";
+import { FolderTree, Plus, Pencil, Trash2, Building2 } from "lucide-react";
+import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { Department, Employee } from "@/features/hr/types/hr";
 import { DepartmentModal } from "@/features/hr/components/DepartmentModal";
@@ -66,9 +67,17 @@ export default function DepartmentsPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      <Breadcrumbs items={[
+        { label: '首頁', href: '/' },
+        { label: '人力資源系統 (HRM)', href: '/hr' },
+        { label: '部門組織' }
+      ]} />
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">部門管理 (Departments)</h1>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+            <Building2 className="w-6 h-6 text-blue-600 dark:text-blue-500" />
+            部門管理 (Departments)
+          </h1>
           <p className="text-sm text-slate-500 mt-1">管理公司組織架構與部門主管</p>
         </div>
         <button

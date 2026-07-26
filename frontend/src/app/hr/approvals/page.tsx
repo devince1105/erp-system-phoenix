@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { CheckSquare, XCircle, CheckCircle, Clock } from "lucide-react";
+import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { LeaveRequest, OvertimeRequest } from "@/features/hr/types/hr";
 
@@ -69,6 +70,11 @@ export default function ApprovalsPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      <Breadcrumbs items={[
+        { label: '首頁', href: '/' },
+        { label: '人力資源系統 (HRM)', href: '/hr' },
+        { label: '簽核中心' }
+      ]} />
       <div>
         <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
           <CheckSquare className="h-6 w-6 text-blue-600" />

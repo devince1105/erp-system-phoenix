@@ -95,18 +95,18 @@ export const CreateBankAccountModal: React.FC<CreateBankAccountModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-      <div className="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl w-full max-w-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
         
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/50">
           <div className="flex items-center gap-2">
-            <Landmark className="h-5 w-5 text-emerald-400" />
-            <h3 className="text-base font-bold text-white">
+            <Landmark className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">
               {editingAccount ? `設定/修改銀行帳戶 (${editingAccount.bankName})` : "新增銀行帳戶與 Open API 串接"}
             </h3>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -116,69 +116,69 @@ export const CreateBankAccountModal: React.FC<CreateBankAccountModalProps> = ({
           
           {/* Section 1: Basic Bank Account Info */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+            <h4 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
               <Landmark className="h-3.5 w-3.5" />
               <span>1. 銀行基本帳戶資訊</span>
             </h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-slate-400 mb-1 font-medium">銀行代碼 (Code)</label>
+                <label className="block text-slate-700 dark:text-slate-400 mb-1 font-medium">銀行代碼 (Code)</label>
                 <input
                   type="text"
                   placeholder="808"
                   value={bankCode}
                   onChange={e => setBankCode(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-mono focus:border-emerald-500"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-slate-900 dark:text-white font-mono focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1 font-medium">銀行名稱 (Bank Name)</label>
+                <label className="block text-slate-700 dark:text-slate-400 mb-1 font-medium">銀行名稱 (Bank Name)</label>
                 <input
                   type="text"
                   placeholder="玉山銀行"
                   value={bankName}
                   onChange={e => setBankName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-emerald-500"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1 font-medium">分行名稱 (Branch)</label>
+                <label className="block text-slate-700 dark:text-slate-400 mb-1 font-medium">分行名稱 (Branch)</label>
                 <input
                   type="text"
                   placeholder="營業部"
                   value={branchName}
                   onChange={e => setBranchName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-emerald-500"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-slate-400 mb-1 font-medium">銀行帳號 (Account No)</label>
+                <label className="block text-slate-700 dark:text-slate-400 mb-1 font-medium">銀行帳號 (Account No)</label>
                 <input
                   type="text"
                   placeholder="0808-988-123456"
                   value={accountNumber}
                   onChange={e => setAccountNumber(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-mono focus:border-emerald-500"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-slate-900 dark:text-white font-mono focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1 font-medium">戶名 (Account Name)</label>
+                <label className="block text-slate-700 dark:text-slate-400 mb-1 font-medium">戶名 (Account Name)</label>
                 <input
                   type="text"
                   placeholder="○○企業股份有限公司"
                   value={accountName}
                   onChange={e => setAccountName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-emerald-500"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   required
                 />
               </div>
@@ -186,11 +186,11 @@ export const CreateBankAccountModal: React.FC<CreateBankAccountModalProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-slate-400 mb-1 font-medium">幣別 (Currency)</label>
+                <label className="block text-slate-700 dark:text-slate-400 mb-1 font-medium">幣別 (Currency)</label>
                 <select
                   value={currency}
                   onChange={e => setCurrency(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-mono focus:border-emerald-500"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-slate-900 dark:text-white font-mono focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 >
                   <option value="TWD">TWD (新台幣)</option>
                   <option value="USD">USD (美元)</option>
@@ -200,22 +200,22 @@ export const CreateBankAccountModal: React.FC<CreateBankAccountModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1 font-medium">初始帳戶餘額 ($)</label>
+                <label className="block text-slate-700 dark:text-slate-400 mb-1 font-medium">初始帳戶餘額 ($)</label>
                 <input
                   type="number"
                   step="any"
                   value={balance}
                   onChange={e => setBalance(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-mono text-right focus:border-emerald-500"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-slate-900 dark:text-white font-mono text-right focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1 font-medium">對應會計科目</label>
+                <label className="block text-slate-700 dark:text-slate-400 mb-1 font-medium">對應會計科目</label>
                 <select
                   value={accountTitleId}
                   onChange={e => setAccountTitleId(Number(e.target.value))}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-emerald-500"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 >
                   {accountTitles.map(t => (
                     <option key={t.id} value={t.id}>
@@ -228,18 +228,18 @@ export const CreateBankAccountModal: React.FC<CreateBankAccountModalProps> = ({
           </div>
 
           {/* Section 2: Open Banking API Integration Settings */}
-          <div className="space-y-3 pt-3 border-t border-slate-800">
-            <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
+          <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+            <h4 className="text-xs font-bold text-blue-600 dark:text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
               <Globe className="h-3.5 w-3.5" />
               <span>2. 銀行 Open API 串接與連線設定</span>
             </h4>
 
             <div>
-              <label className="block text-slate-400 mb-1 font-medium">API 串接模式 (Integration Mode)</label>
+              <label className="block text-slate-700 dark:text-slate-400 mb-1 font-medium">API 串接模式 (Integration Mode)</label>
               <select
                 value={apiType}
                 onChange={e => setApiType(Number(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:border-cyan-500"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               >
                 <option value={BankApiIntegrationType.None}>未串接 (人工線下對帳)</option>
                 <option value={BankApiIntegrationType.OpenBankingFWI}>財金公司 Open Banking 開放銀行 API</option>
@@ -249,10 +249,10 @@ export const CreateBankAccountModal: React.FC<CreateBankAccountModalProps> = ({
             </div>
 
             {apiType !== BankApiIntegrationType.None && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-950/80 border border-slate-800 rounded-lg">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-lg">
                 <div>
-                  <label className="block text-slate-400 mb-1 font-medium flex items-center gap-1">
-                    <Globe className="h-3 w-3 text-cyan-400" />
+                  <label className="block text-slate-700 dark:text-slate-400 mb-1 font-medium flex items-center gap-1">
+                    <Globe className="h-3 w-3 text-blue-500 dark:text-cyan-400" />
                     <span>銀行 API Endpoint URL</span>
                   </label>
                   <input
@@ -260,13 +260,13 @@ export const CreateBankAccountModal: React.FC<CreateBankAccountModalProps> = ({
                     placeholder="https://api.esunbank.com.tw/open-banking/v1"
                     value={apiEndpoint}
                     onChange={e => setApiEndpoint(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-white font-mono text-xs focus:border-cyan-500"
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded px-2.5 py-1.5 text-slate-900 dark:text-white font-mono text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-400 mb-1 font-medium flex items-center gap-1">
-                    <Key className="h-3 w-3 text-amber-400" />
+                  <label className="block text-slate-700 dark:text-slate-400 mb-1 font-medium flex items-center gap-1">
+                    <Key className="h-3 w-3 text-amber-500 dark:text-amber-400" />
                     <span>API Client ID / Key 金鑰</span>
                   </label>
                   <input
@@ -274,7 +274,7 @@ export const CreateBankAccountModal: React.FC<CreateBankAccountModalProps> = ({
                     placeholder="ESUN_ERP_CLIENT_2026"
                     value={apiClientId}
                     onChange={e => setApiClientId(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-white font-mono text-xs focus:border-cyan-500"
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded px-2.5 py-1.5 text-slate-900 dark:text-white font-mono text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -282,24 +282,24 @@ export const CreateBankAccountModal: React.FC<CreateBankAccountModalProps> = ({
           </div>
 
           {errorMsg && (
-            <div className="p-3 bg-rose-500/20 border border-rose-500/40 rounded-lg text-rose-300 text-xs">
+            <div className="p-3 bg-red-50 dark:bg-rose-500/20 border border-red-200 dark:border-rose-500/40 rounded-lg text-red-700 dark:text-rose-300 text-xs">
               {errorMsg}
             </div>
           )}
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition"
+              className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
             >
               取消
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex items-center gap-2 px-5 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold hover:from-emerald-400 hover:to-teal-400 disabled:opacity-50 transition shadow-lg shadow-emerald-500/20"
+              className="flex items-center gap-2 px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 dark:bg-gradient-to-r dark:from-emerald-500 dark:to-teal-500 text-white dark:text-slate-950 font-bold dark:hover:from-emerald-400 dark:hover:to-teal-400 disabled:opacity-50 transition shadow-sm dark:shadow-lg dark:shadow-emerald-500/20"
             >
               <Save className="h-4 w-4" />
               <span>{isSubmitting ? "儲存中..." : "儲存銀行帳戶設定"}</span>

@@ -1,67 +1,14 @@
 import axiosClient from '@/api/axiosClient';
 
-// --- Types ---
+import { 
+  AccountTitle, 
+  BankAccount, 
+  VoucherDetail, 
+  Voucher, 
+  CreateVoucherPayload as CreateVoucherDto 
+} from '../types/accounting';
 
-export interface AccountTitle {
-  id: number;
-  code: string;
-  name: string;
-  category: number; // 0=Asset, 1=Liability, 2=Equity, 3=Revenue, 4=Expense
-  description?: string;
-  isActive: boolean;
-}
-
-export interface BankAccount {
-  id: number;
-  bankCode: string;
-  bankName: string;
-  branchName?: string;
-  accountNumber: string;
-  accountName: string;
-  currency: string;
-  balance: number;
-  accountTitleId?: number;
-  accountTitle?: AccountTitle;
-  apiType: number;
-  isActive: boolean;
-  lastSyncedAt?: string;
-}
-
-export interface VoucherDetail {
-  id: number;
-  voucherId: number;
-  seqNo: number;
-  accountTitleId: number;
-  accountTitle?: AccountTitle;
-  isDebit: boolean;
-  amount: number;
-  summary?: string;
-}
-
-export interface Voucher {
-  id: number;
-  voucherNo: string;
-  voucherDate: string;
-  type: number; // 0=General, 1=Payment, 2=Receipt
-  status: number; // 0=Draft, 1=Posted, 2=Voided
-  totalAmount: number;
-  memo?: string;
-  createdAt: string;
-  postedAt?: string;
-  details: VoucherDetail[];
-}
-
-export interface CreateVoucherDto {
-  voucherDate: string;
-  type: number;
-  memo?: string;
-  details: {
-    accountTitleId: number;
-    isDebit: boolean;
-    amount: number;
-    summary?: string;
-  }[];
-}
+export type { AccountTitle, BankAccount, VoucherDetail, Voucher, CreateVoucherDto };
 
 export interface ReportItem {
   code?: string;
@@ -98,10 +45,30 @@ export const accountingApi = {
     const res = await axiosClient.get<AccountTitle[]>('/accounttitles');
     return res.data;
   },
+  createAccountTitle: async (data: Partial<AccountTitle>) => {
+    const res = await axiosClient.post<AccountTitle>('/accounttitles', data);
+    return res.data;
+  },
+  updateAccountTitle: async (id: number, data: Partial<AccountTitle>) => {
+    const res = await axiosClient.put(`/accounttitles/${id}`, data);
+    return res.data;
+  },
+  deleteAccountTitle: async (id: number) => {
+    const res = await axiosClient.delete(`/accounttitles/${id}`);
+    return res.data;
+  },
   
   // Bank Accounts
   getBankAccounts: async () => {
     const res = await axiosClient.get<BankAccount[]>('/bankaccounts');
+    return res.data;
+  },
+  createBankAccount: async (data: Partial<BankAccount>) => {
+    const res = await axiosClient.post<BankAccount>('/bankaccounts', data);
+    return res.data;
+  },
+  updateBankAccount: async (id: number, data: Partial<BankAccount>) => {
+    const res = await axiosClient.put(`/bankaccounts/${id}`, data);
     return res.data;
   },
   syncBankAccount: async (id: number) => {

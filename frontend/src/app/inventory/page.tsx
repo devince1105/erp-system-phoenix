@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { PackageSearch, Users, TrendingUp, FolderTree, AlertCircle } from "lucide-react";
+import { PackageSearch, Users, TrendingUp, FolderTree, AlertCircle, Package } from "lucide-react";
 import { inventoryApi } from "@/features/inventory/api/inventoryApi";
 import { SalesOrder, PurchaseOrder } from "@/features/inventory/types/inventory";
+import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   BarChart, Bar, Cell
@@ -82,8 +83,15 @@ export default function InventoryDashboard() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      <Breadcrumbs items={[
+        { label: '首頁', href: '/' },
+        { label: '進銷存系統 (Inventory)' }
+      ]} />
       <div>
-        <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">進銷存系統 (Inventory)</h1>
+        <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+          <Package className="w-6 h-6 text-blue-600 dark:text-blue-500" />
+          進銷存系統 (Inventory)
+        </h1>
         <p className="text-sm text-slate-500 mt-1">即時掌握庫存與銷售動態</p>
       </div>
 
@@ -142,7 +150,7 @@ export default function InventoryDashboard() {
                     tickLine={false} 
                   />
                   <RechartsTooltip 
-                    formatter={(value: number) => [`$${value.toLocaleString()}`, '營收']}
+                    formatter={(value: any) => [`$${value.toLocaleString()}`, '營收']}
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />
                   <Line type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6' }} activeDot={{ r: 6 }} />
@@ -168,7 +176,7 @@ export default function InventoryDashboard() {
                   <XAxis type="number" hide />
                   <YAxis dataKey="name" type="category" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
                   <RechartsTooltip 
-                    formatter={(value: number) => [value, '銷售數量']}
+                    formatter={(value: any) => [value, '銷售數量']}
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />
                   <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>

@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Landmark, Users, PackageSearch, BarChart3, Settings as SettingsIcon, Lock, Save } from "lucide-react";
+import { Save, AlertCircle, RefreshCw, Power, PowerOff, Building2, LayoutDashboard, Store, Users, ShoppingCart, Lock, Database, Info, Settings as SettingsIcon, Landmark, PackageSearch, BarChart3 } from "lucide-react";
 import { accountingApi } from "@/features/accounting/api/accountingApi";
+import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
 
 export default function SettingsPage() {
   const [closingDate, setClosingDate] = useState("");
@@ -42,11 +43,20 @@ export default function SettingsPage() {
   };
   return (
     <div className="flex flex-col text-slate-900 dark:text-slate-100">
+      <div className="px-6 pt-6 pb-2 max-w-7xl mx-auto w-full">
+        <Breadcrumbs items={[
+          { label: '首頁', href: '/' },
+          { label: '系統設定' }
+        ]} />
+      </div>
       
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 mt-4 px-6 max-w-7xl mx-auto w-full">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">系統設定</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <SettingsIcon className="w-6 h-6 text-blue-600 dark:text-blue-500" />
+            系統設定
+          </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">管理平台環境設定與啟用積木式擴充模組。</p>
         </div>
       </div>
@@ -64,10 +74,10 @@ export default function SettingsPage() {
             
             {/* Module 1: Accounting (Active) */}
             <div className="relative h-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:hover:bg-slate-800/80 overflow-hidden shadow-sm dark:shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 dark:bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 dark:bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
               
               <div className="flex items-center justify-between mb-8 relative z-10">
-                <div className="h-14 w-14 rounded-2xl bg-blue-600 dark:bg-gradient-to-br dark:from-emerald-400 dark:to-teal-500 flex items-center justify-center shadow-md dark:shadow-lg dark:shadow-emerald-500/20">
+                <div className="h-14 w-14 rounded-2xl bg-blue-600 dark:bg-gradient-to-br dark:from-blue-400 dark:to-indigo-500 flex items-center justify-center shadow-md dark:shadow-lg dark:shadow-blue-500/20">
                   <Landmark className="h-7 w-7 text-white dark:text-slate-950 stroke-[2]" />
                 </div>
                 <span className="px-2.5 py-1 rounded-md bg-green-100 dark:bg-emerald-500/20 text-green-700 dark:text-emerald-300 text-xs font-bold uppercase tracking-wider">
@@ -87,10 +97,10 @@ export default function SettingsPage() {
 
             {/* Module 2: HR (Active) */}
             <div className="relative h-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:hover:bg-slate-800/80 overflow-hidden shadow-sm dark:shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-50 dark:bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-50 dark:bg-purple-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
               
               <div className="flex items-center justify-between mb-8 relative z-10">
-                <div className="h-14 w-14 rounded-2xl bg-purple-600 dark:bg-gradient-to-br dark:from-emerald-400 dark:to-teal-500 flex items-center justify-center shadow-md dark:shadow-lg dark:shadow-emerald-500/20">
+                <div className="h-14 w-14 rounded-2xl bg-purple-600 dark:bg-gradient-to-br dark:from-purple-400 dark:to-fuchsia-500 flex items-center justify-center shadow-md dark:shadow-lg dark:shadow-purple-500/20">
                   <Users className="h-7 w-7 text-white dark:text-slate-950 stroke-[2]" />
                 </div>
                 <span className="px-2.5 py-1 rounded-md bg-green-100 dark:bg-emerald-500/20 text-green-700 dark:text-emerald-300 text-xs font-bold uppercase tracking-wider">
@@ -131,22 +141,24 @@ export default function SettingsPage() {
               </button>
             </div>
 
-            {/* Module 4: CRM (Placeholder) */}
-            <div className="relative h-full bg-gray-50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-800 border-dashed rounded-2xl p-6 overflow-hidden">
-              <div className="flex items-center justify-between mb-8">
-                <div className="h-14 w-14 rounded-2xl bg-gray-100 dark:bg-slate-800 flex items-center justify-center border border-gray-200 dark:border-slate-700">
-                  <BarChart3 className="h-7 w-7 text-slate-400 dark:text-slate-500 stroke-[2]" />
+            {/* Module 4: CRM (Active) */}
+            <div className="relative h-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:hover:bg-slate-800/80 overflow-hidden shadow-sm dark:shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-rose-50 dark:bg-rose-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+              
+              <div className="flex items-center justify-between mb-8 relative z-10">
+                <div className="h-14 w-14 rounded-2xl bg-rose-600 dark:bg-gradient-to-br dark:from-rose-400 dark:to-orange-500 flex items-center justify-center shadow-md dark:shadow-lg dark:shadow-rose-500/20">
+                  <BarChart3 className="h-7 w-7 text-white dark:text-slate-950 stroke-[2]" />
                 </div>
-                <span className="px-2.5 py-1 rounded-md bg-gray-200 dark:bg-slate-800/80 text-slate-600 dark:text-slate-500 text-xs font-bold uppercase tracking-wider">
-                  未安裝
+                <span className="px-2.5 py-1 rounded-md bg-green-100 dark:bg-emerald-500/20 text-green-700 dark:text-emerald-300 text-xs font-bold uppercase tracking-wider">
+                  已啟用
                 </span>
               </div>
-              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-300 mb-2">客戶關係管理 (CRM)</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-500 mb-6 leading-relaxed min-h-[40px]">
+              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-300 mb-2 relative z-10">客戶關係管理 (CRM)</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-500 mb-6 relative z-10 leading-relaxed min-h-[40px]">
                 客戶資料維護、業務銷售漏斗與報價單追蹤。
               </p>
-              <button className="w-full py-2 rounded-lg bg-blue-50 dark:bg-indigo-500/10 text-blue-600 dark:text-indigo-400 text-sm font-medium hover:bg-blue-100 dark:hover:bg-indigo-500/20 border border-blue-200 dark:border-indigo-500/30 transition-colors">
-                安裝模組
+              <button className="w-full py-2 rounded-lg bg-gray-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors border border-gray-200 dark:border-slate-700">
+                模組設定
               </button>
             </div>
 

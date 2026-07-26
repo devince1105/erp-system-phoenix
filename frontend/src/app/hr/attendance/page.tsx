@@ -5,6 +5,7 @@ import { hrApi } from "@/features/hr/api/hrApi";
 import { Employee, AttendanceRecord, LeaveRequest, OvertimeRequest, Department } from "@/features/hr/types/hr";
 import { Pagination } from "@/features/core/components/Pagination";
 import { Clock, Calendar, Search, MapPin, Clock3 } from "lucide-react";
+import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
 import { HRDashboard as HRDashboardOverview } from "@/features/hr/components/HRDashboard";
 
 export default function AttendancePage() {
@@ -202,11 +203,18 @@ export default function AttendancePage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-        
+      <Breadcrumbs items={[
+        { label: '首頁', href: '/' },
+        { label: '人力資源系統 (HRM)', href: '/hr' },
+        { label: '出勤與請假' }
+      ]} />
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">出勤與請假 (Attendance & Leave)</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Clock className="w-6 h-6 text-blue-600 dark:text-blue-500" />
+              出勤與請假 (Attendance & Leave)
+            </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1">管理員工每日打卡與請假紀錄</p>
           </div>
           <div className="flex items-center gap-2">

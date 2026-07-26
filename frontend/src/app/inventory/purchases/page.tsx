@@ -5,6 +5,7 @@ import { inventoryApi } from '@/features/inventory/api/inventoryApi';
 import { PurchaseOrder } from '@/features/inventory/types/inventory';
 import { FolderTree, Plus, CheckCircle2, Clock, Pencil, Trash2 } from 'lucide-react';
 import { PurchaseOrderModal } from '@/features/inventory/components/PurchaseOrderModal';
+import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
 
 export default function PurchasesPage() {
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
@@ -73,6 +74,11 @@ export default function PurchasesPage() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <Breadcrumbs items={[
+        { label: '首頁', href: '/' },
+        { label: '進銷存系統 (Inventory)', href: '/inventory' },
+        { label: '採購單管理' }
+      ]} />
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>

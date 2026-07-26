@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { accountingApi, BalanceSheetReport } from '@/features/accounting/api/accountingApi';
 import { Printer, Download, Search, FileText } from 'lucide-react';
+import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
 import * as XLSX from 'xlsx';
 import { ReportPrintView } from '@/features/accounting/components/ReportPrintView';
 
@@ -72,7 +73,7 @@ export default function BalanceSheetPage() {
 
   const sum = (items: {amount: number}[]) => items.reduce((acc, curr) => acc + curr.amount, 0);
 
-  const renderPrintSection = (title: string, items: typeof report.assets) => {
+  const renderPrintSection = (title: string, items: any[]) => {
     if (!items || items.length === 0) return null;
     const total = sum(items);
     return (
@@ -96,7 +97,7 @@ export default function BalanceSheetPage() {
     );
   };
 
-  const renderWebSection = (title: string, items: typeof report.assets) => {
+  const renderWebSection = (title: string, items: any[]) => {
     if (!items || items.length === 0) return null;
     const total = sum(items);
     return (
@@ -123,6 +124,11 @@ export default function BalanceSheetPage() {
   return (
     <>
       <div className="p-6 max-w-6xl mx-auto space-y-6 print:hidden">
+        <Breadcrumbs items={[
+          { label: '首頁', href: '/' },
+          { label: '會計系統', href: '/accounting' },
+          { label: '資產負債表' }
+        ]} />
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>

@@ -2,7 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { accountingApi, Voucher } from '@/features/accounting/api/accountingApi';
+import { accountingApi } from '@/features/accounting/api/accountingApi';
+import { Voucher } from '@/features/accounting/types/accounting';
+import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
 import { Plus, Search, Filter, FileText, CheckCircle2, XCircle, Edit, Trash2 } from 'lucide-react';
 
 export default function VouchersPage() {
@@ -36,12 +38,12 @@ export default function VouchersPage() {
 
   const getStatusBadge = (status: number) => {
     switch (status) {
-      case 0:
-        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800"><FileText className="w-3.5 h-3.5"/> 草稿</span>;
       case 1:
-        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800"><CheckCircle2 className="w-3.5 h-3.5"/> 已過帳</span>;
+        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800"><FileText className="w-3.5 h-3.5"/> 草稿</span>;
       case 2:
-        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700"><XCircle className="w-3.5 h-3.5"/> 作廢</span>;
+        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800"><CheckCircle2 className="w-3.5 h-3.5"/> 已審核</span>;
+      case 3:
+        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800"><CheckCircle2 className="w-3.5 h-3.5"/> 已過帳</span>;
       default:
         return <span>未知</span>;
     }
@@ -49,6 +51,11 @@ export default function VouchersPage() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <Breadcrumbs items={[
+        { label: '首頁', href: '/' },
+        { label: '會計系統', href: '/accounting' },
+        { label: '傳票管理' }
+      ]} />
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -133,7 +140,7 @@ export default function VouchersPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-3">
-                        {voucher.status === 0 ? (
+                        {voucher.status === 1 ? (
                           <>
                             <Link href={`/accounting/vouchers/${voucher.id}/edit`} className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors" title="編輯">
                               <Edit className="w-4 h-4" />

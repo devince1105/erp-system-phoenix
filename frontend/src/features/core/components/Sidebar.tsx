@@ -18,7 +18,9 @@ import {
   ChevronUp,
   FolderTree,
   Activity,
-  CheckSquare
+  CheckSquare,
+  Briefcase,
+  DollarSign
 } from "lucide-react";
 
 export const Sidebar = () => {
@@ -28,6 +30,7 @@ export const Sidebar = () => {
   const [isAccountingOpen, setIsAccountingOpen] = useState(true);
   const [isInventoryOpen, setIsInventoryOpen] = useState(true);
   const [isHROpen, setIsHROpen] = useState(true);
+  const [isCRMOpen, setIsCRMOpen] = useState(true);
 
   const mainNavItems = [
     { name: "企業總覽 (Dashboard)", href: "/", icon: LayoutDashboard },
@@ -56,7 +59,12 @@ export const Sidebar = () => {
     { name: "部門架構 (Departments)", href: "/hr/departments", icon: FolderTree },
     { name: "出勤與請假 (Attendance)", href: "/hr/attendance", icon: Landmark },
     { name: "簽核中心 (Approvals)", href: "/hr/approvals", icon: CheckSquare },
-    { name: "薪資結算 (Payroll)", href: "/hr/payroll", icon: TrendingUp },
+    { name: "薪資結算 (Payroll)", href: "/hr/payroll", icon: DollarSign },
+  ];
+
+  const crmItems = [
+    { name: "銷售看板 (Pipeline)", href: "/crm", icon: LayoutDashboard },
+    { name: "客戶名單 (Customers)", href: "/crm/customers", icon: Users },
   ];
 
   const settingsItems = [
@@ -252,6 +260,55 @@ export const Sidebar = () => {
           )}
         </div>
 
+        {/* CRM Accordion */}
+        <div className="space-y-0.5">
+          {!isCollapsed && (
+            <button
+              onClick={() => setIsCRMOpen(!isCRMOpen)}
+              className="w-full flex items-center justify-between py-2 pl-5 pr-4 mx-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition-colors rounded-md hover:bg-gray-200/50 dark:hover:bg-slate-800/50"
+            >
+              <div className="flex items-center gap-3">
+                <Briefcase className="h-5 w-5 shrink-0 text-slate-500 dark:text-slate-400" />
+                <span className="truncate">客戶關係 (CRM)</span>
+              </div>
+              {isCRMOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+          )}
+
+          {isCollapsed && (
+            <div className="flex justify-center py-2 text-slate-500 dark:text-slate-400" title="客戶關係 (CRM)">
+              <Briefcase className="h-5 w-5" />
+            </div>
+          )}
+
+          {(isCRMOpen || isCollapsed) && (
+            <div className={`space-y-0.5 ${!isCollapsed ? "mt-1 mb-2 ml-4 border-l-2 border-gray-200 dark:border-slate-800" : ""}`}>
+              {crmItems.map((item) => {
+                const isActive = pathname === item.href || (item.href !== "/crm" && pathname.startsWith(item.href));
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    prefetch={true}
+                    className={`flex items-center gap-3 py-2 text-sm font-medium transition-all duration-200 relative ${
+                      isCollapsed ? 'justify-center px-0' : 'pl-5 pr-4 mx-2 rounded-md'
+                    } ${
+                      isActive
+                        ? "bg-blue-50/80 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-gray-200/50 dark:hover:bg-slate-800/50"
+                    }`}
+                    title={isCollapsed ? item.name : undefined}
+                  >
+                    {isActive && !isCollapsed && <div className="absolute left-0 top-1 bottom-1 w-[3px] bg-blue-600 dark:bg-blue-500 rounded-r" />}
+                    <item.icon className={`h-4 w-4 shrink-0 ${isActive ? "text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-500"}`} />
+                    {!isCollapsed && <span className="truncate">{item.name}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
         {/* Settings Navigation */}
         <div className="space-y-0.5 border-t border-gray-200 dark:border-slate-800 pt-4">
           {settingsItems.map((item) => {
@@ -302,6 +359,13 @@ export const Sidebar = () => {
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">進銷存 (Inventory)</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between px-3 py-2 rounded-md bg-rose-50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-900/30">
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">客戶關係 (CRM)</span>
                 </div>
               </div>
             </div>
