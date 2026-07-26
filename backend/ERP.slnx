@@ -2,8 +2,10 @@
   <Folder Name="/src/">
     <Project Path="src/ERP.Host/ERP.Host.csproj" />
     <Project Path="src/ERP.Modules.Accounting/ERP.Modules.Accounting.csproj" />
+    <Project Path="src/ERP.Modules.HR/ERP.Modules.HR.csproj" />
     <Project Path="src/ERP.Modules.Identity/ERP.Modules.Identity.csproj" />
     <Project Path="src/ERP.Modules.Inventory/ERP.Modules.Inventory.csproj" />
+    <Project Path="src/ERP.Modules.CRM/ERP.Modules.CRM.csproj" />
     <Project Path="src/ERP.Shared/ERP.Shared.csproj" />
   </Folder>
 </Solution>

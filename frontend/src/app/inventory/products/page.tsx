@@ -6,6 +6,7 @@ import { inventoryApi } from '@/features/inventory/api/inventoryApi';
 import { Product } from '@/features/inventory/types/inventory';
 import { ProductModal } from '@/features/inventory/components/ProductModal';
 import { PackageSearch, Plus, Tag, Trash2, Edit2 } from 'lucide-react';
+import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
 import { mutate } from 'swr';
 
 export default function ProductsPage() {
@@ -45,6 +46,11 @@ export default function ProductsPage() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <Breadcrumbs items={[
+        { label: '首頁', href: '/' },
+        { label: '進銷存系統 (Inventory)', href: '/inventory' },
+        { label: '產品管理' }
+      ]} />
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>

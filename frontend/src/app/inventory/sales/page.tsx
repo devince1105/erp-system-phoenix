@@ -5,6 +5,7 @@ import { inventoryApi } from '@/features/inventory/api/inventoryApi';
 import { SalesOrder } from '@/features/inventory/types/inventory';
 import { TrendingUp, Plus, CheckCircle2, Clock, Pencil, Trash2 } from 'lucide-react';
 import { SalesOrderModal } from '@/features/inventory/components/SalesOrderModal';
+import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
 
 export default function SalesPage() {
   const [orders, setOrders] = useState<SalesOrder[]>([]);
@@ -73,6 +74,11 @@ export default function SalesPage() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <Breadcrumbs items={[
+        { label: '首頁', href: '/' },
+        { label: '進銷存系統 (Inventory)', href: '/inventory' },
+        { label: '銷售單管理' }
+      ]} />
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>

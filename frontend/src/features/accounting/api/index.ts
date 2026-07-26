@@ -74,68 +74,37 @@ export async function fetchBankAccounts(): Promise<BankAccount[]> {
 
 export async function createBankAccount(payload: CreateBankAccountPayload): Promise<{ success: boolean; data?: BankAccount; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE_URL}/BankAccounts`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      return { success: false, error: errorText || `新增失敗 (Status ${res.status})` };
-    }
-
-    const data = await res.json();
-    return { success: true, data };
+    const res = await axiosClient.post("/BankAccounts", payload);
+    return { success: true, data: res.data };
   } catch (err: any) {
-    return { success: false, error: err.message || "無法連線至 API" };
+    return { success: false, error: err.response?.data?.message || err.message || "無法連線至 API" };
   }
 }
 
 export async function updateBankAccount(id: number, payload: CreateBankAccountPayload): Promise<{ success: boolean; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE_URL}/BankAccounts/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      return { success: false, error: errorText || `更新失敗 (Status ${res.status})` };
-    }
-
+    await axiosClient.put(`/BankAccounts/${id}`, payload);
     return { success: true };
   } catch (err: any) {
-    return { success: false, error: err.message || "連線失敗" };
+    return { success: false, error: err.response?.data?.message || err.message || "連線失敗" };
   }
 }
 
 export async function syncBankAccountApi(id: number): Promise<{ success: boolean; message?: string; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE_URL}/BankAccounts/${id}/sync`, {
-      method: "POST"
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      return { success: false, error: errorText || "同步失敗" };
-    }
-
-    const data = await res.json();
-    return { success: true, message: data.message };
+    const res = await axiosClient.post(`/BankAccounts/${id}/sync`);
+    return { success: true, message: res.data?.message || "同步成功" };
   } catch (err: any) {
-    return { success: false, error: err.message || "連線失敗" };
+    return { success: false, error: err.response?.data?.message || err.message || "連線失敗" };
   }
 }
 
 export async function deleteBankAccount(id: number): Promise<{ success: boolean; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE_URL}/BankAccounts/${id}`, { method: "DELETE" });
-    if (!res.ok) return { success: false, error: "刪除失敗" };
+    await axiosClient.delete(`/BankAccounts/${id}`);
     return { success: true };
   } catch (err: any) {
-    return { success: false, error: err.message };
+    return { success: false, error: err.response?.data?.message || err.message || "刪除失敗" };
   }
 }
 

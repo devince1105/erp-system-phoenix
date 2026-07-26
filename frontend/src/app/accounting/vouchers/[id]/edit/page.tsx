@@ -4,7 +4,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { accountingApi, AccountTitle, CreateVoucherDto, Voucher } from '@/features/accounting/api/accountingApi';
-import { ArrowLeft, Save, Plus, Trash2, Calculator, AlertCircle } from 'lucide-react';
+import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
+import { ArrowLeft, Save, Plus, Trash2, Calculator, AlertCircle, Edit } from 'lucide-react';
 
 interface DetailRow {
   id: string; // for React key
@@ -42,7 +43,7 @@ export default function EditVoucherPage() {
         const voucher = await accountingApi.getVoucher(voucherId);
         
         // If it's posted, it shouldn't be edited
-        if (voucher.status !== 0) {
+        if (voucher.status !== 1) {
           setError('已過帳之傳票基於商業會計法規範不得直接修改！請開立沖銷傳票。');
         }
 
@@ -143,6 +144,12 @@ export default function EditVoucherPage() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
+      <Breadcrumbs items={[
+        { label: '首頁', href: '/' },
+        { label: '會計系統', href: '/accounting' },
+        { label: '傳票管理', href: '/accounting/vouchers' },
+        { label: '編輯傳票' }
+      ]} />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -150,7 +157,10 @@ export default function EditVoucherPage() {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">編輯傳票</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Edit className="w-6 h-6 text-blue-600 dark:text-blue-500" />
+              編輯傳票
+            </h1>
             <p className="text-sm text-slate-500">修改草稿狀態的會計分錄。</p>
           </div>
         </div>

@@ -61,4 +61,64 @@ public class AccountTitlesController : ControllerBase
 
         return CreatedAtAction(nameof(GetAccountTitle), new { id = accountTitle.Id }, accountTitle);
     }
+    /// <summary>
+    /// 更新會計科目
+    /// </summary>
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateAccountTitle(int id, AccountTitle accountTitle)
+    {
+        if (id != accountTitle.Id)
+        {
+            return BadRequest();
+        }
+
+        var existing = await _context.AccountTitles.AsNoTracking().FirstOrDefaultAsync(t => t.Id == id);
+        if (existing == null)
+        {
+            return NotFound();
+        }
+
+        // Check if code changed and is duplicate
+        if (existing.Code != accountTitle.Code)
+        {
+            if (await _context.AccountTitles.AnyAsync(t => t.Code == accountTitle.Code))
+            {
+                return BadRequest($"科目代碼 '{accountTitle.Code}' 已存在！");
+            }
+        }
+
+        _context.Entry(accountTitle).State = EntityState.Modified;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!await _context.AccountTitles.AnyAsync(e => e.Id == id))
+                return NotFound();
+            else
+                throw;
+        }
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// 刪除會計科目
+    /// </summary>
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteAccountTitle(int id)
+    {
+        var accountTitle = await _context.AccountTitles.FindAsync(id);
+        if (accountTitle == null)
+        {
+            return NotFound();
+        }
+
+        _context.AccountTitles.Remove(accountTitle);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
 }

@@ -8,17 +8,8 @@ import {
   BalanceSheetReport 
 } from "@/features/accounting/api/accountingApi";
 import { accountingApi } from "@/features/accounting/api/accountingApi";
-import { 
-  FileText, 
-  TrendingUp, 
-  Wallet, 
-  Landmark, 
-  PlusCircle, 
-  ArrowRight,
-  BarChart3,
-  BookOpen,
-  PieChart
-} from "lucide-react";
+import { Wallet, Calculator, Building2, BookOpen, Clock, Activity, LineChart, FileText, TrendingUp, Landmark, PlusCircle, ArrowRight, BarChart3, PieChart } from "lucide-react";
+import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
 import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from 'recharts';
 
 export default function AccountingDashboardPage() {
@@ -89,10 +80,17 @@ export default function AccountingDashboardPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <Breadcrumbs items={[
+        { label: '首頁', href: '/' },
+        { label: '會計系統' }
+      ]} />
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">財務會計總覽</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <Wallet className="w-6 h-6 text-blue-600 dark:text-blue-500" />
+            財務會計總覽
+          </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">本月關鍵營運指標與最新動態</p>
         </div>
         <div className="mt-4 sm:mt-0 flex items-center gap-3">
@@ -208,7 +206,7 @@ export default function AccountingDashboardPage() {
                       tickLine={false} 
                     />
                     <RechartsTooltip 
-                      formatter={(value: number) => [`$${value.toLocaleString()}`, '金額']}
+                      formatter={(value: any) => [`$${value.toLocaleString()}`, '金額']}
                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     />
                     <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={40}>
@@ -261,13 +259,13 @@ export default function AccountingDashboardPage() {
                       </td>
                       <td className="px-6 py-4 text-center">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wider ${
-                          voucher.status === 1
+                          voucher.status === 3
                             ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                            : voucher.status === 0
+                            : voucher.status === 1
                             ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                            : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
+                            : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
                         }`}>
-                          {voucher.status === 1 ? '已過帳' : voucher.status === 0 ? '草稿' : '作廢'}
+                          {voucher.status === 3 ? '已過帳' : voucher.status === 1 ? '草稿' : '作廢'}
                         </span>
                       </td>
                     </tr>

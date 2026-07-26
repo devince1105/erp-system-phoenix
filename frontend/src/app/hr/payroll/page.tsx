@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { Employee, PayrollRecord } from "@/features/hr/types/hr";
 import { Calculator, CheckCircle2, DollarSign, Download, Plus, Save } from "lucide-react";
+import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
 import { Pagination } from "@/features/core/components/Pagination";
 
 export default function PayrollPage() {
@@ -88,7 +89,11 @@ export default function PayrollPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-        
+      <Breadcrumbs items={[
+        { label: '首頁', href: '/' },
+        { label: '人力資源系統 (HRM)', href: '/hr' },
+        { label: '薪資結算' }
+      ]} />
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>

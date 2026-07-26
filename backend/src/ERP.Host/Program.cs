@@ -6,6 +6,8 @@ using ERP.Modules.Inventory;
 using ERP.Modules.Inventory.Infrastructure.Database;
 using ERP.Modules.HR;
 using ERP.Modules.HR.Data;
+using ERP.Modules.CRM;
+using ERP.Modules.CRM.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -31,6 +33,7 @@ builder.Services.AddControllers()
     .AddApplicationPart(typeof(ERP.Modules.Accounting.AccountingModuleExtensions).Assembly)
     .AddApplicationPart(typeof(ERP.Modules.Inventory.InventoryModuleExtensions).Assembly)
     .AddApplicationPart(typeof(ERP.Modules.HR.HRModuleExtensions).Assembly)
+    .AddApplicationPart(typeof(ERP.Modules.CRM.CRMModuleExtensions).Assembly)
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
@@ -60,10 +63,11 @@ builder.Services.AddAuthentication(options =>
 });
 
 // 2. Load Modular Plugins
-builder.Services.AddAccountingModule(builder.Configuration);
 builder.Services.AddIdentityModule(builder.Configuration);
+builder.Services.AddAccountingModule(builder.Configuration);
 builder.Services.AddInventoryModule(builder.Configuration);
 builder.Services.AddHRModule(builder.Configuration);
+builder.Services.AddCRMModule(builder.Configuration);
 
 // 3. Configure OpenAPI
 builder.Services.AddOpenApi();

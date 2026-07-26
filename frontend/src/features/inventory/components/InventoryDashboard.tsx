@@ -88,7 +88,7 @@ export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({ products
                     cursor={{ fill: 'transparent' }}
                     contentStyle={{ backgroundColor: "#020617", borderColor: "#334155", borderRadius: "8px", fontSize: "12px" }}
                     itemStyle={{ color: "#e2e8f0" }}
-                    formatter={(val: number) => [`${val} 件`, "銷量"]}
+                    formatter={(val: any) => [`${val} 件`, "銷量"]}
                   />
                   <Bar dataKey="quantity" fill="#0ea5e9" radius={[0, 4, 4, 0]} barSize={12} />
                 </BarChart>

@@ -1,18 +1,37 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { accountingApi, BankAccount } from '@/features/accounting/api/accountingApi';
-import { Wallet, Plus, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { accountingApi } from '@/features/accounting/api/accountingApi';
+import { BankAccount, CreateBankAccountPayload, AccountTitle } from '@/features/accounting/types/accounting';
+import { Wallet, Plus, RefreshCw, AlertCircle, CheckCircle2, Edit2, Trash2 } from 'lucide-react';
+import { CreateBankAccountModal } from '@/features/accounting/components/CreateBankAccountModal';
+import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
 
 export default function BankAccountsPage() {
   const [banks, setBanks] = useState<BankAccount[]>([]);
+  const [accountTitles, setAccountTitles] = useState<AccountTitle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [syncingId, setSyncingId] = useState<number | null>(null);
   const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingBank, setEditingBank] = useState<BankAccount | undefined>(undefined);
+
   useEffect(() => {
     fetchBanks();
+    fetchAccountTitles();
   }, []);
+
+  const fetchAccountTitles = async () => {
+    try {
+      const data = await accountingApi.getAccountTitles();
+      // Only keep asset accounts (category 0 or 1 depending on enum) for bank accounts, or just pass all.
+      // In types/accounting.ts AccountCategory.Asset is 1.
+      setAccountTitles(data as unknown as AccountTitle[]);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const fetchBanks = async () => {
     try {
@@ -42,8 +61,30 @@ export default function BankAccountsPage() {
     }
   };
 
+  const handleSave = async (payload: CreateBankAccountPayload, editingId?: number) => {
+    try {
+      if (editingId) {
+        await accountingApi.updateBankAccount(editingId, payload as any);
+        setNotification({ type: 'success', message: '銀行帳戶已更新' });
+      } else {
+        await accountingApi.createBankAccount(payload as any);
+        setNotification({ type: 'success', message: '銀行帳戶已新增' });
+      }
+      fetchBanks();
+      return true;
+    } catch (err: any) {
+      setNotification({ type: 'error', message: err.response?.data || '儲存失敗' });
+      return false;
+    }
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <Breadcrumbs items={[
+        { label: '首頁', href: '/' },
+        { label: '會計系統', href: '/accounting' },
+        { label: '銀行帳戶管理' }
+      ]} />
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -53,7 +94,10 @@ export default function BankAccountsPage() {
           </h1>
           <p className="text-sm text-slate-500 mt-1">管理公司銀行帳戶，並支援 Open Banking API 自動連線。</p>
         </div>
-        <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-sm shadow-sm shadow-blue-600/20 transition-all focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900">
+        <button 
+          onClick={() => { setEditingBank(undefined); setIsModalOpen(true); }}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-sm shadow-sm shadow-blue-600/20 transition-all focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+        >
           <Plus className="w-4 h-4" />
           新增銀行帳戶
         </button>
@@ -130,9 +174,11 @@ export default function BankAccountsPage() {
               {/* Card Footer Actions */}
               <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-3">
                 <button 
-                  className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                  onClick={() => { setEditingBank(bank); setIsModalOpen(true); }}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                 >
-                  詳細資訊
+                  <Edit2 className="w-4 h-4" />
+                  設定
                 </button>
                 <button 
                   onClick={() => handleSync(bank.id)}
@@ -147,6 +193,14 @@ export default function BankAccountsPage() {
           ))
         )}
       </div>
+      
+      <CreateBankAccountModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        accountTitles={accountTitles}
+        editingAccount={editingBank}
+        onSubmit={handleSave}
+      />
     </div>
   );
 }
