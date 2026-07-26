@@ -55,15 +55,54 @@ public class PayrollsController : ControllerBase
             var existing = await _context.Payrolls.FirstOrDefaultAsync(p => p.EmployeeId == emp.Id && p.Year == year && p.Month == month);
             if (existing == null)
             {
+                decimal hourlyRate = emp.BaseSalary / 240m;
+                
+                // Calculate Overtime Bonus
+                var overtimes = await _context.OvertimeRequests
+                    .Where(o => o.EmployeeId == emp.Id && o.Status == "Approved" && o.Date.Year == year && o.Date.Month == month)
+                    .ToListAsync();
+
+                decimal bonus = 0;
+                foreach (var ov in overtimes)
+                {
+                    decimal firstTwo = Math.Min(ov.Hours, 2m);
+                    decimal remaining = Math.Max(0m, ov.Hours - 2m);
+                    bonus += (firstTwo * hourlyRate * 1.34m) + (remaining * hourlyRate * 1.67m);
+                }
+
+                // Calculate Leave Deductions
+                var leaves = await _context.LeaveRequests
+                    .Where(l => l.EmployeeId == emp.Id && l.Status == "Approved" 
+                                && ((l.StartDate.Year == year && l.StartDate.Month == month) 
+                                    || (l.EndDate.Year == year && l.EndDate.Month == month)))
+                    .ToListAsync();
+
+                decimal deductions = 0;
+                foreach (var lv in leaves)
+                {
+                    // Assume 8 hours per day
+                    int days = (lv.EndDate.Date - lv.StartDate.Date).Days + 1;
+                    decimal hours = days * 8m;
+                    
+                    if (lv.LeaveType == "Sick" || lv.LeaveType == "病假")
+                    {
+                        deductions += (hours * hourlyRate * 0.5m);
+                    }
+                    else if (lv.LeaveType == "Personal" || lv.LeaveType == "事假")
+                    {
+                        deductions += (hours * hourlyRate * 1.0m);
+                    }
+                }
+
                 var payroll = new PayrollRecord
                 {
                     EmployeeId = emp.Id,
                     Year = year,
                     Month = month,
                     BaseSalary = emp.BaseSalary,
-                    Bonus = 0,
-                    Deductions = 0,
-                    NetSalary = emp.BaseSalary,
+                    Bonus = Math.Round(bonus, 0),
+                    Deductions = Math.Round(deductions, 0),
+                    NetSalary = Math.Round(emp.BaseSalary + bonus - deductions, 0),
                     Status = "Draft"
                 };
                 _context.Payrolls.Add(payroll);

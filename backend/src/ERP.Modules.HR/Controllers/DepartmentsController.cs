@@ -3,6 +3,7 @@ using ERP.Modules.HR.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ERP.Modules.HR.Controllers;
 
@@ -12,19 +13,34 @@ namespace ERP.Modules.HR.Controllers;
 public class DepartmentsController : ControllerBase
 {
     private readonly HRDbContext _context;
+    private readonly IMemoryCache _cache;
+    private const string CacheKey = "departments_list";
 
-    public DepartmentsController(HRDbContext context)
+    public DepartmentsController(HRDbContext context, IMemoryCache cache)
     {
         _context = context;
+        _cache = cache;
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Department>>> GetDepartments()
     {
-        return await _context.Departments
+        if (_cache.TryGetValue(CacheKey, out IEnumerable<Department> cachedDepartments))
+        {
+            return Ok(cachedDepartments);
+        }
+
+        var departments = await _context.Departments
             .Include(d => d.Manager)
             .OrderBy(d => d.Id)
             .ToListAsync();
+
+        var cacheEntryOptions = new MemoryCacheEntryOptions()
+            .SetAbsoluteExpiration(TimeSpan.FromSeconds(60));
+
+        _cache.Set(CacheKey, departments, cacheEntryOptions);
+
+        return Ok(departments);
     }
 
     [HttpGet("{id}")]
@@ -47,6 +63,8 @@ public class DepartmentsController : ControllerBase
         _context.Departments.Add(department);
         await _context.SaveChangesAsync();
 
+        _cache.Remove(CacheKey);
+
         return CreatedAtAction(nameof(GetDepartment), new { id = department.Id }, department);
     }
 
@@ -64,6 +82,7 @@ public class DepartmentsController : ControllerBase
         try
         {
             await _context.SaveChangesAsync();
+            _cache.Remove(CacheKey);
         }
         catch (DbUpdateConcurrencyException)
         {
@@ -82,6 +101,8 @@ public class DepartmentsController : ControllerBase
 
         _context.Departments.Remove(department);
         await _context.SaveChangesAsync();
+
+        _cache.Remove(CacheKey);
 
         return NoContent();
     }

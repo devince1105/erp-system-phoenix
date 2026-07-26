@@ -3,6 +3,7 @@ using ERP.Modules.HR.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ERP.Modules.HR.Controllers;
 
@@ -12,22 +13,34 @@ namespace ERP.Modules.HR.Controllers;
 public class EmployeesController : ControllerBase
 {
     private readonly HRDbContext _context;
+    private readonly IMemoryCache _cache;
+    private const string CacheKey = "employees_list";
 
-    public EmployeesController(HRDbContext context)
+    public EmployeesController(HRDbContext context, IMemoryCache cache)
     {
         _context = context;
+        _cache = cache;
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Employee>>> GetEmployees()
     {
-        return await _context.Employees
+        if (_cache.TryGetValue(CacheKey, out IEnumerable<Employee> cachedEmployees))
+        {
+            return Ok(cachedEmployees);
+        }
+
+        var employees = await _context.Employees
             .Include(e => e.Department)
-            .Include(e => e.Educations)
-            .Include(e => e.Experiences)
-            .Include(e => e.JobHistories).ThenInclude(h => h.Department)
             .OrderByDescending(e => e.Id)
             .ToListAsync();
+
+        var cacheEntryOptions = new MemoryCacheEntryOptions()
+            .SetAbsoluteExpiration(TimeSpan.FromSeconds(60));
+
+        _cache.Set(CacheKey, employees, cacheEntryOptions);
+
+        return Ok(employees);
     }
 
     [HttpGet("{id}")]
@@ -55,6 +68,8 @@ public class EmployeesController : ControllerBase
         
         _context.Employees.Add(employee);
         await _context.SaveChangesAsync();
+
+        _cache.Remove(CacheKey);
 
         return CreatedAtAction(nameof(GetEmployee), new { id = employee.Id }, employee);
     }
@@ -115,6 +130,7 @@ public class EmployeesController : ControllerBase
         try
         {
             await _context.SaveChangesAsync();
+            _cache.Remove(CacheKey);
         }
         catch (DbUpdateConcurrencyException)
         {
@@ -133,6 +149,8 @@ public class EmployeesController : ControllerBase
 
         _context.Employees.Remove(employee);
         await _context.SaveChangesAsync();
+
+        _cache.Remove(CacheKey);
 
         return NoContent();
     }

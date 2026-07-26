@@ -1,5 +1,5 @@
 import axiosClient from '@/api/axiosClient';
-import { Department, Employee, AttendanceRecord, LeaveRequest, PayrollRecord, OvertimeRequest } from '../types/hr';
+import { Department, Employee, AttendanceRecord, LeaveRequest, PayrollRecord, OvertimeRequest, CalendarEvent } from '../types/hr';
 
 export const hrApi = {
   // Departments
@@ -69,6 +69,9 @@ export const hrApi = {
     const { data } = await axiosClient.post('/hr/leaves', request);
     return data;
   },
+  updateLeave: async (id: number, request: Partial<LeaveRequest>): Promise<void> => {
+    await axiosClient.put(`/hr/leaves/${id}`, request);
+  },
 
   // Overtimes
   getOvertimes: async (): Promise<OvertimeRequest[]> => {
@@ -78,6 +81,9 @@ export const hrApi = {
   createOvertime: async (request: Partial<OvertimeRequest>): Promise<OvertimeRequest> => {
     const { data } = await axiosClient.post('/hr/overtimes', request);
     return data;
+  },
+  updateOvertime: async (id: number, request: Partial<OvertimeRequest>): Promise<void> => {
+    await axiosClient.put(`/hr/overtimes/${id}`, request);
   },
 
   // Payrolls
@@ -90,5 +96,18 @@ export const hrApi = {
   },
   updatePayroll: async (id: number, record: Partial<PayrollRecord>): Promise<void> => {
     await axiosClient.put(`/hr/payrolls/${id}`, record);
+  },
+
+  // Calendar Events
+  getCalendarEvents: async (): Promise<CalendarEvent[]> => {
+    const { data } = await axiosClient.get('/hr/calendarEvents');
+    return data;
+  },
+  createCalendarEvent: async (event: Partial<CalendarEvent>): Promise<CalendarEvent> => {
+    const { data } = await axiosClient.post('/hr/calendarEvents', event);
+    return data;
+  },
+  deleteCalendarEvent: async (id: number): Promise<void> => {
+    await axiosClient.delete(`/hr/calendarEvents/${id}`);
   }
 };
