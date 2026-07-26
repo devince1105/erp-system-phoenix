@@ -1,16 +1,28 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Users, Plus, Pencil, Trash2 } from "lucide-react";
+import { Users, Plus, Pencil, Trash2, Search } from "lucide-react";
+import dynamic from "next/dynamic";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { Employee, Department } from "@/features/hr/types/hr";
-import { EmployeeModal } from "@/features/hr/components/EmployeeModal";
+
+const EmployeeModal = dynamic(() => import("@/features/hr/components/EmployeeModal").then(mod => mod.EmployeeModal), { ssr: false });
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeDepartmentId, setActiveDepartmentId] = useState<number | "all">("all");
+  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
@@ -81,13 +93,25 @@ export default function EmployeesPage() {
           <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">員工管理 (Employees)</h1>
           <p className="text-sm text-slate-500 mt-1">管理公司人員名單與基本資料</p>
         </div>
-        <button
-          onClick={handleCreate}
-          className="flex items-center gap-2 px-4 py-2  bg-blue-600 text-white font-medium text-sm rounded-sm hover:bg-blue-700 transition shadow-sm"
-        >
-          <Plus className="h-4 w-4" />
-          新增員工
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="搜尋員工姓名..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 pr-4 py-2 border border-slate-300 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-900 text-sm focus:outline-none focus:border-blue-500 shadow-sm w-64 transition-colors"
+            />
+          </div>
+          <button
+            onClick={handleCreate}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium text-sm rounded-sm hover:bg-blue-700 transition shadow-sm whitespace-nowrap"
+          >
+            <Plus className="h-4 w-4" />
+            新增員工
+          </button>
+        </div>
       </div>
 
       {/* Department Tabs */}
@@ -149,6 +173,7 @@ export default function EmployeesPage() {
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                 {employees
                   .filter(emp => activeDepartmentId === "all" || emp.departmentId === activeDepartmentId)
+                  .filter(emp => debouncedSearchQuery === "" || emp.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()))
                   .map((emp) => (
                   <tr key={emp.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="px-6 py-4 font-medium text-slate-900 dark:text-slate-200">

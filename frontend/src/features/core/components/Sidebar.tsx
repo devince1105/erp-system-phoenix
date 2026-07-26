@@ -16,7 +16,9 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
-  FolderTree
+  FolderTree,
+  Activity,
+  CheckSquare
 } from "lucide-react";
 
 export const Sidebar = () => {
@@ -53,6 +55,7 @@ export const Sidebar = () => {
     { name: "員工管理 (Employees)", href: "/hr/employees", icon: Users },
     { name: "部門架構 (Departments)", href: "/hr/departments", icon: FolderTree },
     { name: "出勤與請假 (Attendance)", href: "/hr/attendance", icon: Landmark },
+    { name: "簽核中心 (Approvals)", href: "/hr/approvals", icon: CheckSquare },
     { name: "薪資結算 (Payroll)", href: "/hr/payroll", icon: TrendingUp },
   ];
 
@@ -75,7 +78,7 @@ export const Sidebar = () => {
         {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
       </button>
 
-      <div className="flex-1 overflow-y-auto py-6 space-y-6 no-scrollbar overflow-x-hidden">
+      <div className="flex-1 overflow-y-auto py-6 space-y-2 no-scrollbar overflow-x-hidden">
         
         {/* Main Navigation */}
         <div className="space-y-0.5">
@@ -85,6 +88,7 @@ export const Sidebar = () => {
               <Link
                 key={item.name}
                 href={item.href}
+                prefetch={true}
                 className={`flex items-center gap-3 py-2 text-sm font-medium transition-all duration-200 relative ${
                   isCollapsed ? 'justify-center px-0' : 'pl-5 pr-4 mx-2 rounded-md'
                 } ${
@@ -130,6 +134,7 @@ export const Sidebar = () => {
                   <Link
                     key={item.name}
                     href={item.href}
+                    prefetch={true}
                     className={`flex items-center gap-3 py-2 text-sm font-medium transition-all duration-200 relative ${
                       isCollapsed ? 'justify-center px-0' : 'pl-5 pr-4 mx-2 rounded-md'
                     } ${
@@ -150,7 +155,7 @@ export const Sidebar = () => {
         </div>
 
         {/* Inventory Accordion */}
-        <div className="space-y-0.5 mt-4">
+        <div className="space-y-0.5">
           {!isCollapsed && (
             <button
               onClick={() => setIsInventoryOpen(!isInventoryOpen)}
@@ -178,6 +183,7 @@ export const Sidebar = () => {
                   <Link
                     key={item.name}
                     href={item.href}
+                    prefetch={true}
                     className={`flex items-center gap-3 py-2 text-sm font-medium transition-all duration-200 relative ${
                       isCollapsed ? 'justify-center px-0' : 'pl-5 pr-4 mx-2 rounded-md'
                     } ${
@@ -198,7 +204,7 @@ export const Sidebar = () => {
         </div>
 
         {/* HR Accordion */}
-        <div className="space-y-0.5 mt-4">
+        <div className="space-y-0.5">
           {!isCollapsed && (
             <button
               onClick={() => setIsHROpen(!isHROpen)}
@@ -226,6 +232,7 @@ export const Sidebar = () => {
                   <Link
                     key={item.name}
                     href={item.href}
+                    prefetch={true}
                     className={`flex items-center gap-3 py-2 text-sm font-medium transition-all duration-200 relative ${
                       isCollapsed ? 'justify-center px-0' : 'pl-5 pr-4 mx-2 rounded-md'
                     } ${
@@ -253,6 +260,7 @@ export const Sidebar = () => {
               <Link
                 key={item.name}
                 href={item.href}
+                prefetch={true}
                 className={`flex items-center gap-3 py-2 text-sm font-medium transition-all duration-200 relative ${
                   isCollapsed ? 'justify-center px-0' : 'pl-5 pr-4 mx-2 rounded-md'
                 } ${

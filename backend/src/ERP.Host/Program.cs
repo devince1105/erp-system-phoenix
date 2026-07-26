@@ -24,6 +24,8 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddMemoryCache();
+
 builder.Services.AddControllers()
     .AddApplicationPart(typeof(ERP.Modules.Identity.IdentityModuleExtensions).Assembly)
     .AddApplicationPart(typeof(ERP.Modules.Accounting.AccountingModuleExtensions).Assembly)

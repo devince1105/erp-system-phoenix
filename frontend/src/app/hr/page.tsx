@@ -4,21 +4,40 @@ import React, { useEffect, useState } from "react";
 import { Users, FolderTree, ArrowRight, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { hrApi } from "@/features/hr/api/hrApi";
+import { LeaveRequest, OvertimeRequest, CalendarEvent } from "@/features/hr/types/hr";
+import { HRCalendar } from "@/features/hr/components/HRCalendar";
+import { DateDetailsPanel } from "@/features/hr/components/DateDetailsPanel";
 
-export default function HRDashboard() {
+export default function HRPage() {
   const [stats, setStats] = useState({
     totalEmployees: 0,
     activeEmployees: 0,
     departments: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [leaves, setLeaves] = useState<LeaveRequest[]>([]);
+  const [overtimes, setOvertimes] = useState<OvertimeRequest[]>([]);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
+
+  const loadEvents = async () => {
+    try {
+      const data = await hrApi.getCalendarEvents();
+      setEvents(data);
+    } catch (err) {
+      console.error("Failed to load events", err);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [employees, departments] = await Promise.all([
+        const [employees, departments, leavesData, overtimesData, eventsData] = await Promise.all([
           hrApi.getEmployees(),
-          hrApi.getDepartments()
+          hrApi.getDepartments(),
+          hrApi.getLeaves(),
+          hrApi.getOvertimes(),
+          hrApi.getCalendarEvents()
         ]);
         
         setStats({
@@ -26,6 +45,9 @@ export default function HRDashboard() {
           activeEmployees: employees.filter(e => e.status === 1).length,
           departments: departments.length
         });
+        setLeaves(leavesData);
+        setOvertimes(overtimesData);
+        setEvents(eventsData);
       } catch (err) {
         console.error("Failed to load HR stats", err);
       } finally {
@@ -84,37 +106,28 @@ export default function HRDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-        {/* Quick Links */}
-        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-sm shadow-sm p-5">
-          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">快速操作</h2>
-          <div className="space-y-3">
-            <Link href="/hr/employees" className="flex items-center justify-between p-3 rounded-sm border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md text-blue-600 dark:text-blue-400">
-                  <Users className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-slate-900 dark:text-slate-200">員工名冊</h3>
-                  <p className="text-xs text-slate-500">檢視與管理所有員工資料</p>
-                </div>
-              </div>
-              <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-blue-500" />
-            </Link>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+        {/* HR Calendar */}
+        <div className="lg:col-span-2">
+          <HRCalendar 
+            leaves={leaves} 
+            overtimes={overtimes} 
+            events={events}
+            selectedDate={selectedDate}
+            onDateSelect={(date) => setSelectedDate(date)}
+          />
+        </div>
 
-            <Link href="/hr/departments" className="flex items-center justify-between p-3 rounded-sm border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-md text-purple-600 dark:text-purple-400">
-                  <FolderTree className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-slate-900 dark:text-slate-200">組織架構</h3>
-                  <p className="text-xs text-slate-500">管理各部門與主管設定</p>
-                </div>
-              </div>
-              <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-purple-500" />
-            </Link>
-          </div>
+        {/* Date Details Panel */}
+        <div className="lg:col-span-1 min-h-[400px]">
+          <DateDetailsPanel 
+            selectedDate={selectedDate}
+            leaves={leaves}
+            overtimes={overtimes}
+            events={events}
+            onEventCreated={loadEvents}
+            onEventDeleted={loadEvents}
+          />
         </div>
       </div>
     </div>

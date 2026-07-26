@@ -17,6 +17,7 @@ public class HRDbContext : DbContext
     public DbSet<AttendanceRecord> Attendances => Set<AttendanceRecord>();
     public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();
     public DbSet<OvertimeRequest> OvertimeRequests => Set<OvertimeRequest>();
+    public DbSet<CalendarEvent> CalendarEvents => Set<CalendarEvent>();
     public DbSet<PayrollRecord> Payrolls => Set<PayrollRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

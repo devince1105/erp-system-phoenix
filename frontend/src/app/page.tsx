@@ -5,24 +5,50 @@ import {
   fetchAccountTitles,
   fetchVouchers
 } from "@/features/accounting/api";
+import { hrApi } from "@/features/hr/api/hrApi";
+import { inventoryApi } from "@/features/inventory/api/inventoryApi";
 import { AccountTitle, Voucher } from "@/features/accounting/types/accounting";
+import { Employee, AttendanceRecord } from "@/features/hr/types/hr";
+import { Product, SalesOrder } from "@/features/inventory/types/inventory";
+
 import { StatCards } from "@/features/accounting/components/StatCards";
 import { FinancialCharts } from "@/features/accounting/components/FinancialCharts";
-import { Activity } from "lucide-react";
+import { HRDashboard } from "@/features/hr/components/HRDashboard";
+import { InventoryDashboard } from "@/features/inventory/components/InventoryDashboard";
+import { Activity, LayoutDashboard } from "lucide-react";
 
 export default function DashboardPage() {
   const [accountTitles, setAccountTitles] = useState<AccountTitle[]>([]);
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [attendances, setAttendances] = useState<AttendanceRecord[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [salesOrders, setSalesOrders] = useState<SalesOrder[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const loadData = async () => {
     try {
-      const [titlesData, vouchersData] = await Promise.all([
+      const [
+        titlesData, 
+        vouchersData, 
+        empData, 
+        attData, 
+        prodData, 
+        salesData
+      ] = await Promise.all([
         fetchAccountTitles(),
-        fetchVouchers()
+        fetchVouchers(),
+        hrApi.getEmployees(),
+        hrApi.getAttendances(),
+        inventoryApi.getProducts(),
+        inventoryApi.getSalesOrders()
       ]);
       setAccountTitles(titlesData);
       setVouchers(vouchersData);
+      setEmployees(empData);
+      setAttendances(attData);
+      setProducts(prodData);
+      setSalesOrders(salesData);
     } catch (err) {
       console.error("Failed to load dashboard data:", err);
     } finally {
@@ -52,16 +78,24 @@ export default function DashboardPage() {
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-cyan-500/10 text-blue-700 dark:text-cyan-400 text-xs font-semibold tracking-wider border border-blue-200 dark:border-cyan-500/20 shadow-sm dark:shadow-inner">
-            <Activity className="h-3.5 w-3.5" />
-            <span>財務會計模組即時數據</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold tracking-wider border border-slate-200 dark:border-slate-700 shadow-sm">
+            <LayoutDashboard className="h-3.5 w-3.5" />
+            <span>High-Level Executive Overview</span>
           </div>
           
-          {/* Dashboard Overview Cards */}
+          {/* Main Financial Overview */}
           <StatCards vouchers={vouchers} accountTitles={accountTitles} />
-
-          {/* Visual Financial Charts */}
           <FinancialCharts vouchers={vouchers} accountTitles={accountTitles} />
+
+          {/* Departmental Dashboards */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
+            <div className="h-auto min-h-[320px]">
+              <HRDashboard employees={employees} attendances={attendances} />
+            </div>
+            <div className="h-auto min-h-[320px]">
+              <InventoryDashboard products={products} salesOrders={salesOrders} />
+            </div>
+          </div>
         </div>
       )}
 

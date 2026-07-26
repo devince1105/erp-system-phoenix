@@ -121,3 +121,12 @@ export interface PayrollRecord {
   createdAt?: string;
   updatedAt?: string;
 }
+
+export interface CalendarEvent {
+  id: number;
+  date: string;
+  title: string;
+  description?: string;
+  type: string; // 'Announcement', 'Note'
+  createdAt?: string;
+}

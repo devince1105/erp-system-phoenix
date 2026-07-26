@@ -3,7 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { Employee, AttendanceRecord, LeaveRequest, OvertimeRequest, Department } from "@/features/hr/types/hr";
+import { Pagination } from "@/features/core/components/Pagination";
 import { Clock, Calendar, Search, MapPin, Clock3 } from "lucide-react";
+import { HRDashboard as HRDashboardOverview } from "@/features/hr/components/HRDashboard";
 
 export default function AttendancePage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -178,19 +180,6 @@ export default function AttendancePage() {
     return true;
   });
 
-  const generatePagination = (currentPage: number, totalPages: number) => {
-    const delta = 2;
-    const range = [];
-    for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
-      range.push(i);
-    }
-    if (currentPage - delta > 2) range.unshift("...");
-    if (currentPage + delta < totalPages - 1) range.push("...");
-    range.unshift(1);
-    if (totalPages > 1) range.push(totalPages);
-    return range;
-  };
-
   // Pagination calculations - Attendances
   const attTotalItems = filteredAttendances.length;
   const attTotalPages = Math.ceil(attTotalItems / attPageSize) || 1;
@@ -235,7 +224,8 @@ export default function AttendancePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
           {/* Left Column: Actions */}
           <div className="space-y-6">
             
@@ -261,6 +251,9 @@ export default function AttendancePage() {
                 上班打卡 (Clock In)
               </button>
             </div>
+
+            {/* Today's Attendance Overview & Abnormal List */}
+            <HRDashboardOverview employees={employees} attendances={attendances} layout="vertical" />
 
             {/* Leave Request Card */}
             <div className="bg-white dark:bg-slate-900 rounded-sm shadow-sm border border-slate-200 dark:border-slate-800 p-6">
@@ -504,60 +497,13 @@ export default function AttendancePage() {
               </div>
               {/* Pagination Controls */}
               {filteredAttendances.length > 0 && !isLoading && (
-                <div className="px-4 py-3 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-500 dark:text-slate-400">
-                      第 {attStartIndex + 1}-{Math.min(attStartIndex + attPageSize, attTotalItems)} 筆，共 {attTotalItems} 筆
-                    </span>
-                    <select
-                      value={attPageSize}
-                      onChange={(e) => {
-                        setAttPageSize(Number(e.target.value));
-                        setAttPage(1);
-                      }}
-                      className="px-2 py-1 border border-slate-300 dark:border-slate-800 rounded-sm bg-white dark:bg-slate-900 text-xs focus:outline-none focus:border-blue-500"
-                    >
-                      <option value={5}>5 筆/頁</option>
-                      <option value={10}>10 筆/頁</option>
-                      <option value={20}>20 筆/頁</option>
-                    </select>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => setAttPage(p => Math.max(1, p - 1))}
-                      disabled={attPage === 1}
-                      className="px-2 py-1 border border-slate-300 dark:border-slate-800 rounded-sm bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs"
-                    >
-                      上一頁
-                    </button>
-                    <div className="flex items-center gap-1 hidden sm:flex">
-                      {generatePagination(attPage, attTotalPages).map((item, idx) => (
-                        item === "..." ? (
-                          <span key={`ellipsis-${idx}`} className="w-6 h-6 flex items-center justify-center text-slate-500 text-xs">...</span>
-                        ) : (
-                          <button
-                            key={item}
-                            onClick={() => setAttPage(item as number)}
-                            className={`w-6 h-6 flex items-center justify-center border rounded-sm transition-colors text-xs font-medium ${
-                              attPage === item 
-                                ? "bg-blue-50 dark:bg-blue-900/30 border-blue-500 text-blue-700 dark:text-blue-400" 
-                                : "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-                            }`}
-                          >
-                            {item}
-                          </button>
-                        )
-                      ))}
-                    </div>
-                    <button
-                      onClick={() => setAttPage(p => Math.min(attTotalPages, p + 1))}
-                      disabled={attPage === attTotalPages}
-                      className="px-2 py-1 border border-slate-300 dark:border-slate-800 rounded-sm bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs"
-                    >
-                      下一頁
-                    </button>
-                  </div>
-                </div>
+                <Pagination
+                  currentPage={attPage}
+                  pageSize={attPageSize}
+                  totalItems={attTotalItems}
+                  onPageChange={setAttPage}
+                  onPageSizeChange={setAttPageSize}
+                />
               )}
             </div>
 
@@ -612,60 +558,13 @@ export default function AttendancePage() {
               </div>
               {/* Pagination Controls */}
               {filteredLeaves.length > 0 && !isLoading && (
-                <div className="px-4 py-3 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-500 dark:text-slate-400">
-                      第 {leaveStartIndex + 1}-{Math.min(leaveStartIndex + leavePageSize, leaveTotalItems)} 筆，共 {leaveTotalItems} 筆
-                    </span>
-                    <select
-                      value={leavePageSize}
-                      onChange={(e) => {
-                        setLeavePageSize(Number(e.target.value));
-                        setLeavePage(1);
-                      }}
-                      className="px-2 py-1 border border-slate-300 dark:border-slate-800 rounded-sm bg-white dark:bg-slate-900 text-xs focus:outline-none focus:border-blue-500"
-                    >
-                      <option value={5}>5 筆/頁</option>
-                      <option value={10}>10 筆/頁</option>
-                      <option value={20}>20 筆/頁</option>
-                    </select>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => setLeavePage(p => Math.max(1, p - 1))}
-                      disabled={leavePage === 1}
-                      className="px-2 py-1 border border-slate-300 dark:border-slate-800 rounded-sm bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs"
-                    >
-                      上一頁
-                    </button>
-                    <div className="flex items-center gap-1 hidden sm:flex">
-                      {generatePagination(leavePage, leaveTotalPages).map((item, idx) => (
-                        item === "..." ? (
-                          <span key={`ellipsis-${idx}`} className="w-6 h-6 flex items-center justify-center text-slate-500 text-xs">...</span>
-                        ) : (
-                          <button
-                            key={item}
-                            onClick={() => setLeavePage(item as number)}
-                            className={`w-6 h-6 flex items-center justify-center border rounded-sm transition-colors text-xs font-medium ${
-                              leavePage === item 
-                                ? "bg-blue-50 dark:bg-blue-900/30 border-blue-500 text-blue-700 dark:text-blue-400" 
-                                : "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-                            }`}
-                          >
-                            {item}
-                          </button>
-                        )
-                      ))}
-                    </div>
-                    <button
-                      onClick={() => setLeavePage(p => Math.min(leaveTotalPages, p + 1))}
-                      disabled={leavePage === leaveTotalPages}
-                      className="px-2 py-1 border border-slate-300 dark:border-slate-800 rounded-sm bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs"
-                    >
-                      下一頁
-                    </button>
-                  </div>
-                </div>
+                <Pagination
+                  currentPage={leavePage}
+                  pageSize={leavePageSize}
+                  totalItems={leaveTotalItems}
+                  onPageChange={setLeavePage}
+                  onPageSizeChange={setLeavePageSize}
+                />
               )}
             </div>
 
@@ -724,60 +623,13 @@ export default function AttendancePage() {
               </div>
               {/* Pagination Controls */}
               {filteredOvertimes.length > 0 && !isLoading && (
-                <div className="px-4 py-3 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-500 dark:text-slate-400">
-                      第 {overtimeStartIndex + 1}-{Math.min(overtimeStartIndex + overtimePageSize, overtimeTotalItems)} 筆，共 {overtimeTotalItems} 筆
-                    </span>
-                    <select
-                      value={overtimePageSize}
-                      onChange={(e) => {
-                        setOvertimePageSize(Number(e.target.value));
-                        setOvertimePage(1);
-                      }}
-                      className="px-2 py-1 border border-slate-300 dark:border-slate-800 rounded-sm bg-white dark:bg-slate-900 text-xs focus:outline-none focus:border-blue-500"
-                    >
-                      <option value={5}>5 筆/頁</option>
-                      <option value={10}>10 筆/頁</option>
-                      <option value={20}>20 筆/頁</option>
-                    </select>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => setOvertimePage(p => Math.max(1, p - 1))}
-                      disabled={overtimePage === 1}
-                      className="px-2 py-1 border border-slate-300 dark:border-slate-800 rounded-sm bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs"
-                    >
-                      上一頁
-                    </button>
-                    <div className="flex items-center gap-1 hidden sm:flex">
-                      {generatePagination(overtimePage, overtimeTotalPages).map((item, idx) => (
-                        item === "..." ? (
-                          <span key={`ellipsis-${idx}`} className="w-6 h-6 flex items-center justify-center text-slate-500 text-xs">...</span>
-                        ) : (
-                          <button
-                            key={item}
-                            onClick={() => setOvertimePage(item as number)}
-                            className={`w-6 h-6 flex items-center justify-center border rounded-sm transition-colors text-xs font-medium ${
-                              overtimePage === item 
-                                ? "bg-blue-50 dark:bg-blue-900/30 border-blue-500 text-blue-700 dark:text-blue-400" 
-                                : "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-                            }`}
-                          >
-                            {item}
-                          </button>
-                        )
-                      ))}
-                    </div>
-                    <button
-                      onClick={() => setOvertimePage(p => Math.min(overtimeTotalPages, p + 1))}
-                      disabled={overtimePage === overtimeTotalPages}
-                      className="px-2 py-1 border border-slate-300 dark:border-slate-800 rounded-sm bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs"
-                    >
-                      下一頁
-                    </button>
-                  </div>
-                </div>
+                <Pagination
+                  currentPage={overtimePage}
+                  pageSize={overtimePageSize}
+                  totalItems={overtimeTotalItems}
+                  onPageChange={setOvertimePage}
+                  onPageSizeChange={setOvertimePageSize}
+                />
               )}
             </div>
 

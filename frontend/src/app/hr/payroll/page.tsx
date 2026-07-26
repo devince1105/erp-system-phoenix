@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { Employee, PayrollRecord } from "@/features/hr/types/hr";
 import { Calculator, CheckCircle2, DollarSign, Download, Plus, Save } from "lucide-react";
+import { Pagination } from "@/features/core/components/Pagination";
 
 export default function PayrollPage() {
   const [payrolls, setPayrolls] = useState<PayrollRecord[]>([]);
@@ -239,59 +240,13 @@ export default function PayrollPage() {
           
           {/* Pagination Controls */}
           {payrolls.length > 0 && !isLoading && (
-            <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-slate-600 dark:text-slate-400">
-                  顯示第 {startIndex + 1} 到 {Math.min(startIndex + pageSize, totalItems)} 筆，共 {totalItems} 筆
-                </span>
-                <select
-                  value={pageSize}
-                  onChange={(e) => {
-                    setPageSize(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
-                  className="px-2 py-1 border border-slate-300 dark:border-slate-800 rounded-sm bg-white dark:bg-slate-900 text-sm focus:outline-none focus:border-emerald-500"
-                >
-                  <option value={5}>5 筆/頁</option>
-                  <option value={10}>10 筆/頁</option>
-                  <option value={20}>20 筆/頁</option>
-                  <option value={50}>50 筆/頁</option>
-                </select>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 border border-slate-300 dark:border-slate-800 rounded-sm bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                >
-                  上一頁
-                </button>
-                
-                <div className="flex items-center gap-1 hidden sm:flex">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={`w-8 h-8 flex items-center justify-center border rounded-sm transition-colors text-sm font-medium ${
-                        currentPage === pageNum 
-                          ? "bg-emerald-50 dark:bg-emerald-900/30 border-emerald-500 text-emerald-700 dark:text-emerald-400" 
-                          : "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1 border border-slate-300 dark:border-slate-800 rounded-sm bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                >
-                  下一頁
-                </button>
-              </div>
-            </div>
+            <Pagination
+              currentPage={currentPage}
+              pageSize={pageSize}
+              totalItems={totalItems}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+            />
           )}
         </div>
 
