@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Users, Plus, Pencil, Trash2, Search, Mail, Phone, Briefcase, Building2, MoreHorizontal, UserCheck, Filter } from "lucide-react";
+import { Users, Plus, Pencil, Trash2, Search, Mail, Phone, Briefcase, Building2, MoreHorizontal, UserCheck, Filter, Download, Printer } from "lucide-react";
 import dynamic from "next/dynamic";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { Employee, Department } from "@/features/hr/types/hr";
+import { exportToExcel, exportToPDF } from "@/utils/exportUtils";
+import { ReportPrintView } from "@/features/accounting/components/ReportPrintView";
 
 const EmployeeModal = dynamic(() => import("@/features/hr/components/EmployeeModal").then(mod => mod.EmployeeModal), { ssr: false });
 
@@ -87,8 +89,36 @@ export default function EmployeesPage() {
     }
   };
 
+  const getStatusTextStr = (status: number) => {
+    switch(status) {
+      case 1: return "在職";
+      case 2: return "留停";
+      case 3: return "離職";
+      default: return "-";
+    }
+  };
+
+  const handleExportExcel = () => {
+    const data = employees
+      .filter(emp => activeDepartmentId === "all" || emp.departmentId === activeDepartmentId)
+      .filter(emp => debouncedSearchQuery === "" || emp.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()))
+      .map(emp => ({
+        "員工姓名": emp.name,
+        "信箱": emp.email,
+        "部門": emp.department?.name || "-",
+        "職稱": emp.jobTitle || "-",
+        "狀態": getStatusTextStr(emp.status)
+      }));
+    exportToExcel(data, "員工名冊");
+  };
+
+  const handleExportPDF = () => {
+    exportToPDF("員工名冊");
+  };
+
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <>
+    <div className="max-w-6xl mx-auto space-y-6 print:hidden">
       <Breadcrumbs items={[
         { label: '首頁', href: '/' },
         { label: '人力資源系統 (HRM)', href: '/hr' },
@@ -110,9 +140,17 @@ export default function EmployeesPage() {
               placeholder="搜尋員工姓名..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-4 py-2 border border-slate-300 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-900 text-sm focus:outline-none focus:border-blue-500 shadow-sm w-64 transition-colors"
+              className="pl-9 pr-4 py-2 border border-slate-300 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-900 text-sm focus:outline-none focus:border-blue-500 shadow-sm w-48 sm:w-64 transition-colors"
             />
           </div>
+          <button onClick={handleExportExcel} className="hidden sm:flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-sm font-medium rounded-sm transition-colors shadow-sm">
+            <Download className="w-4 h-4" />
+            Excel
+          </button>
+          <button onClick={handleExportPDF} className="hidden sm:flex items-center gap-2 px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-sm text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm">
+            <Printer className="w-4 h-4" />
+            列印
+          </button>
           <button
             onClick={handleCreate}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium text-sm rounded-sm hover:bg-blue-700 transition shadow-sm whitespace-nowrap"
@@ -232,5 +270,40 @@ export default function EmployeesPage() {
         departments={departments}
       />
     </div>
+
+    {/* Print View */}
+    <ReportPrintView 
+      title="員工名冊 (Employee Roster)"
+      companyName="Phoenix ERP"
+      dateString={`資料截至：${new Date().toLocaleDateString()}`}
+      hideSignatures={true}
+    >
+      <table className="w-full text-sm text-left border-collapse border border-black text-black">
+        <thead>
+          <tr className="bg-gray-100 border-b border-black text-black">
+            <th className="px-4 py-2 border-r border-black font-bold">員工姓名</th>
+            <th className="px-4 py-2 border-r border-black font-bold">信箱</th>
+            <th className="px-4 py-2 border-r border-black font-bold">部門</th>
+            <th className="px-4 py-2 border-r border-black font-bold">職稱</th>
+            <th className="px-4 py-2 font-bold text-center">狀態</th>
+          </tr>
+        </thead>
+        <tbody>
+          {employees
+            .filter(emp => activeDepartmentId === "all" || emp.departmentId === activeDepartmentId)
+            .filter(emp => debouncedSearchQuery === "" || emp.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()))
+            .map((emp, idx) => (
+            <tr key={emp.id} className={idx % 2 === 0 ? "" : "bg-gray-50"}>
+              <td className="px-4 py-2 border-r border-b border-black">{emp.name}</td>
+              <td className="px-4 py-2 border-r border-b border-black">{emp.email}</td>
+              <td className="px-4 py-2 border-r border-b border-black">{emp.department?.name || "-"}</td>
+              <td className="px-4 py-2 border-r border-b border-black">{emp.jobTitle || "-"}</td>
+              <td className="px-4 py-2 border-b border-black text-center">{getStatusTextStr(emp.status)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </ReportPrintView>
+    </>
   );
 }
