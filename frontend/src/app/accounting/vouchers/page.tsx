@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { accountingApi } from '@/features/accounting/api/accountingApi';
 import { Voucher } from '@/features/accounting/types/accounting';
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
-import { Plus, Search, Filter, FileText, CheckCircle2, XCircle, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, Filter, FileText, CheckCircle2, XCircle, Edit, Trash2, Download, Printer } from 'lucide-react';
+import { exportToExcel, exportToPDF } from '@/utils/exportUtils';
+import { ReportPrintView } from '@/features/accounting/components/ReportPrintView';
 
 export default function VouchersPage() {
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
@@ -36,6 +38,21 @@ export default function VouchersPage() {
     }
   };
 
+  const handleExportExcel = () => {
+    const data = vouchers.map(v => ({
+      '傳票號碼': v.voucherNo,
+      '日期': new Date(v.voucherDate).toLocaleDateString(),
+      '摘要': v.memo || '-',
+      '總金額': v.totalAmount,
+      '狀態': v.status === 1 ? '草稿' : v.status === 2 ? '已審核' : '已過帳'
+    }));
+    exportToExcel(data, '傳票列表');
+  };
+
+  const handleExportPDF = () => {
+    exportToPDF('傳票列表');
+  };
+
   const getStatusBadge = (status: number) => {
     switch (status) {
       case 1:
@@ -50,7 +67,8 @@ export default function VouchersPage() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <>
+    <div className="p-6 max-w-7xl mx-auto space-y-6 print:hidden">
       <Breadcrumbs items={[
         { label: '首頁', href: '/' },
         { label: '會計系統', href: '/accounting' },
@@ -84,10 +102,20 @@ export default function VouchersPage() {
             className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:text-slate-200 transition-all"
           />
         </div>
-        <button className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-sm text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-          <Filter className="w-4 h-4" />
-          進階篩選
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={handleExportExcel} className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-sm text-sm font-medium transition-colors">
+            <Download className="w-4 h-4" />
+            匯出 Excel
+          </button>
+          <button onClick={handleExportPDF} className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-sm text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            <Printer className="w-4 h-4" />
+            列印 PDF
+          </button>
+          <button className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-sm text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            <Filter className="w-4 h-4" />
+            進階篩選
+          </button>
+        </div>
       </div>
 
       {/* Table */}
@@ -164,5 +192,37 @@ export default function VouchersPage() {
         </div>
       </div>
     </div>
+
+    {/* Print View */}
+    <ReportPrintView 
+      title="傳票列表 (Voucher List)"
+      companyName="Phoenix ERP"
+      dateString={`列印日期：${new Date().toLocaleDateString()}`}
+      hideSignatures={false}
+    >
+      <table className="w-full text-sm text-left border-collapse border border-black text-black">
+        <thead>
+          <tr className="bg-gray-100 border-b border-black text-black">
+            <th className="px-4 py-2 border-r border-black font-bold">傳票號碼</th>
+            <th className="px-4 py-2 border-r border-black font-bold">日期</th>
+            <th className="px-4 py-2 border-r border-black font-bold">摘要</th>
+            <th className="px-4 py-2 border-r border-black font-bold text-right">總金額</th>
+            <th className="px-4 py-2 font-bold text-center">狀態</th>
+          </tr>
+        </thead>
+        <tbody>
+          {vouchers.map((voucher, idx) => (
+            <tr key={voucher.id} className={idx % 2 === 0 ? "" : "bg-gray-50"}>
+              <td className="px-4 py-2 border-r border-b border-black">{voucher.voucherNo}</td>
+              <td className="px-4 py-2 border-r border-b border-black">{new Date(voucher.voucherDate).toLocaleDateString()}</td>
+              <td className="px-4 py-2 border-r border-b border-black">{voucher.memo || "-"}</td>
+              <td className="px-4 py-2 border-r border-b border-black text-right">${voucher.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+              <td className="px-4 py-2 border-b border-black text-center">{voucher.status === 1 ? '草稿' : voucher.status === 2 ? '已審核' : '已過帳'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </ReportPrintView>
+    </>
   );
 }

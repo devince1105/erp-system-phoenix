@@ -7,14 +7,17 @@ import {
 } from "@/features/accounting/api";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { inventoryApi } from "@/features/inventory/api/inventoryApi";
+import { crmApi } from "@/features/crm/api/crmApi";
 import { AccountTitle, Voucher } from "@/features/accounting/types/accounting";
 import { Employee, AttendanceRecord } from "@/features/hr/types/hr";
 import { Product, SalesOrder } from "@/features/inventory/types/inventory";
+import { SalesOpportunity } from "@/features/crm/types/crm";
 
 import { StatCards } from "@/features/accounting/components/StatCards";
 import { FinancialCharts } from "@/features/accounting/components/FinancialCharts";
 import { HRDashboard } from "@/features/hr/components/HRDashboard";
 import { InventoryDashboard } from "@/features/inventory/components/InventoryDashboard";
+import { CRMDashboard } from "@/features/crm/components/CRMDashboard";
 import { ArrowUpRight, ArrowDownRight, Package, Users, ShoppingCart, DollarSign, Activity, TrendingUp, Calendar, AlertCircle, LayoutDashboard } from "lucide-react";
 
 export default function DashboardPage() {
@@ -24,6 +27,7 @@ export default function DashboardPage() {
   const [attendances, setAttendances] = useState<AttendanceRecord[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [salesOrders, setSalesOrders] = useState<SalesOrder[]>([]);
+  const [opportunities, setOpportunities] = useState<SalesOpportunity[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const loadData = async () => {
@@ -34,14 +38,16 @@ export default function DashboardPage() {
         empData, 
         attData, 
         prodData, 
-        salesData
+        salesData,
+        oppData
       ] = await Promise.all([
         fetchAccountTitles(),
         fetchVouchers(),
         hrApi.getEmployees(),
         hrApi.getAttendances(),
         inventoryApi.getProducts(),
-        inventoryApi.getSalesOrders()
+        inventoryApi.getSalesOrders(),
+        crmApi.getOpportunities()
       ]);
       setAccountTitles(titlesData);
       setVouchers(vouchersData);
@@ -49,6 +55,7 @@ export default function DashboardPage() {
       setAttendances(attData);
       setProducts(prodData);
       setSalesOrders(salesData);
+      setOpportunities(oppData);
     } catch (err) {
       console.error("Failed to load dashboard data:", err);
     } finally {
@@ -93,8 +100,14 @@ export default function DashboardPage() {
           {/* Departmental Dashboards */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
             <div className="h-auto min-h-[320px]">
+              <CRMDashboard opportunities={opportunities} />
+            </div>
+            <div className="h-auto min-h-[320px]">
               <HRDashboard employees={employees} attendances={attendances} />
             </div>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-6 mt-6">
             <div className="h-auto min-h-[320px]">
               <InventoryDashboard products={products} salesOrders={salesOrders} />
             </div>

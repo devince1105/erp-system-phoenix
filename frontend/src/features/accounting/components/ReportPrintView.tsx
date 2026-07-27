@@ -5,13 +5,15 @@ interface ReportPrintViewProps {
   companyName: string;
   dateString: string;
   children: React.ReactNode;
+  hideSignatures?: boolean;
 }
 
 export const ReportPrintView: React.FC<ReportPrintViewProps> = ({
   title,
   companyName,
   dateString,
-  children
+  children,
+  hideSignatures = false
 }) => {
   return (
     <div className="hidden print:block print:bg-white print:text-black print:font-serif print:w-[210mm] print:min-h-[297mm] print:mx-auto print:p-8">
@@ -29,23 +31,25 @@ export const ReportPrintView: React.FC<ReportPrintViewProps> = ({
       </div>
 
       {/* Signatures */}
-      <div className="mt-16 grid grid-cols-3 gap-8 text-center pt-8">
-        <div>
-          <div className="border-t border-black pt-2 mx-4">
-            <p className="font-bold">董事長 / 負責人</p>
+      {!hideSignatures && (
+        <div className="mt-16 grid grid-cols-3 gap-8 text-center pt-8">
+          <div>
+            <div className="border-t border-black pt-2 mx-4">
+              <p className="font-bold">董事長 / 負責人</p>
+            </div>
+          </div>
+          <div>
+            <div className="border-t border-black pt-2 mx-4">
+              <p className="font-bold">經理人</p>
+            </div>
+          </div>
+          <div>
+            <div className="border-t border-black pt-2 mx-4">
+              <p className="font-bold">主辦會計</p>
+            </div>
           </div>
         </div>
-        <div>
-          <div className="border-t border-black pt-2 mx-4">
-            <p className="font-bold">經理人</p>
-          </div>
-        </div>
-        <div>
-          <div className="border-t border-black pt-2 mx-4">
-            <p className="font-bold">主辦會計</p>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
