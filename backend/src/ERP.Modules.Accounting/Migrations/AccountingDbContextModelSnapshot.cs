@@ -68,7 +68,7 @@ namespace ERP.Modules.Accounting.Migrations
                             Id = 1,
                             Category = 1,
                             Code = "1101",
-                            CreatedAt = new DateTime(2026, 7, 24, 10, 47, 10, 894, DateTimeKind.Utc).AddTicks(840),
+                            CreatedAt = new DateTime(2026, 7, 27, 12, 14, 52, 828, DateTimeKind.Utc).AddTicks(6190),
                             IsActive = true,
                             Level = 1,
                             Name = "現金及約當現金"
@@ -78,7 +78,7 @@ namespace ERP.Modules.Accounting.Migrations
                             Id = 2,
                             Category = 1,
                             Code = "1102",
-                            CreatedAt = new DateTime(2026, 7, 24, 10, 47, 10, 896, DateTimeKind.Utc).AddTicks(5180),
+                            CreatedAt = new DateTime(2026, 7, 27, 12, 14, 52, 828, DateTimeKind.Utc).AddTicks(6860),
                             IsActive = true,
                             Level = 1,
                             Name = "銀行存款"
@@ -88,7 +88,7 @@ namespace ERP.Modules.Accounting.Migrations
                             Id = 3,
                             Category = 1,
                             Code = "1103",
-                            CreatedAt = new DateTime(2026, 7, 24, 10, 47, 10, 896, DateTimeKind.Utc).AddTicks(5190),
+                            CreatedAt = new DateTime(2026, 7, 27, 12, 14, 52, 828, DateTimeKind.Utc).AddTicks(6860),
                             IsActive = true,
                             Level = 1,
                             Name = "應收帳款"
@@ -98,7 +98,7 @@ namespace ERP.Modules.Accounting.Migrations
                             Id = 4,
                             Category = 1,
                             Code = "1104",
-                            CreatedAt = new DateTime(2026, 7, 24, 10, 47, 10, 896, DateTimeKind.Utc).AddTicks(5190),
+                            CreatedAt = new DateTime(2026, 7, 27, 12, 14, 52, 828, DateTimeKind.Utc).AddTicks(6860),
                             IsActive = true,
                             Level = 1,
                             Name = "存貨"
@@ -108,7 +108,7 @@ namespace ERP.Modules.Accounting.Migrations
                             Id = 5,
                             Category = 1,
                             Code = "1401",
-                            CreatedAt = new DateTime(2026, 7, 24, 10, 47, 10, 896, DateTimeKind.Utc).AddTicks(5190),
+                            CreatedAt = new DateTime(2026, 7, 27, 12, 14, 52, 828, DateTimeKind.Utc).AddTicks(6860),
                             IsActive = true,
                             Level = 1,
                             Name = "不動產、廠房及設備"
@@ -118,7 +118,7 @@ namespace ERP.Modules.Accounting.Migrations
                             Id = 6,
                             Category = 2,
                             Code = "2101",
-                            CreatedAt = new DateTime(2026, 7, 24, 10, 47, 10, 896, DateTimeKind.Utc).AddTicks(5190),
+                            CreatedAt = new DateTime(2026, 7, 27, 12, 14, 52, 828, DateTimeKind.Utc).AddTicks(6860),
                             IsActive = true,
                             Level = 1,
                             Name = "應付帳款"
@@ -128,7 +128,7 @@ namespace ERP.Modules.Accounting.Migrations
                             Id = 7,
                             Category = 2,
                             Code = "2102",
-                            CreatedAt = new DateTime(2026, 7, 24, 10, 47, 10, 896, DateTimeKind.Utc).AddTicks(5190),
+                            CreatedAt = new DateTime(2026, 7, 27, 12, 14, 52, 828, DateTimeKind.Utc).AddTicks(6870),
                             IsActive = true,
                             Level = 1,
                             Name = "應付薪資"
@@ -138,7 +138,7 @@ namespace ERP.Modules.Accounting.Migrations
                             Id = 8,
                             Category = 2,
                             Code = "2103",
-                            CreatedAt = new DateTime(2026, 7, 24, 10, 47, 10, 896, DateTimeKind.Utc).AddTicks(5200),
+                            CreatedAt = new DateTime(2026, 7, 27, 12, 14, 52, 828, DateTimeKind.Utc).AddTicks(6870),
                             IsActive = true,
                             Level = 1,
                             Name = "應付稅額"
@@ -148,7 +148,7 @@ namespace ERP.Modules.Accounting.Migrations
                             Id = 9,
                             Category = 2,
                             Code = "2201",
-                            CreatedAt = new DateTime(2026, 7, 24, 10, 47, 10, 896, DateTimeKind.Utc).AddTicks(5200),
+                            CreatedAt = new DateTime(2026, 7, 27, 12, 14, 52, 828, DateTimeKind.Utc).AddTicks(6870),
                             IsActive = true,
                             Level = 1,
                             Name = "長期借款"
@@ -158,7 +158,7 @@ namespace ERP.Modules.Accounting.Migrations
                             Id = 10,
                             Category = 3,
                             Code = "3101",
-                            CreatedAt = new DateTime(2026, 7, 24, 10, 47, 10, 896, DateTimeKind.Utc).AddTicks(5200),
+                            CreatedAt = new DateTime(2026, 7, 27, 12, 14, 52, 828, DateTimeKind.Utc).AddTicks(6870),
                             IsActive = true,
                             Level = 1,
                             Name = "普通股股本"
@@ -168,7 +168,7 @@ namespace ERP.Modules.Accounting.Migrations
                             Id = 11,
                             Category = 3,
                             Code = "3201",
-                            CreatedAt = new DateTime(2026, 7, 24, 10, 47, 10, 896, DateTimeKind.Utc).AddTicks(5200),
+                            CreatedAt = new DateTime(2026, 7, 27, 12, 14, 52, 828, DateTimeKind.Utc).AddTicks(6870),
                             IsActive = true,
                             Level = 1,
                             Name = "保留盈餘"
@@ -178,7 +178,7 @@ namespace ERP.Modules.Accounting.Migrations
                             Id = 12,
                             Category = 4,
                             Code = "4101",
-                            CreatedAt = new DateTime(2026, 7, 24, 10, 47, 10, 896, DateTimeKind.Utc).AddTicks(5200),
+                            CreatedAt = new DateTime(2026, 7, 27, 12, 14, 52, 828, DateTimeKind.Utc).AddTicks(6870),
                             IsActive = true,
                             Level = 1,
                             Name = "銷貨收入"
@@ -188,7 +188,7 @@ namespace ERP.Modules.Accounting.Migrations
                             Id = 13,
                             Category = 4,
                             Code = "4201",
-                            CreatedAt = new DateTime(2026, 7, 24, 10, 47, 10, 896, DateTimeKind.Utc).AddTicks(5200),
+                            CreatedAt = new DateTime(2026, 7, 27, 12, 14, 52, 828, DateTimeKind.Utc).AddTicks(6870),
                             IsActive = true,
                             Level = 1,
                             Name = "勞務收入"
@@ -198,7 +198,7 @@ namespace ERP.Modules.Accounting.Migrations
                             Id = 14,
                             Category = 5,
                             Code = "5101",
-                            CreatedAt = new DateTime(2026, 7, 24, 10, 47, 10, 896, DateTimeKind.Utc).AddTicks(5210),
+                            CreatedAt = new DateTime(2026, 7, 27, 12, 14, 52, 828, DateTimeKind.Utc).AddTicks(6870),
                             IsActive = true,
                             Level = 1,
                             Name = "銷貨成本"
@@ -208,7 +208,7 @@ namespace ERP.Modules.Accounting.Migrations
                             Id = 15,
                             Category = 5,
                             Code = "6101",
-                            CreatedAt = new DateTime(2026, 7, 24, 10, 47, 10, 896, DateTimeKind.Utc).AddTicks(5210),
+                            CreatedAt = new DateTime(2026, 7, 27, 12, 14, 52, 828, DateTimeKind.Utc).AddTicks(6870),
                             IsActive = true,
                             Level = 1,
                             Name = "薪資支出"
@@ -218,7 +218,7 @@ namespace ERP.Modules.Accounting.Migrations
                             Id = 16,
                             Category = 5,
                             Code = "6201",
-                            CreatedAt = new DateTime(2026, 7, 24, 10, 47, 10, 896, DateTimeKind.Utc).AddTicks(5210),
+                            CreatedAt = new DateTime(2026, 7, 27, 12, 14, 52, 828, DateTimeKind.Utc).AddTicks(6870),
                             IsActive = true,
                             Level = 1,
                             Name = "租金支出"
@@ -228,7 +228,7 @@ namespace ERP.Modules.Accounting.Migrations
                             Id = 17,
                             Category = 5,
                             Code = "6301",
-                            CreatedAt = new DateTime(2026, 7, 24, 10, 47, 10, 896, DateTimeKind.Utc).AddTicks(5210),
+                            CreatedAt = new DateTime(2026, 7, 27, 12, 14, 52, 828, DateTimeKind.Utc).AddTicks(6870),
                             IsActive = true,
                             Level = 1,
                             Name = "水電瓦斯費"
@@ -238,7 +238,7 @@ namespace ERP.Modules.Accounting.Migrations
                             Id = 18,
                             Category = 5,
                             Code = "6401",
-                            CreatedAt = new DateTime(2026, 7, 24, 10, 47, 10, 896, DateTimeKind.Utc).AddTicks(5210),
+                            CreatedAt = new DateTime(2026, 7, 27, 12, 14, 52, 828, DateTimeKind.Utc).AddTicks(6870),
                             IsActive = true,
                             Level = 1,
                             Name = "文具用品"
@@ -328,10 +328,10 @@ namespace ERP.Modules.Accounting.Migrations
                             BankCode = "808",
                             BankName = "玉山銀行",
                             BranchName = "營業部",
-                            CreatedAt = new DateTime(2026, 7, 24, 10, 47, 10, 897, DateTimeKind.Utc).AddTicks(9790),
+                            CreatedAt = new DateTime(2026, 7, 27, 12, 14, 52, 829, DateTimeKind.Utc).AddTicks(210),
                             Currency = "TWD",
                             IsActive = true,
-                            LastSyncedAt = new DateTime(2026, 7, 24, 10, 47, 10, 904, DateTimeKind.Utc).AddTicks(3020)
+                            LastSyncedAt = new DateTime(2026, 7, 27, 12, 14, 52, 829, DateTimeKind.Utc).AddTicks(1790)
                         },
                         new
                         {
@@ -346,10 +346,10 @@ namespace ERP.Modules.Accounting.Migrations
                             BankCode = "013",
                             BankName = "國泰世華銀行",
                             BranchName = "敦南分行",
-                            CreatedAt = new DateTime(2026, 7, 24, 10, 47, 10, 908, DateTimeKind.Utc).AddTicks(4120),
+                            CreatedAt = new DateTime(2026, 7, 27, 12, 14, 52, 829, DateTimeKind.Utc).AddTicks(2050),
                             Currency = "TWD",
                             IsActive = true,
-                            LastSyncedAt = new DateTime(2026, 7, 24, 10, 47, 10, 908, DateTimeKind.Utc).AddTicks(4130)
+                            LastSyncedAt = new DateTime(2026, 7, 27, 12, 14, 52, 829, DateTimeKind.Utc).AddTicks(2050)
                         });
                 });
 
@@ -389,6 +389,10 @@ namespace ERP.Modules.Accounting.Migrations
                     b.Property<string>("Memo")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("ProjectCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");

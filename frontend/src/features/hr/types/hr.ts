@@ -57,6 +57,8 @@ export interface Employee {
   jobTitle: string;
   baseSalary: number;
   hireDate: string;
+  directSupervisorId?: number;
+  directSupervisor?: Employee;
 
   createdAt: string;
   updatedAt?: string;
@@ -129,4 +131,52 @@ export interface CalendarEvent {
   description?: string;
   type: string; // 'Announcement', 'Note'
   createdAt?: string;
+}
+
+// --- Approval Engine Types ---
+export interface Project {
+  id: number;
+  name: string;
+  code: string;
+  managerId: number;
+  manager?: Employee;
+  status: 'Active' | 'Completed' | 'OnHold';
+  createdAt: string;
+}
+
+export interface ApprovalAttachment {
+  id: number;
+  fileName: string;
+  fileUrl: string;
+  fileSize: number;
+  uploadedAt: string;
+}
+
+export interface ApprovalLog {
+  id: number;
+  requestId: number;
+  approverId: number;
+  approver?: Employee;
+  action: 'Approved' | 'Rejected' | 'Commented' | 'Forwarded';
+  comment?: string;
+  createdAt: string;
+}
+
+export interface ApprovalRequest {
+  id: number;
+  type: 'Leave' | 'Expense' | 'Purchase' | 'Overtime' | 'Other';
+  requesterId: number;
+  requester?: Employee;
+  projectId?: number;
+  project?: Project;
+  title: string;
+  amount?: number;
+  details: string; // JSON or text depending on type
+  status: 'Draft' | 'Pending' | 'Approved' | 'Rejected';
+  currentStep: number;
+  expectedApproverIds: number[]; // e.g. [directSupervisorId, projectManagerId]
+  createdAt: string;
+  updatedAt?: string;
+  attachments?: ApprovalAttachment[];
+  logs?: ApprovalLog[];
 }

@@ -11,6 +11,8 @@ public class InventoryDbContext : DbContext
     }
 
     public DbSet<Product> Products => Set<Product>();
+    public DbSet<Warehouse> Warehouses => Set<Warehouse>();
+    public DbSet<InventoryStock> InventoryStocks => Set<InventoryStock>();
     public DbSet<Partner> Partners => Set<Partner>();
     public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
     public DbSet<PurchaseOrderItem> PurchaseOrderItems => Set<PurchaseOrderItem>();
@@ -38,6 +40,8 @@ public class InventoryDbContext : DbContext
             
         // Setup table names
         modelBuilder.Entity<Product>().ToTable("Products");
+        modelBuilder.Entity<Warehouse>().ToTable("Warehouses");
+        modelBuilder.Entity<InventoryStock>().ToTable("InventoryStocks");
         modelBuilder.Entity<Partner>().ToTable("Partners");
         modelBuilder.Entity<PurchaseOrder>().ToTable("PurchaseOrders");
         modelBuilder.Entity<PurchaseOrderItem>().ToTable("PurchaseOrderItems");

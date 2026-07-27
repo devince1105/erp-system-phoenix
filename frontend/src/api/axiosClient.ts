@@ -35,6 +35,12 @@ axiosClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('erp_token');
+        if (token === 'mock-token') {
+          console.warn('[Prototype Mode] Mock token encountered 401. Bypassing logout to allow UI testing.');
+          // Return a dummy successful response to prevent components from crashing
+          return Promise.resolve({ data: [] });
+        }
         localStorage.removeItem('erp_token');
         localStorage.removeItem('erp_user');
         window.location.href = '/login';

@@ -1,3 +1,24 @@
+export interface Warehouse {
+  id: number;
+  code: string;
+  name: string;
+  location?: string;
+  manager?: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface InventoryStock {
+  id: number;
+  productId: number;
+  product?: Product;
+  warehouseId: number;
+  warehouse?: Warehouse;
+  quantity: number;
+  safetyStock: number;
+  lastUpdated: string;
+}
+
 export interface Product {
   id: number;
   sku: string;

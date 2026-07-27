@@ -1,4 +1,4 @@
-import { Product, Partner, PurchaseOrder, SalesOrder } from "../types/inventory";
+import { Product, Partner, PurchaseOrder, SalesOrder, Warehouse, InventoryStock } from "../types/inventory";
 
 import axiosClient from "@/api/axiosClient";
 
@@ -27,7 +27,7 @@ export const inventoryApi = {
   deletePartner: (id: number) => fetchApi<void>(`/Partners/${id}`, { method: "DELETE" }),
 
   // Sales Orders
-  getSalesOrders: () => fetchApi<SalesOrder[]>("/SalesOrders"),
+  getSalesOrders: (projectCode?: string) => fetchApi<SalesOrder[]>(projectCode ? `/SalesOrders?projectCode=${projectCode}` : "/SalesOrders"),
   getSalesOrder: (id: number) => fetchApi<SalesOrder>(`/SalesOrders/${id}`),
   createSalesOrder: (data: Partial<SalesOrder>) => fetchApi<SalesOrder>("/SalesOrders", { method: "POST", body: JSON.stringify(data) }),
   updateSalesOrder: (id: number, data: Partial<SalesOrder>) => fetchApi<void>(`/SalesOrders/${id}`, { method: "PUT", body: JSON.stringify(data) }),
@@ -35,10 +35,18 @@ export const inventoryApi = {
   confirmSalesOrder: (id: number) => fetchApi<SalesOrder>(`/SalesOrders/${id}/confirm`, { method: "POST" }),
 
   // Purchase Orders
-  getPurchaseOrders: () => fetchApi<PurchaseOrder[]>("/PurchaseOrders"),
+  getPurchaseOrders: (projectCode?: string) => fetchApi<PurchaseOrder[]>(projectCode ? `/PurchaseOrders?projectCode=${projectCode}` : "/PurchaseOrders"),
   getPurchaseOrder: (id: number) => fetchApi<PurchaseOrder>(`/PurchaseOrders/${id}`),
   createPurchaseOrder: (data: Partial<PurchaseOrder>) => fetchApi<PurchaseOrder>("/PurchaseOrders", { method: "POST", body: JSON.stringify(data) }),
   updatePurchaseOrder: (id: number, data: Partial<PurchaseOrder>) => fetchApi<void>(`/PurchaseOrders/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   deletePurchaseOrder: (id: number) => fetchApi<void>(`/PurchaseOrders/${id}`, { method: "DELETE" }),
   confirmPurchaseOrder: (id: number) => fetchApi<PurchaseOrder>(`/PurchaseOrders/${id}/confirm`, { method: "POST" }),
+
+  // Warehouses
+  getWarehouses: () => fetchApi<Warehouse[]>("/Warehouses"),
+  getWarehouse: (id: number) => fetchApi<Warehouse>(`/Warehouses/${id}`),
+  createWarehouse: (data: Partial<Warehouse>) => fetchApi<Warehouse>("/Warehouses", { method: "POST", body: JSON.stringify(data) }),
+  updateWarehouse: (id: number, data: Partial<Warehouse>) => fetchApi<void>(`/Warehouses/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  deleteWarehouse: (id: number) => fetchApi<void>(`/Warehouses/${id}`, { method: "DELETE" }),
+  getWarehouseStocks: (id: number) => fetchApi<InventoryStock[]>(`/Warehouses/${id}/stocks`),
 };

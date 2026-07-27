@@ -49,8 +49,17 @@ export default function VouchersPage() {
     exportToExcel(data, '傳票列表');
   };
 
-  const handleExportPDF = () => {
-    exportToPDF('傳票列表');
+  const handleExportPDF = async () => {
+    const headers = ['傳票號碼', '日期', '摘要', '總金額', '狀態'];
+    const data = vouchers.map(v => [
+      v.voucherNo,
+      new Date(v.voucherDate).toLocaleDateString(),
+      v.memo || '-',
+      `$${v.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      v.status === 1 ? '草稿' : v.status === 2 ? '已審核' : '已過帳'
+    ]);
+    
+    await exportToPDF('傳票列表', '傳票清單', headers, data);
   };
 
   const getStatusBadge = (status: number) => {

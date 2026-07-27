@@ -10,9 +10,13 @@ public class SalesOrder
     [Key]
     public int Id { get; set; }
     
-    [Required]
     [MaxLength(20)]
     public string OrderNo { get; set; } = string.Empty; // SO-20260725-001
+    
+    [MaxLength(50)]
+    public string? ProjectCode { get; set; }
+    
+    
     
     public DateTime OrderDate { get; set; } = DateTime.UtcNow;
     

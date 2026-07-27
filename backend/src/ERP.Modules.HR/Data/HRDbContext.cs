@@ -19,6 +19,7 @@ public class HRDbContext : DbContext
     public DbSet<OvertimeRequest> OvertimeRequests => Set<OvertimeRequest>();
     public DbSet<CalendarEvent> CalendarEvents => Set<CalendarEvent>();
     public DbSet<PayrollRecord> Payrolls => Set<PayrollRecord>();
+    public DbSet<Project> Projects => Set<Project>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -83,5 +84,17 @@ public class HRDbContext : DbContext
             .WithMany(emp => emp.OvertimeRequests)
             .HasForeignKey(o => o.EmployeeId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Project>()
+            .HasOne(p => p.Department)
+            .WithMany()
+            .HasForeignKey(p => p.DepartmentId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<Project>()
+            .HasOne(p => p.Manager)
+            .WithMany()
+            .HasForeignKey(p => p.ManagerId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

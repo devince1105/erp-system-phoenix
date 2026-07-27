@@ -112,8 +112,20 @@ export default function EmployeesPage() {
     exportToExcel(data, "員工名冊");
   };
 
-  const handleExportPDF = () => {
-    exportToPDF("員工名冊");
+  const handleExportPDF = async () => {
+    const headers = ["員工姓名", "信箱", "部門", "職稱", "狀態"];
+    const data = employees
+      .filter(emp => activeDepartmentId === "all" || emp.departmentId === activeDepartmentId)
+      .filter(emp => debouncedSearchQuery === "" || emp.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()))
+      .map(emp => [
+        emp.name,
+        emp.email,
+        emp.department?.name || "-",
+        emp.jobTitle || "-",
+        getStatusTextStr(emp.status)
+      ]);
+      
+    await exportToPDF("員工名冊", "員工清單 (Employee Roster)", headers, data);
   };
 
   return (

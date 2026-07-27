@@ -1,5 +1,5 @@
 import axiosClient from '@/api/axiosClient';
-import { Department, Employee, AttendanceRecord, LeaveRequest, PayrollRecord, OvertimeRequest, CalendarEvent } from '../types/hr';
+import { Department, Employee, AttendanceRecord, LeaveRequest, PayrollRecord, OvertimeRequest, CalendarEvent, Project, ApprovalRequest } from '../types/hr';
 
 export const hrApi = {
   // Departments
@@ -98,7 +98,7 @@ export const hrApi = {
     await axiosClient.put(`/hr/payrolls/${id}`, record);
   },
 
-  // Calendar Events
+  // Calendar
   getCalendarEvents: async (): Promise<CalendarEvent[]> => {
     const { data } = await axiosClient.get('/hr/calendarEvents');
     return data;
@@ -109,5 +109,32 @@ export const hrApi = {
   },
   deleteCalendarEvent: async (id: number): Promise<void> => {
     await axiosClient.delete(`/hr/calendarEvents/${id}`);
+  },
+
+  // Projects
+  getProjects: async (): Promise<Project[]> => {
+    const { data } = await axiosClient.get('/hr/projects');
+    return data;
+  },
+  createProject: async (project: Partial<Project>): Promise<Project> => {
+    const { data } = await axiosClient.post('/hr/projects', project);
+    return data;
+  },
+
+  // Approvals
+  getApprovals: async (type?: 'pending' | 'history' | 'my-requests'): Promise<ApprovalRequest[]> => {
+    const { data } = await axiosClient.get(`/hr/approvals${type ? `?type=${type}` : ''}`);
+    return data;
+  },
+  getApproval: async (id: number): Promise<ApprovalRequest> => {
+    const { data } = await axiosClient.get(`/hr/approvals/${id}`);
+    return data;
+  },
+  createApproval: async (request: Partial<ApprovalRequest>): Promise<ApprovalRequest> => {
+    const { data } = await axiosClient.post('/hr/approvals', request);
+    return data;
+  },
+  processApproval: async (id: number, action: 'Approved' | 'Rejected' | 'Forwarded', comment: string): Promise<void> => {
+    await axiosClient.post(`/hr/approvals/${id}/process`, { action, comment });
   }
 };

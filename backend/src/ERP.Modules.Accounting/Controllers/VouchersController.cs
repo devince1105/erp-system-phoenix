@@ -11,6 +11,7 @@ public class CreateVoucherDto
     public DateTime VoucherDate { get; set; } = DateTime.Today;
     public VoucherType Type { get; set; } = VoucherType.General;
     public string? Memo { get; set; }
+    public string? ProjectCode { get; set; }
     public List<CreateVoucherDetailDto> Details { get; set; } = new();
 }
 
@@ -38,11 +39,17 @@ public class VouchersController : ControllerBase
     /// 取得所有傳票
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Voucher>>> GetVouchers()
+    public async Task<ActionResult<IEnumerable<Voucher>>> GetVouchers([FromQuery] string? projectCode = null)
     {
-        return await _context.Vouchers
+        var query = _context.Vouchers
             .Include(v => v.Details)
             .ThenInclude(d => d.AccountTitle)
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(projectCode))
+            query = query.Where(v => v.ProjectCode == projectCode);
+
+        return await query
             .OrderByDescending(v => v.VoucherDate)
             .ThenByDescending(v => v.Id)
             .ToListAsync();
@@ -111,6 +118,7 @@ public class VouchersController : ControllerBase
             Status = VoucherStatus.Draft,
             TotalAmount = totalDebit,
             Memo = dto.Memo,
+            ProjectCode = dto.ProjectCode,
             CreatedAt = DateTime.UtcNow,
             Details = dto.Details.Select((d, idx) => new VoucherDetail
             {

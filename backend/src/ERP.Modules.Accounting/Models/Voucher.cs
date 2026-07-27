@@ -40,5 +40,8 @@ public class Voucher
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    public List<VoucherDetail> Details { get; set; } = new();
+    [MaxLength(50)]
+    public string? ProjectCode { get; set; }
+
+    public ICollection<VoucherDetail> Details { get; set; } = new List<VoucherDetail>();
 }

@@ -77,8 +77,9 @@ export const accountingApi = {
   },
   
   // Vouchers
-  getVouchers: async () => {
-    const res = await axiosClient.get<Voucher[]>('/vouchers');
+  getVouchers: async (projectCode?: string) => {
+    const url = projectCode ? `/vouchers?projectCode=${projectCode}` : '/vouchers';
+    const res = await axiosClient.get<Voucher[]>(url);
     return res.data;
   },
   getVoucher: async (id: number) => {

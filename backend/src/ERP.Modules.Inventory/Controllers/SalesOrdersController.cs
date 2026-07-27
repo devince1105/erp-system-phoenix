@@ -20,14 +20,18 @@ public class SalesOrdersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<SalesOrder>>> GetSalesOrders()
+    public async Task<ActionResult<IEnumerable<SalesOrder>>> GetSalesOrders([FromQuery] string? projectCode = null)
     {
-        return await _context.SalesOrders
+        var query = _context.SalesOrders
             .Include(so => so.Customer)
             .Include(so => so.Items)
             .ThenInclude(i => i.Product)
-            .OrderByDescending(so => so.CreatedAt)
-            .ToListAsync();
+            .AsQueryable();
+            
+        if (!string.IsNullOrEmpty(projectCode))
+            query = query.Where(so => so.ProjectCode == projectCode);
+
+        return await query.OrderByDescending(so => so.CreatedAt).ToListAsync();
     }
 
     [HttpGet("{id}")]

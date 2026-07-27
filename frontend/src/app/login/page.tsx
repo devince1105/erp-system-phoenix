@@ -19,6 +19,23 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      // 1. Intercept Mock Passwords (For prototyping Admin Reset Password)
+      const mockPasswordsStr = typeof window !== 'undefined' ? localStorage.getItem('mock_passwords') : null;
+      if (mockPasswordsStr) {
+        const mockPasswords = JSON.parse(mockPasswordsStr);
+        if (mockPasswords[username] && mockPasswords[username].pwd === password) {
+          login("mock-token", {
+            id: parseInt(mockPasswords[username].id.replace('EMP-', '')),
+            username: mockPasswords[username].id,
+            fullName: mockPasswords[username].name,
+            email: `${username}@phoenix.erp`,
+            roles: []
+          });
+          return;
+        }
+      }
+
+      // 2. Normal Backend Login
       const res = await axiosClient.post("/auth/login", { username, password });
       const data = res.data;
 
@@ -124,10 +141,55 @@ export default function LoginPage() {
               )}
             </button>
           </form>
+          <div className="mt-8 pt-6 border-t border-gray-100 dark:border-slate-800">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 flex items-center justify-center gap-2">
+              <span className="w-8 h-px bg-slate-200 dark:bg-slate-800"></span>
+              快速登入測試 (RBAC 驗證)
+              <span className="w-8 h-px bg-slate-200 dark:bg-slate-800"></span>
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  login("mock-token", { id: 1, username: 'EMP-001', fullName: '王大明', email: 'e001@phoenix.erp', roles: [] });
+                }}
+                className="py-2 px-3 text-sm border border-indigo-200 dark:border-indigo-900/50 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 rounded hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
+              >
+                登入為 王大明 (業務)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  login("mock-token", { id: 2, username: 'EMP-002', fullName: '陳小美', email: 'e002@phoenix.erp', roles: [] });
+                }}
+                className="py-2 px-3 text-sm border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
+              >
+                登入為 陳小美 (人資)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  login("mock-token", { id: 3, username: 'EMP-003', fullName: '林志豪', email: 'e003@phoenix.erp', roles: [] });
+                }}
+                className="py-2 px-3 text-sm border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
+              >
+                登入為 林志豪 (會計)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  login("mock-token", { id: 999, username: 'admin', fullName: 'Admin', email: 'admin@phoenix.erp', roles: ['admin'] });
+                }}
+                className="py-2 px-3 text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+              >
+                登入為 管理員 (全限)
+              </button>
+            </div>
+          </div>
         </div>
 
-        <p className="text-center text-sm text-slate-500 dark:text-slate-500 mt-8">
-          Demo Credentials: <span className="text-slate-700 dark:text-slate-300 font-mono">admin / Admin123!</span>
+        <p className="text-center text-xs text-slate-500 dark:text-slate-500 mt-6">
+          上方快速按鈕將繞過後端驗證，直接注入身份以供測試側邊欄選單變化。
         </p>
       </div>
     </div>

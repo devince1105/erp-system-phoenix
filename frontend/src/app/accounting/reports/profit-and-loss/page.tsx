@@ -41,8 +41,29 @@ export default function ProfitAndLossPage() {
     accountingApi.getCompanyName().then(setCompanyName).catch(console.error);
   }, []);
 
-  const handlePrint = () => {
-    window.print();
+  const handleExportPDF = async () => {
+    if (!report) return;
+    
+    // Import dynamically or ensure exportUtils is imported at the top
+    const { exportToPDF } = await import('@/utils/exportUtils');
+    
+    const headers = ['項目', '金額'];
+    const data = [
+      ['營業收入', ''],
+      ...opRevenues.map(r => [r.title, r.amount.toLocaleString()]),
+      ['營業收入合計', totalOpRev.toLocaleString()],
+      ['營業成本', ''],
+      ...opCosts.map(c => [c.title, `(${c.amount.toLocaleString()})`]),
+      ['營業毛利', grossProfit.toLocaleString()],
+      ['營業費用', ''],
+      ...opExpenses.map(e => [e.title, `(${e.amount.toLocaleString()})`]),
+      ['營業淨利', opProfit.toLocaleString()],
+      ['營業外收入及支出', ''],
+      ...nonOpItems.map(n => [n.title, n.amount.toLocaleString()]),
+      ['本期淨利 (稅前)', `$${preTaxProfit.toLocaleString()}`]
+    ];
+    
+    await exportToPDF(`損益表_${startDate}_${endDate}`, '綜合損益表 (Profit & Loss)', headers, data);
   };
 
   const handleExportExcel = () => {
@@ -50,15 +71,22 @@ export default function ProfitAndLossPage() {
     
     // Prepare data for Excel
     const data = [
-      ['營業收入'],
-      ...report.revenues.map(r => [r.title, r.amount]),
-      ['營業收入合計', report.totalRevenue],
+      ['營業收入', ''],
+      ...opRevenues.map(r => [r.title, r.amount]),
+      ['營業收入合計', totalOpRev],
       [''],
-      ['營業費用'],
-      ...report.expenses.map(e => [e.title, e.amount]),
-      ['營業費用合計', report.totalExpense],
+      ['營業成本', ''],
+      ...opCosts.map(c => [c.title, -c.amount]),
+      ['營業毛利', grossProfit],
       [''],
-      ['本期淨利 (Net Profit)', report.netProfit],
+      ['營業費用', ''],
+      ...opExpenses.map(e => [e.title, -e.amount]),
+      ['營業淨利', opProfit],
+      [''],
+      ['營業外收入及支出', ''],
+      ...nonOpItems.map(n => [n.title, n.amount]),
+      [''],
+      ['本期淨利 (Net Profit)', preTaxProfit],
     ];
 
     const ws = XLSX.utils.aoa_to_sheet(data);
@@ -165,12 +193,12 @@ export default function ProfitAndLossPage() {
               匯出 Excel
             </button>
             <button 
-              onClick={handlePrint}
+              onClick={handleExportPDF}
               disabled={!report}
               className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-sm font-medium rounded-sm transition-colors disabled:opacity-50"
             >
               <Printer className="w-4 h-4" />
-              列印 PDF
+              匯出 PDF
             </button>
           </div>
         </div>

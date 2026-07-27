@@ -17,14 +17,18 @@ public class PurchaseOrdersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<PurchaseOrder>>> GetPurchaseOrders()
+    public async Task<ActionResult<IEnumerable<PurchaseOrder>>> GetPurchaseOrders([FromQuery] string? projectCode = null)
     {
-        return await _context.PurchaseOrders
+        var query = _context.PurchaseOrders
             .Include(po => po.Supplier)
             .Include(po => po.Items)
             .ThenInclude(i => i.Product)
-            .OrderByDescending(po => po.CreatedAt)
-            .ToListAsync();
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(projectCode))
+            query = query.Where(po => po.ProjectCode == projectCode);
+
+        return await query.OrderByDescending(po => po.CreatedAt).ToListAsync();
     }
 
     [HttpPost]
