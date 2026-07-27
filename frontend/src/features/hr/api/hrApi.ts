@@ -59,6 +59,9 @@ export const hrApi = {
     const { data } = await axiosClient.post('/hr/attendances', record);
     return data;
   },
+  updateAttendance: async (id: number, record: Partial<AttendanceRecord>): Promise<void> => {
+    await axiosClient.put(`/hr/attendances/${id}`, record);
+  },
 
   // Leaves
   getLeaves: async (): Promise<LeaveRequest[]> => {

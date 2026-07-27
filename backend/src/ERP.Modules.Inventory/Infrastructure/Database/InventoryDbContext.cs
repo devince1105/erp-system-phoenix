@@ -18,6 +18,9 @@ public class InventoryDbContext : DbContext
     public DbSet<PurchaseOrderItem> PurchaseOrderItems => Set<PurchaseOrderItem>();
     public DbSet<SalesOrder> SalesOrders => Set<SalesOrder>();
     public DbSet<SalesOrderItem> SalesOrderItems => Set<SalesOrderItem>();
+    public DbSet<Bom> Boms => Set<Bom>();
+    public DbSet<BomItem> BomItems => Set<BomItem>();
+    public DbSet<WorkOrder> WorkOrders => Set<WorkOrder>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -47,5 +50,31 @@ public class InventoryDbContext : DbContext
         modelBuilder.Entity<PurchaseOrderItem>().ToTable("PurchaseOrderItems");
         modelBuilder.Entity<SalesOrder>().ToTable("SalesOrders");
         modelBuilder.Entity<SalesOrderItem>().ToTable("SalesOrderItems");
+        
+        modelBuilder.Entity<Bom>().ToTable("Boms");
+        modelBuilder.Entity<BomItem>().ToTable("BomItems");
+        modelBuilder.Entity<WorkOrder>().ToTable("WorkOrders");
+
+        modelBuilder.Entity<WorkOrder>()
+            .Property(w => w.Status)
+            .HasConversion<int>();
+            
+        modelBuilder.Entity<BomItem>()
+            .HasOne(b => b.ComponentProduct)
+            .WithMany()
+            .HasForeignKey(b => b.ComponentProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<WorkOrder>()
+            .HasOne(w => w.Product)
+            .WithMany()
+            .HasForeignKey(w => w.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<WorkOrder>()
+            .HasOne(w => w.Bom)
+            .WithMany()
+            .HasForeignKey(w => w.BomId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

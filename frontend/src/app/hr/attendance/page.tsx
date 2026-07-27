@@ -7,8 +7,11 @@ import { Pagination } from "@/features/core/components/Pagination";
 import { Clock, Calendar, Search, MapPin, Clock3 } from "lucide-react";
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
 import { HRDashboard as HRDashboardOverview } from "@/features/hr/components/HRDashboard";
+import { useAuth } from "@/features/core/contexts/AuthContext";
 
 export default function AttendancePage() {
+  const { user } = useAuth();
+  const isAdmin = user?.roles?.includes('role_admin') || user?.roles?.includes('role_hr_manager');
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [attendances, setAttendances] = useState<AttendanceRecord[]>([]);
@@ -17,7 +20,11 @@ export default function AttendancePage() {
   const [isLoading, setIsLoading] = useState(true);
 
   // For Demo: Pick an employee to simulate login
-  const [selectedEmpId, setSelectedEmpId] = useState<number | "">("");
+  const [selectedEmpId, setSelectedEmpId] = useState<number | "">(user?.id || "");
+
+  useEffect(() => {
+    if (user?.id && selectedEmpId === "") setSelectedEmpId(user.id);
+  }, [user]);
 
   // Filtering & Pagination
   const currentYear = new Date().getFullYear();
@@ -63,13 +70,41 @@ export default function AttendancePage() {
 
   const handleClockIn = async () => {
     if (!selectedEmpId) return alert("請先選擇員工");
+    const localDate = new Date();
+    const dateStr = localDate.getFullYear() + '-' + String(localDate.getMonth() + 1).padStart(2, '0') + '-' + String(localDate.getDate()).padStart(2, '0');
+    
+    const existing = attendances.find(a => a.employeeId === Number(selectedEmpId) && a.date.startsWith(dateStr));
+    if (existing && existing.checkInTime) {
+       return alert("今日已經打過上班卡了！");
+    }
+
     const record: Partial<AttendanceRecord> = {
       employeeId: Number(selectedEmpId),
-      date: new Date().toISOString(),
+      date: dateStr + 'T00:00:00',
       checkInTime: new Date().toISOString(),
       status: "Present"
     };
     await hrApi.createAttendance(record);
+    fetchData();
+  };
+
+  const handleClockOut = async () => {
+    if (!selectedEmpId) return alert("請先選擇員工");
+    const localDate = new Date();
+    const dateStr = localDate.getFullYear() + '-' + String(localDate.getMonth() + 1).padStart(2, '0') + '-' + String(localDate.getDate()).padStart(2, '0');
+    
+    const existing = attendances.find(a => a.employeeId === Number(selectedEmpId) && a.date.startsWith(dateStr));
+    if (!existing) {
+       return alert("今日尚未打上班卡，無法下班打卡！");
+    }
+    if (existing.checkOutTime) {
+       return alert("今日已經打過下班卡了！");
+    }
+    
+    await hrApi.updateAttendance(existing.id, {
+      ...existing,
+      checkOutTime: new Date().toISOString()
+    });
     fetchData();
   };
 
@@ -218,17 +253,25 @@ export default function AttendancePage() {
             <p className="text-slate-500 dark:text-slate-400 mt-1">管理員工每日打卡與請假紀錄</p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-slate-600 dark:text-slate-400">模擬登入身份：</span>
-            <select
-              className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-800 focus:outline-none focus:border-blue-500 shadow-sm"
-              value={selectedEmpId}
-              onChange={(e) => setSelectedEmpId(e.target.value ? Number(e.target.value) : "")}
-            >
-              <option value="">-- 選擇員工 --</option>
-              {employees.map(emp => (
-                <option key={emp.id} value={emp.id}>{emp.name} ({emp.department?.name || '無部門'})</option>
-              ))}
-            </select>
+            {isAdmin ? (
+              <>
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">模擬登入身份：</span>
+                <select
+                  className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-800 focus:outline-none focus:border-blue-500 shadow-sm"
+                  value={selectedEmpId}
+                  onChange={(e) => setSelectedEmpId(e.target.value ? Number(e.target.value) : "")}
+                >
+                  <option value="">-- 選擇員工 --</option>
+                  {employees.map(emp => (
+                    <option key={emp.id} value={emp.id}>{emp.name} ({emp.department?.name || '無部門'})</option>
+                  ))}
+                </select>
+              </>
+            ) : (
+              <span className="text-sm font-medium text-slate-600 dark:text-slate-400 px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-sm">
+                當前登入：{user?.fullName}
+              </span>
+            )}
           </div>
         </div>
 
@@ -248,16 +291,23 @@ export default function AttendancePage() {
                   {new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })}
                 </div>
                 <div className="text-sm text-slate-500 mt-2">
-                  {new Date().toLocaleDateString('zh-TW', { month: 'long', day: 'numeric', weekday: 'long' })}
+                  {new Date().toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}
                 </div>
               </div>
-              <button
-                onClick={handleClockIn}
-                disabled={!selectedEmpId}
-                className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-slate-400 disabled:to-slate-500 text-white rounded-lg font-semibold shadow-md transition-all transform active:scale-95"
-              >
-                上班打卡 (Clock In)
-              </button>
+              <div className="flex flex-col gap-3">
+                <button 
+                  onClick={handleClockIn}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-sm flex justify-center items-center gap-2 transition-colors"
+                >
+                  <MapPin className="w-5 h-5" /> 上班打卡
+                </button>
+                <button 
+                  onClick={handleClockOut}
+                  className="w-full bg-slate-700 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-sm flex justify-center items-center gap-2 transition-colors border border-slate-600"
+                >
+                  <Clock3 className="w-5 h-5" /> 下班打卡
+                </button>
+              </div>
             </div>
 
             {/* Today's Attendance Overview & Abnormal List */}
@@ -451,8 +501,6 @@ export default function AttendancePage() {
                       <th className="p-4 font-medium">員工</th>
                       <th className="p-4 font-medium whitespace-nowrap">日期</th>
                       <th className="p-4 font-medium whitespace-nowrap">上班</th>
-                      <th className="p-4 font-medium whitespace-nowrap">午出</th>
-                      <th className="p-4 font-medium whitespace-nowrap">午進</th>
                       <th className="p-4 font-medium whitespace-nowrap">下班</th>
                       <th className="p-4 font-medium whitespace-nowrap">工時</th>
                       <th className="p-4 font-medium whitespace-nowrap">狀態</th>
@@ -470,12 +518,6 @@ export default function AttendancePage() {
                         </td>
                         <td className="p-4 text-slate-600 dark:text-slate-300">
                           {att.checkInTime ? new Date(att.checkInTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '-'}
-                        </td>
-                        <td className="p-4 text-slate-600 dark:text-slate-300">
-                          {att.breakOutTime ? new Date(att.breakOutTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '-'}
-                        </td>
-                        <td className="p-4 text-slate-600 dark:text-slate-300">
-                          {att.breakInTime ? new Date(att.breakInTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '-'}
                         </td>
                         <td className="p-4 text-slate-600 dark:text-slate-300">
                           {att.checkOutTime ? new Date(att.checkOutTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '-'}

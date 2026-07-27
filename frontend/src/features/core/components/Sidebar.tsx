@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
@@ -80,10 +80,23 @@ export const Sidebar = () => {
     { name: "資產負債表 (Balance Sheet)", href: "/accounting/reports/balance-sheet", icon: BarChart3, perm: 'ACC_BALANCE_SHEET' },
   ].filter(i => canView(i.perm));
 
+  const [manufacturingEnabled, setManufacturingEnabled] = useState(true);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const val = localStorage.getItem('erp_module_manufacturing');
+      if (val === 'false') setManufacturingEnabled(false);
+    }
+  }, []);
+
   const inventoryItems = [
     { name: "進銷存總覽 (Dashboard)", href: "/inventory", icon: LayoutDashboard, perm: 'INV_DASHBOARD' },
     { name: "商品管理 (Products)", href: "/inventory/products", icon: PackageSearch, perm: 'INV_PRODUCTS' },
     { name: "倉庫與庫存 (Warehouses)", href: "/inventory/warehouses", icon: Building, perm: 'INV_PRODUCTS' },
+    ...(manufacturingEnabled ? [
+      { name: "物料管理 (Materials)", href: "/inventory/boms", icon: Settings, perm: 'INV_PRODUCTS' },
+      { name: "生產製造 (Manufacturing)", href: "/inventory/manufacturing", icon: Activity, perm: 'INV_PRODUCTS' }
+    ] : []),
     { name: "客戶與廠商 (Partners)", href: "/inventory/partners", icon: Users, perm: 'INV_PARTNERS' },
     { name: "銷貨管理 (Sales)", href: "/inventory/sales", icon: TrendingUp, perm: 'INV_SALES' },
     { name: "採購管理 (Purchases)", href: "/inventory/purchases", icon: FolderTree, perm: 'INV_PURCHASE' },

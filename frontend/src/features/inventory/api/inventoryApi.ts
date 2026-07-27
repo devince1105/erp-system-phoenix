@@ -1,4 +1,4 @@
-import { Product, Partner, PurchaseOrder, SalesOrder, Warehouse, InventoryStock } from "../types/inventory";
+import { Product, Partner, PurchaseOrder, SalesOrder, Warehouse, InventoryStock, Bom, WorkOrder } from "../types/inventory";
 
 import axiosClient from "@/api/axiosClient";
 
@@ -49,4 +49,16 @@ export const inventoryApi = {
   updateWarehouse: (id: number, data: Partial<Warehouse>) => fetchApi<void>(`/Warehouses/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   deleteWarehouse: (id: number) => fetchApi<void>(`/Warehouses/${id}`, { method: "DELETE" }),
   getWarehouseStocks: (id: number) => fetchApi<InventoryStock[]>(`/Warehouses/${id}/stocks`),
+
+  // BOMs
+  getBoms: () => fetchApi<Bom[]>("/Boms"),
+  getBom: (id: number) => fetchApi<Bom>(`/Boms/${id}`),
+  createBom: (data: Partial<Bom>) => fetchApi<Bom>("/Boms", { method: "POST", body: JSON.stringify(data) }),
+  updateBom: (id: number, data: Partial<Bom>) => fetchApi<void>(`/Boms/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+
+  // Work Orders
+  getWorkOrders: () => fetchApi<WorkOrder[]>("/WorkOrders"),
+  getWorkOrder: (id: number) => fetchApi<WorkOrder>(`/WorkOrders/${id}`),
+  createWorkOrder: (data: Partial<WorkOrder>) => fetchApi<WorkOrder>("/WorkOrders", { method: "POST", body: JSON.stringify(data) }),
+  completeWorkOrder: (id: number) => fetchApi<WorkOrder>(`/WorkOrders/${id}/complete`, { method: "POST" }),
 };

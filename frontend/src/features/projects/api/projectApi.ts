@@ -13,11 +13,11 @@ async function fetchApi<T>(url: string, options?: { method?: string; body?: stri
 }
 
 export const projectApi = {
-  getProjects: () => fetchApi<Project[]>("/Projects"),
-  getProject: (id: number) => fetchApi<Project>(`/Projects/${id}`),
-  createProject: (data: Partial<Project>) => fetchApi<Project>("/Projects", { method: "POST", body: JSON.stringify(data) }),
-  updateProject: (id: number, data: Partial<Project>) => fetchApi<void>(`/Projects/${id}`, { method: "PUT", body: JSON.stringify(data) }),
-  deleteProject: (id: number) => fetchApi<void>(`/Projects/${id}`, { method: "DELETE" }),
+  getProjects: () => fetchApi<Project[]>("/hr/projects"),
+  getProject: (id: number) => fetchApi<Project>(`/hr/projects/${id}`),
+  createProject: (data: Partial<Project>) => fetchApi<Project>("/hr/projects", { method: "POST", body: JSON.stringify(data) }),
+  updateProject: (id: number, data: Partial<Project>) => fetchApi<void>(`/hr/projects/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  deleteProject: (id: number) => fetchApi<void>(`/hr/projects/${id}`, { method: "DELETE" }),
 
   getProjectFinancials: async (projectCode: string, budget: number = 0) => {
     try {

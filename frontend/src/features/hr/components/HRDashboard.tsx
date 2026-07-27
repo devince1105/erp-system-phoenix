@@ -20,8 +20,9 @@ export const HRDashboard: React.FC<HRDashboardProps> = ({ employees, attendances
     setMounted(true);
   }, []);
 
-  // Today's date string (e.g., "2026-07-26")
-  const today = new Date().toISOString().split("T")[0];
+  // Today's date string matching local time (e.g., "2026-07-26")
+  const localDate = new Date();
+  const today = localDate.getFullYear() + '-' + String(localDate.getMonth() + 1).padStart(2, '0') + '-' + String(localDate.getDate()).padStart(2, '0');
 
   // 1. Filter today's attendances
   const todaysAttendances = attendances.filter(a => a.date.startsWith(today));
@@ -47,9 +48,18 @@ export const HRDashboard: React.FC<HRDashboardProps> = ({ employees, attendances
       absent++;
       abnormalList.push({ employeeName: emp.name, reason: "未打卡缺席" });
     } else {
+      let isLate = record.status === "Late";
+      if (record.checkInTime) {
+        const checkIn = new Date(record.checkInTime);
+        // Late if after 09:00 AM local time
+        if (checkIn.getHours() > 9 || (checkIn.getHours() === 9 && checkIn.getMinutes() > 0)) {
+          isLate = true;
+        }
+      }
+
       if (record.status === "Leave") {
         leave++;
-      } else if (record.status === "Late" || (record.checkInTime && record.checkInTime > "09:00:00")) {
+      } else if (isLate) {
         late++;
         abnormalList.push({ employeeName: emp.name, reason: "遲到", time: record.checkInTime || "" });
       } else if (record.status === "Present") {

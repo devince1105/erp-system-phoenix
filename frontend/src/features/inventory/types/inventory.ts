@@ -90,5 +90,44 @@ export interface SalesOrder {
   totalAmount: number;
   memo?: string;
   createdAt: string;
-  items: SalesOrderItem[];
 }
+
+export interface BomItem {
+  id?: number;
+  bomId?: number;
+  componentProductId: number;
+  componentProduct?: Product;
+  quantity: number;
+  unit: string;
+}
+
+export interface Bom {
+  id: number;
+  productId: number;
+  product?: Product;
+  name: string;
+  version: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt?: string;
+  items: BomItem[];
+}
+
+export type WorkOrderStatus = 0 | 1 | 2 | 3; // 0: Draft, 1: InProgress, 2: Completed, 3: Cancelled
+
+export interface WorkOrder {
+  id: number;
+  orderNo: string;
+  productId: number;
+  product?: Product;
+  bomId: number;
+  bom?: Bom;
+  plannedQuantity: number;
+  completedQuantity: number;
+  status: WorkOrderStatus;
+  startDate?: string;
+  endDate?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
