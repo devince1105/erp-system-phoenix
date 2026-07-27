@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import { PurchaseOrder, PurchaseOrderItem, Product, Partner } from '@/features/inventory/types/inventory';
 import { inventoryApi } from '@/features/inventory/api/inventoryApi';
+import { projectApi } from '@/features/projects/api/projectApi';
+import { Project } from '@/features/projects/types/project';
 import { X, Save, Plus, Trash2 } from 'lucide-react';
 
 interface PurchaseOrderModalProps {
@@ -14,9 +16,11 @@ interface PurchaseOrderModalProps {
 export function PurchaseOrderModal({ isOpen, onClose, onSave, initialData }: PurchaseOrderModalProps) {
   const { data: suppliers } = useSWR<Partner[]>('/Partners?type=2', () => inventoryApi.getPartners(2));
   const { data: products } = useSWR<Product[]>('/Products', inventoryApi.getProducts);
+  const { data: projects } = useSWR<Project[]>('/Projects', projectApi.getProjects);
 
   const [supplierId, setSupplierId] = useState<number | ''>('');
   const [memo, setMemo] = useState('');
+  const [projectCode, setProjectCode] = useState('');
   const [items, setItems] = useState<Partial<PurchaseOrderItem>[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -25,6 +29,7 @@ export function PurchaseOrderModal({ isOpen, onClose, onSave, initialData }: Pur
       if (initialData) {
         setSupplierId(initialData.supplierId);
         setMemo(initialData.memo || '');
+        setProjectCode(initialData.projectCode || '');
         setItems(initialData.items.map(i => ({
           productId: i.productId,
           quantity: i.quantity,
@@ -33,6 +38,7 @@ export function PurchaseOrderModal({ isOpen, onClose, onSave, initialData }: Pur
       } else {
         setSupplierId('');
         setMemo('');
+        setProjectCode('');
         setItems([]);
       }
     }
@@ -85,6 +91,7 @@ export function PurchaseOrderModal({ isOpen, onClose, onSave, initialData }: Pur
       await onSave({
         supplierId: supplierId as number,
         memo,
+        projectCode: projectCode || undefined,
         items: items as PurchaseOrderItem[]
       });
       onClose();
@@ -138,6 +145,19 @@ export function PurchaseOrderModal({ isOpen, onClose, onSave, initialData }: Pur
                   className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="採購單備註..."
                 />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">歸屬專案 (Project)</label>
+                <select
+                  value={projectCode}
+                  onChange={(e) => setProjectCode(e.target.value)}
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">(無)</option>
+                  {projects?.map(p => (
+                    <option key={p.id} value={p.code}>{p.code} - {p.name}</option>
+                  ))}
+                </select>
               </div>
             </div>
 

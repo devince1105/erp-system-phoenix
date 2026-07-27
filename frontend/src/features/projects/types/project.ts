@@ -20,11 +20,16 @@ export interface Project {
 }
 
 export interface ProjectFinancials {
-  projectId: number;
+  projectId?: number;
   projectCode: string;
   budget: number;
   totalRevenue: number;
   totalCost: number;
   profit: number;
   budgetRemaining: number;
+  details: {
+    salesCount: number;
+    purchaseCount: number;
+    voucherCount: number;
+  };
 }

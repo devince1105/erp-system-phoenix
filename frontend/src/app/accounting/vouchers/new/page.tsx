@@ -4,6 +4,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { accountingApi, AccountTitle, CreateVoucherDto } from '@/features/accounting/api/accountingApi';
+import { projectApi } from '@/features/projects/api/projectApi';
+import { Project } from '@/features/projects/types/project';
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
 import { ArrowLeft, Save, Plus, Trash2, Calculator, AlertCircle, FilePlus } from 'lucide-react';
 
@@ -20,11 +22,13 @@ export default function CreateVoucherPage() {
   
   // Master data
   const [accountTitles, setAccountTitles] = useState<AccountTitle[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   
   // Form State
   const [voucherDate, setVoucherDate] = useState(new Date().toISOString().split('T')[0]);
   const [type, setType] = useState(0); // 0=General
   const [memo, setMemo] = useState('');
+  const [projectCode, setProjectCode] = useState('');
   
   const [details, setDetails] = useState<DetailRow[]>([
     { id: crypto.randomUUID(), accountTitleId: 0, isDebit: true, amount: '', summary: '' },
@@ -37,6 +41,10 @@ export default function CreateVoucherPage() {
   useEffect(() => {
     accountingApi.getAccountTitles()
       .then(data => setAccountTitles(data.filter(a => a.isActive)))
+      .catch(err => console.error(err));
+      
+    projectApi.getProjects()
+      .then(data => setProjects(data))
       .catch(err => console.error(err));
   }, []);
 
@@ -91,6 +99,7 @@ export default function CreateVoucherPage() {
         voucherDate,
         type,
         memo,
+        projectCode: projectCode || undefined,
         details: details.map(d => ({
           accountTitleId: d.accountTitleId,
           isDebit: d.isDebit,
@@ -184,6 +193,19 @@ export default function CreateVoucherPage() {
               placeholder="例如：辦公用品採購"
               className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:text-slate-200 transition-all"
             />
+          </div>
+          <div className="space-y-1.5">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">歸屬專案</label>
+            <select 
+              value={projectCode}
+              onChange={e => setProjectCode(e.target.value)}
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:text-slate-200 transition-all"
+            >
+              <option value="">(無)</option>
+              {projects.map(p => (
+                <option key={p.id} value={p.code}>{p.code} - {p.name}</option>
+              ))}
+            </select>
           </div>
         </div>
 

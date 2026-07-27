@@ -56,6 +56,7 @@ export interface CreateVoucherPayload {
   voucherDate: string;
   type: VoucherType;
   memo?: string;
+  projectCode?: string;
   details: {
     accountTitleId: number;
     isDebit: boolean;

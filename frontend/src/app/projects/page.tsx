@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { Plus, Briefcase, FileText, ShoppingCart, DollarSign, TrendingUp, TrendingDown, Clock, Search, Filter } from "lucide-react";
 import { projectApi } from "@/features/projects/api/projectApi";
 import { Project, ProjectFinancials, ProjectStatus } from "@/features/projects/types/project";
-import { Button } from "@/features/core/components/ui/button";
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -70,9 +69,9 @@ export default function ProjectsPage() {
           </h1>
           <p className="text-slate-400">即時追蹤專案進度、預算消耗與專案損益</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-500 text-white gap-2">
+        <button className="flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-sm font-medium gap-2 transition-colors">
           <Plus className="w-4 h-4" /> 新增專案
-        </Button>
+        </button>
       </div>
 
       <div className="flex gap-6 flex-1 h-[calc(100vh-180px)]">
@@ -88,9 +87,9 @@ export default function ProjectsPage() {
                   className="w-full bg-slate-900/50 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
                 />
               </div>
-              <Button variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800">
+              <button className="flex items-center justify-center px-3 py-2 border border-slate-700 text-slate-300 hover:bg-slate-800 rounded-md transition-colors">
                 <Filter className="w-4 h-4" />
-              </Button>
+              </button>
             </div>
           </div>
 
@@ -137,7 +136,7 @@ export default function ProjectsPage() {
                     {selectedProject.name}
                     {getStatusBadge(selectedProject.status)}
                   </h2>
-                  <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700">編輯專案</Button>
+                  <button className="px-3 py-1.5 border border-slate-600 text-slate-300 hover:bg-slate-700 rounded-md text-sm font-medium transition-colors">編輯專案</button>
                 </div>
                 <div className="flex gap-6 text-sm text-slate-400">
                   <span className="flex items-center gap-1"><Briefcase className="w-4 h-4" /> {selectedProject.code}</span>

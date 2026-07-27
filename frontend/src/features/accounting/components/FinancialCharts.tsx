@@ -333,7 +333,7 @@ export const FinancialCharts: React.FC<FinancialChartsProps> = ({ vouchers, acco
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    activeIndex={activeIndex}
+                    {...({ activeIndex } as any)}
                     activeShape={renderActiveShape}
                     data={pieData}
                     cx="50%"
