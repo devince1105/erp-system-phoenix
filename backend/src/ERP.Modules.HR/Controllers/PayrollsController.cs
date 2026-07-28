@@ -1,5 +1,6 @@
 using ERP.Modules.HR.Data;
 using ERP.Modules.HR.Models;
+using ERP.Shared.Interfaces.Accounting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,10 +13,12 @@ namespace ERP.Modules.HR.Controllers;
 public class PayrollsController : ControllerBase
 {
     private readonly HRDbContext _context;
+    private readonly IAccountingIntegrationService _accounting;
 
-    public PayrollsController(HRDbContext context)
+    public PayrollsController(HRDbContext context, IAccountingIntegrationService accounting)
     {
         _context = context;
+        _accounting = accounting;
     }
 
     [HttpGet]
@@ -143,6 +146,51 @@ public class PayrollsController : ControllerBase
         }
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// 確認發薪：將指定年/月全部草稿薪資批次改為 Processed，
+    /// 並自動拋轉財務傳票（薪資費用 / 應付薪資）。
+    /// 此為不可逆操作，僅限 Admin/HR 執行。
+    /// </summary>
+    [HttpPost("batch-process/{year}/{month}")]
+    [Authorize(Roles = "Admin,HR")]
+    public async Task<IActionResult> BatchProcessPayrolls(int year, int month)
+    {
+        var drafts = await _context.Payrolls
+            .Where(p => p.Year == year && p.Month == month && p.Status == "Draft")
+            .ToListAsync();
+
+        if (!drafts.Any())
+            return BadRequest($"{year}年{month:D2}月 沒有草稿狀態的薪資單，請先執行 generate。");
+
+        // Aggregate totals for the voucher
+        decimal totalNetSalary = drafts.Sum(p => p.NetSalary);
+        decimal totalBonus     = drafts.Sum(p => p.Bonus);
+        decimal totalDeductions = drafts.Sum(p => p.Deductions);
+
+        // Mark all as Processed
+        foreach (var payroll in drafts)
+        {
+            payroll.Status = "Processed";
+            payroll.PaymentDate = DateTime.UtcNow;
+            payroll.UpdatedAt = DateTime.UtcNow;
+        }
+
+        await _context.SaveChangesAsync();
+
+        // Trigger Auto-Voucher: Dr 薪資費用 / Cr 應付薪資 + 代扣稅額
+        var voucherCreated = await _accounting.CreatePayrollVoucherAsync(
+            year, month, totalNetSalary, totalBonus, totalDeductions);
+
+        return Ok(new
+        {
+            message = $"{year}年{month:D2}月 薪資已確認發放，共 {drafts.Count} 筆。",
+            voucherCreated,
+            totalNetSalary,
+            totalBonus,
+            totalDeductions
+        });
     }
 
     [HttpDelete("{id}")]

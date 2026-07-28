@@ -4,6 +4,7 @@ using ERP.Shared.Interfaces.Accounting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Transactions;
 
 namespace ERP.Modules.Inventory.Controllers;
 
@@ -120,25 +121,59 @@ public class SalesOrdersController : ControllerBase
         if (order.Status != OrderStatus.Draft)
             return BadRequest("Only draft orders can be confirmed.");
 
-        order.Status = OrderStatus.Confirmed;
-        
-        // Deduct inventory and calculate total cost
-        decimal totalCost = 0;
-        foreach (var item in order.Items)
-        {
-            var product = item.Product;
-            if (product != null)
-            {
-                product.StockQuantity -= item.Quantity;
-                totalCost += item.Quantity * product.CostPrice;
-            }
-        }
+        // P1-4: Use TransactionScope to ensure ACID atomicity across
+        // InventoryDbContext (stock deduction) and AccountingDbContext (voucher).
+        // Both point to the same SQL Server, so no MSDTC is needed.
+        using var scope = new TransactionScope(
+            TransactionScopeOption.Required,
+            new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
+            TransactionScopeAsyncFlowOption.Enabled);
 
-        await _context.SaveChangesAsync();
-        
-        // Trigger Auto-Voucher Integration
-        await _accounting.CreateSalesVoucherAsync(order.OrderNo, order.OrderDate, order.TotalAmount, totalCost);
-        
-        return Ok(order);
+        try
+        {
+            order.Status = OrderStatus.Confirmed;
+
+            // Deduct inventory and calculate total cost
+            decimal totalCost = 0;
+            foreach (var item in order.Items)
+            {
+                var product = item.Product;
+                if (product != null)
+                {
+                    if (product.StockQuantity < item.Quantity)
+                    {
+                        return BadRequest($"商品 [{product.Name}] 庫存不足！現庫存: {product.StockQuantity}，需求數量: {item.Quantity}。");
+                    }
+
+                    product.StockQuantity -= item.Quantity;
+                    totalCost += item.Quantity * product.CostPrice;
+                }
+            }
+
+            // 1. Save inventory changes
+            await _context.SaveChangesAsync();
+
+            // 2. Create accounting voucher (same SQL Server = same ambient transaction)
+            var voucherOk = await _accounting.CreateSalesVoucherAsync(
+                order.OrderNo, order.OrderDate, order.TotalAmount, totalCost);
+
+            if (!voucherOk)
+                throw new InvalidOperationException("導入財務傳票失敗，已自動回滞庫存扣減。");
+
+            // 3. Commit both operations atomically
+            scope.Complete();
+
+            return Ok(order);
+        }
+        catch (InvalidOperationException ex)
+        {
+            // scope.Dispose() without Complete() = automatic rollback
+            return BadRequest(ex.Message);
+        }
+        catch (Exception)
+        {
+            // Unexpected error: rollback everything
+            return StatusCode(500, "確認销貨單時發生未預期錯誤，已回滞庫存變動。");
+        }
     }
 }
