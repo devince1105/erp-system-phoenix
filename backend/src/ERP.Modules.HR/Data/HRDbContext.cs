@@ -28,6 +28,9 @@ public class HRDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // Isolate HR tables in [hr] schema
+        modelBuilder.HasDefaultSchema("hr");
+
         modelBuilder.Entity<Department>()
             .HasOne(d => d.Manager)
             .WithMany()

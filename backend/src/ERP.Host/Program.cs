@@ -103,6 +103,10 @@ using (var scope = app.Services.CreateScope())
     // Migrate HR Module Database
     var hrDb = scope.ServiceProvider.GetRequiredService<HRDbContext>();
     hrDb.Database.Migrate();
+
+    // Migrate CRM Module Database
+    var crmDb = scope.ServiceProvider.GetRequiredService<CRMDbContext>();
+    crmDb.Database.Migrate();
 }
 
 app.Run();

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ERP.Modules.CRM.Data;
@@ -7,6 +8,7 @@ namespace ERP.Modules.CRM.Controllers;
 
 [ApiController]
 [Route("api/crm/[controller]")]
+[Authorize]
 public class CustomersController : ControllerBase
 {
     private readonly CRMDbContext _context;

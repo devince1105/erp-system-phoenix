@@ -9,9 +9,12 @@ public static class CRMModuleExtensions
 {
     public static IServiceCollection AddCRMModule(this IServiceCollection services, IConfiguration configuration)
     {
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
         services.AddDbContext<CRMDbContext>(options =>
-            options.UseSqlite(configuration.GetConnectionString("CRMConnection"), 
-                b => b.MigrationsAssembly("ERP.Host")));
+            options.UseSqlServer(connectionString,
+                sqlOptions => sqlOptions.MigrationsAssembly("ERP.Host")));
 
         return services;
     }

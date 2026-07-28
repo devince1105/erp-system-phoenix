@@ -1,5 +1,6 @@
 using ERP.Modules.HR.Data;
 using ERP.Modules.HR.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,6 +8,7 @@ namespace ERP.Modules.HR.Controllers;
 
 [ApiController]
 [Route("api/hr/[controller]")]
+[Authorize] // Require authentication for all payroll actions
 public class PayrollsController : ControllerBase
 {
     private readonly HRDbContext _context;
@@ -17,6 +19,7 @@ public class PayrollsController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin,HR")] // Only HR/Admin can see all payrolls
     public async Task<ActionResult<IEnumerable<PayrollRecord>>> GetPayrolls()
     {
         return await _context.Payrolls
@@ -27,6 +30,7 @@ public class PayrollsController : ControllerBase
     }
 
     [HttpGet("employee/{employeeId}")]
+    [Authorize(Roles = "Admin,HR")] // Only HR/Admin can look up another employee's payroll
     public async Task<ActionResult<IEnumerable<PayrollRecord>>> GetEmployeePayrolls(int employeeId)
     {
         return await _context.Payrolls
@@ -46,6 +50,7 @@ public class PayrollsController : ControllerBase
     }
 
     [HttpPost("generate/{year}/{month}")]
+    [Authorize(Roles = "Admin,HR")] // Only HR/Admin can trigger payroll generation
     public async Task<IActionResult> GeneratePayrolls(int year, int month)
     {
         var employees = await _context.Employees.Where(e => e.Status == EmployeeStatus.Active).ToListAsync();
@@ -141,6 +146,7 @@ public class PayrollsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")] // Only Admin can delete payroll records
     public async Task<IActionResult> DeletePayroll(int id)
     {
         var record = await _context.Payrolls.FindAsync(id);

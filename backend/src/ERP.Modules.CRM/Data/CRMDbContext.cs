@@ -13,7 +13,10 @@ public class CRMDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        
+
+        // Isolate CRM tables in [crm] schema
+        modelBuilder.HasDefaultSchema("crm");
+
         modelBuilder.Entity<Customer>()
             .HasMany(c => c.Opportunities)
             .WithOne(o => o.Customer)

@@ -9,11 +9,12 @@ public static class HRModuleExtensions
 {
     public static IServiceCollection AddHRModule(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("HRDb");
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
         services.AddDbContext<HRDbContext>(options =>
-            options.UseSqlite(connectionString ?? "Data Source=hr.db", 
-                b => b.MigrationsAssembly("ERP.Host")));
+            options.UseSqlServer(connectionString,
+                sqlOptions => sqlOptions.MigrationsAssembly("ERP.Host")));
 
         return services;
     }
