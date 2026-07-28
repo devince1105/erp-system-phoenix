@@ -130,3 +130,61 @@ export interface CalendarEvent {
   type: string; // 'Announcement', 'Note'
   createdAt?: string;
 }
+
+export interface LeaveBalance {
+  id: number;
+  employeeId: number;
+  employee?: Employee;
+  leaveType: string;
+  year: number;
+  totalDays: number;
+  usedDays: number;
+  remainingDays: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface SalaryStructure {
+  id: number;
+  employeeId: number;
+  employee?: Employee;
+  baseSalary: number;
+  housingAllowance: number;
+  mealAllowance: number;
+  transportationAllowance: number;
+  otherAllowances: number;
+  laborInsuranceDeduction: number;
+  healthInsuranceDeduction: number;
+  otherDeductions: number;
+  effectiveFrom: string;
+  effectiveTo?: string;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ExpenseClaim {
+  id: number;
+  employeeId: number;
+  employee?: Employee;
+  description: string;
+  category: string;
+  amount: number;
+  receiptUrl?: string;
+  status: string; // Pending, Approved, Rejected
+  claimDate: string;
+  processedDate?: string;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface HrParameterSetting {
+  id: number;
+  parameterName: string;
+  parameterValue: string;
+  description?: string;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}

@@ -1,5 +1,17 @@
 import axiosClient from '@/api/axiosClient';
-import { Department, Employee, AttendanceRecord, LeaveRequest, PayrollRecord, OvertimeRequest, CalendarEvent } from '../types/hr';
+import {
+  Department,
+  Employee,
+  AttendanceRecord,
+  LeaveRequest,
+  PayrollRecord,
+  OvertimeRequest,
+  CalendarEvent,
+  LeaveBalance,
+  SalaryStructure,
+  ExpenseClaim,
+  HrParameterSetting,
+} from '../types/hr';
 
 export const hrApi = {
   // Departments
@@ -109,5 +121,90 @@ export const hrApi = {
   },
   deleteCalendarEvent: async (id: number): Promise<void> => {
     await axiosClient.delete(`/hr/calendarEvents/${id}`);
-  }
+  },
+
+  // Leave Balances
+  getLeaveBalances: async (): Promise<LeaveBalance[]> => {
+    const { data } = await axiosClient.get('/hr/leaveBalances');
+    return data;
+  },
+  getEmployeeLeaveBalances: async (employeeId: number): Promise<LeaveBalance[]> => {
+    const { data } = await axiosClient.get(`/hr/leaveBalances/employee/${employeeId}`);
+    return data;
+  },
+  createLeaveBalance: async (balance: Partial<LeaveBalance>): Promise<LeaveBalance> => {
+    const { data } = await axiosClient.post('/hr/leaveBalances', balance);
+    return data;
+  },
+  updateLeaveBalance: async (id: number, balance: Partial<LeaveBalance>): Promise<void> => {
+    await axiosClient.put(`/hr/leaveBalances/${id}`, balance);
+  },
+  deleteLeaveBalance: async (id: number): Promise<void> => {
+    await axiosClient.delete(`/hr/leaveBalances/${id}`);
+  },
+
+  // Salary Structures
+  getSalaryStructures: async (): Promise<SalaryStructure[]> => {
+    const { data } = await axiosClient.get('/hr/salaryStructures');
+    return data;
+  },
+  getEmployeeSalaryStructures: async (employeeId: number): Promise<SalaryStructure[]> => {
+    const { data } = await axiosClient.get(`/hr/salaryStructures/employee/${employeeId}`);
+    return data;
+  },
+  createSalaryStructure: async (structure: Partial<SalaryStructure>): Promise<SalaryStructure> => {
+    const { data } = await axiosClient.post('/hr/salaryStructures', structure);
+    return data;
+  },
+  updateSalaryStructure: async (id: number, structure: Partial<SalaryStructure>): Promise<void> => {
+    await axiosClient.put(`/hr/salaryStructures/${id}`, structure);
+  },
+  deleteSalaryStructure: async (id: number): Promise<void> => {
+    await axiosClient.delete(`/hr/salaryStructures/${id}`);
+  },
+
+  // Expense Claims
+  getExpenseClaims: async (): Promise<ExpenseClaim[]> => {
+    const { data } = await axiosClient.get('/hr/expenseClaims');
+    return data;
+  },
+  getEmployeeExpenseClaims: async (employeeId: number): Promise<ExpenseClaim[]> => {
+    const { data } = await axiosClient.get(`/hr/expenseClaims/employee/${employeeId}`);
+    return data;
+  },
+  createExpenseClaim: async (claim: Partial<ExpenseClaim>): Promise<ExpenseClaim> => {
+    const { data } = await axiosClient.post('/hr/expenseClaims', claim);
+    return data;
+  },
+  updateExpenseClaim: async (id: number, claim: Partial<ExpenseClaim>): Promise<void> => {
+    await axiosClient.put(`/hr/expenseClaims/${id}`, claim);
+  },
+  updateExpenseClaimStatus: async (id: number, status: string): Promise<void> => {
+    await axiosClient.patch(`/hr/expenseClaims/${id}/status`, JSON.stringify(status), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  },
+  deleteExpenseClaim: async (id: number): Promise<void> => {
+    await axiosClient.delete(`/hr/expenseClaims/${id}`);
+  },
+
+  // HR Parameter Settings
+  getHrParameterSettings: async (): Promise<HrParameterSetting[]> => {
+    const { data } = await axiosClient.get('/hr/hrParameterSettings');
+    return data;
+  },
+  getHrParameterSettingByName: async (parameterName: string): Promise<HrParameterSetting> => {
+    const { data } = await axiosClient.get(`/hr/hrParameterSettings/by-name/${parameterName}`);
+    return data;
+  },
+  createHrParameterSetting: async (setting: Partial<HrParameterSetting>): Promise<HrParameterSetting> => {
+    const { data } = await axiosClient.post('/hr/hrParameterSettings', setting);
+    return data;
+  },
+  updateHrParameterSetting: async (id: number, setting: Partial<HrParameterSetting>): Promise<void> => {
+    await axiosClient.put(`/hr/hrParameterSettings/${id}`, setting);
+  },
+  deleteHrParameterSetting: async (id: number): Promise<void> => {
+    await axiosClient.delete(`/hr/hrParameterSettings/${id}`);
+  },
 };
