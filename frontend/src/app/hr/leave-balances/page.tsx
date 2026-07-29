@@ -78,7 +78,6 @@ export default function LeaveBalancesPage() {
     }
   };
 
-  const totalPages = Math.ceil(balances.length / pageSize) || 1;
   const startIndex = (currentPage - 1) * pageSize;
   const paginated = balances.slice(startIndex, startIndex + pageSize);
 
@@ -200,7 +199,6 @@ export default function LeaveBalancesPage() {
       {balances.length > 0 && !isLoading && (
         <Pagination
           currentPage={currentPage}
-          totalPages={totalPages}
           pageSize={pageSize}
           totalItems={balances.length}
           onPageChange={setCurrentPage}
