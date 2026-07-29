@@ -23,6 +23,7 @@
     <ProjectReference Include="..\ERP.Modules.Inventory\ERP.Modules.Inventory.csproj" />
     <ProjectReference Include="..\ERP.Modules.HR\ERP.Modules.HR.csproj" />
     <ProjectReference Include="..\ERP.Modules.CRM\ERP.Modules.CRM.csproj" />
+    <ProjectReference Include="..\ERP.Modules.MDM\ERP.Modules.MDM.csproj" />
   </ItemGroup>
 
 </Project>

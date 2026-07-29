@@ -33,4 +33,11 @@ public class Partner
     public string? Address { get; set; }
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Soft reference to MDM.BusinessPartner (cross-module, no FK constraint).
+    /// Null = legacy record not yet linked to unified BP master.
+    /// When set, MDM.BusinessPartner.Roles should be the authoritative role source.
+    /// </summary>
+    public int? BusinessPartnerId { get; set; }
 }

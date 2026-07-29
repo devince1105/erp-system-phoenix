@@ -16,6 +16,7 @@ public class InventoryDbContext : DbContext
     public DbSet<PurchaseOrderItem> PurchaseOrderItems => Set<PurchaseOrderItem>();
     public DbSet<SalesOrder> SalesOrders => Set<SalesOrder>();
     public DbSet<SalesOrderItem> SalesOrderItems => Set<SalesOrderItem>();
+    public DbSet<StockMovement> StockMovements => Set<StockMovement>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -43,5 +44,14 @@ public class InventoryDbContext : DbContext
         modelBuilder.Entity<PurchaseOrderItem>().ToTable("PurchaseOrderItems");
         modelBuilder.Entity<SalesOrder>().ToTable("SalesOrders");
         modelBuilder.Entity<SalesOrderItem>().ToTable("SalesOrderItems");
+
+        // StockMovement: Append-Only ledger
+        modelBuilder.Entity<StockMovement>().ToTable("StockMovements");
+        modelBuilder.Entity<StockMovement>()
+            .Property(m => m.MovementType)
+            .HasConversion<int>();
+        modelBuilder.Entity<StockMovement>()
+            .Property(m => m.CreatedAt)
+            .ValueGeneratedOnAdd(); // Only set on insert, never update
     }
 }

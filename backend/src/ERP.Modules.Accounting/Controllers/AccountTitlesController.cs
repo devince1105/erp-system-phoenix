@@ -22,6 +22,7 @@ public class AccountTitlesController : ControllerBase
     /// 取得所有會計科目
     /// </summary>
     [HttpGet]
+    [Authorize(Roles = "Admin,Accountant")]
     public async Task<ActionResult<IEnumerable<AccountTitle>>> GetAccountTitles([FromQuery] AccountCategory? category)
     {
         var query = _context.AccountTitles.AsQueryable();
@@ -38,6 +39,7 @@ public class AccountTitlesController : ControllerBase
     /// 依 ID 取得會計科目
     /// </summary>
     [HttpGet("{id}")]
+    [Authorize(Roles = "Admin,Accountant")]
     public async Task<ActionResult<AccountTitle>> GetAccountTitle(int id)
     {
         var title = await _context.AccountTitles.FindAsync(id);
@@ -49,6 +51,7 @@ public class AccountTitlesController : ControllerBase
     /// 新增會計科目
     /// </summary>
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<AccountTitle>> CreateAccountTitle(AccountTitle accountTitle)
     {
         if (await _context.AccountTitles.AnyAsync(t => t.Code == accountTitle.Code))
@@ -65,6 +68,7 @@ public class AccountTitlesController : ControllerBase
     /// 更新會計科目
     /// </summary>
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateAccountTitle(int id, AccountTitle accountTitle)
     {
         if (id != accountTitle.Id)
@@ -108,6 +112,7 @@ public class AccountTitlesController : ControllerBase
     /// 刪除會計科目
     /// </summary>
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteAccountTitle(int id)
     {
         var accountTitle = await _context.AccountTitles.FindAsync(id);

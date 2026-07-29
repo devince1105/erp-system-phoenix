@@ -127,19 +127,35 @@ public class PurchaseOrdersController : ControllerBase
         {
             order.Status = OrderStatus.Confirmed;
 
-            // Add inventory on purchase confirmation
+            // Add inventory on purchase confirmation + record movements
+            var movements = new List<StockMovement>();
+
             foreach (var item in order.Items)
             {
                 var product = await _context.Products.FindAsync(item.ProductId);
                 if (product != null)
                 {
+                    var qtyBefore = product.StockQuantity;
                     product.StockQuantity += item.Quantity;
                     // Update cost price (latest purchase price)
                     product.CostPrice = item.UnitPrice;
+
+                    // Record movement ledger (Append-Only)
+                    movements.Add(new StockMovement
+                    {
+                        ProductId      = product.Id,
+                        MovementType   = StockMovementType.PurchaseIn,
+                        Quantity       = item.Quantity,
+                        QuantityBefore = qtyBefore,
+                        QuantityAfter  = product.StockQuantity,
+                        ReferenceNo    = order.OrderNo,
+                        Remark         = $"採購單 {order.OrderNo} 入庫"
+                    });
                 }
             }
 
-            // 1. Save inventory changes
+            // 1. Save inventory changes + movement records
+            _context.StockMovements.AddRange(movements);
             await _context.SaveChangesAsync();
 
             // 2. Create accounting voucher: Dr 存貨 / Cr 應付帳款

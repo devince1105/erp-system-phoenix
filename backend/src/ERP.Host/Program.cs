@@ -8,6 +8,8 @@ using ERP.Modules.HR;
 using ERP.Modules.HR.Data;
 using ERP.Modules.CRM;
 using ERP.Modules.CRM.Data;
+using ERP.Modules.MDM;
+using ERP.Modules.MDM.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -34,6 +36,7 @@ builder.Services.AddControllers()
     .AddApplicationPart(typeof(ERP.Modules.Inventory.InventoryModuleExtensions).Assembly)
     .AddApplicationPart(typeof(ERP.Modules.HR.HRModuleExtensions).Assembly)
     .AddApplicationPart(typeof(ERP.Modules.CRM.CRMModuleExtensions).Assembly)
+    .AddApplicationPart(typeof(ERP.Modules.MDM.MdmModuleExtensions).Assembly)
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
@@ -68,6 +71,7 @@ builder.Services.AddAccountingModule(builder.Configuration);
 builder.Services.AddInventoryModule(builder.Configuration);
 builder.Services.AddHRModule(builder.Configuration);
 builder.Services.AddCRMModule(builder.Configuration);
+builder.Services.AddMdmModule(builder.Configuration);
 
 // 3. Configure OpenAPI
 builder.Services.AddOpenApi();
@@ -107,6 +111,10 @@ using (var scope = app.Services.CreateScope())
     // Migrate CRM Module Database
     var crmDb = scope.ServiceProvider.GetRequiredService<CRMDbContext>();
     crmDb.Database.Migrate();
+
+    // Migrate MDM Module Database
+    var mdmDb = scope.ServiceProvider.GetRequiredService<MdmDbContext>();
+    mdmDb.Database.Migrate();
 }
 
 app.Run();

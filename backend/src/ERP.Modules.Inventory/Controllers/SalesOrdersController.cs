@@ -135,6 +135,8 @@ public class SalesOrdersController : ControllerBase
 
             // Deduct inventory and calculate total cost
             decimal totalCost = 0;
+            var movements = new List<StockMovement>();
+
             foreach (var item in order.Items)
             {
                 var product = item.Product;
@@ -145,12 +147,26 @@ public class SalesOrdersController : ControllerBase
                         return BadRequest($"商品 [{product.Name}] 庫存不足！現庫存: {product.StockQuantity}，需求數量: {item.Quantity}。");
                     }
 
+                    var qtyBefore = product.StockQuantity;
                     product.StockQuantity -= item.Quantity;
                     totalCost += item.Quantity * product.CostPrice;
+
+                    // Record movement ledger (Append-Only)
+                    movements.Add(new StockMovement
+                    {
+                        ProductId      = product.Id,
+                        MovementType   = StockMovementType.SalesOut,
+                        Quantity       = -item.Quantity,
+                        QuantityBefore = qtyBefore,
+                        QuantityAfter  = product.StockQuantity,
+                        ReferenceNo    = order.OrderNo,
+                        Remark         = $"銷貨單 {order.OrderNo} 出庫"
+                    });
                 }
             }
 
-            // 1. Save inventory changes
+            // 1. Save inventory changes + movement records
+            _context.StockMovements.AddRange(movements);
             await _context.SaveChangesAsync();
 
             // 2. Create accounting voucher (same SQL Server = same ambient transaction)

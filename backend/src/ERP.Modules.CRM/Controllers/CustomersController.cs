@@ -19,12 +19,14 @@ public class CustomersController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin,Employee")] // Sales reps (Employee) can view customers
     public async Task<ActionResult<IEnumerable<Customer>>> GetCustomers()
     {
         return await _context.Customers.OrderByDescending(c => c.CreatedAt).ToListAsync();
     }
 
     [HttpGet("{id}")]
+    [Authorize(Roles = "Admin,Employee")]
     public async Task<ActionResult<Customer>> GetCustomer(int id)
     {
         var customer = await _context.Customers
@@ -40,6 +42,7 @@ public class CustomersController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<Customer>> PostCustomer(Customer customer)
     {
         customer.CreatedAt = DateTime.UtcNow;
@@ -50,6 +53,7 @@ public class CustomersController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> PutCustomer(int id, Customer customer)
     {
         if (id != customer.Id)
@@ -79,6 +83,7 @@ public class CustomersController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteCustomer(int id)
     {
         var customer = await _context.Customers.FindAsync(id);

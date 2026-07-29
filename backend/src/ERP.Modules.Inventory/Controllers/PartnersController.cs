@@ -1,5 +1,6 @@
 using ERP.Modules.Inventory.Domain.Entities;
 using ERP.Modules.Inventory.Infrastructure.Database;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,6 +8,7 @@ namespace ERP.Modules.Inventory.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class PartnersController : ControllerBase
 {
     private readonly InventoryDbContext _context;
@@ -17,6 +19,7 @@ public class PartnersController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin,Accountant")] // Purchasing-related: Admin and Accountant only
     public async Task<ActionResult<IEnumerable<Partner>>> GetPartners([FromQuery] PartnerType? type = null)
     {
         var query = _context.Partners.AsQueryable();
@@ -28,6 +31,7 @@ public class PartnersController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize(Roles = "Admin,Accountant")]
     public async Task<ActionResult<Partner>> GetPartner(int id)
     {
         var partner = await _context.Partners.FindAsync(id);
@@ -38,6 +42,7 @@ public class PartnersController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<Partner>> CreatePartner(Partner partner)
     {
         partner.CreatedAt = DateTime.UtcNow;
@@ -48,6 +53,7 @@ public class PartnersController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdatePartner(int id, Partner partner)
     {
         if (id != partner.Id)

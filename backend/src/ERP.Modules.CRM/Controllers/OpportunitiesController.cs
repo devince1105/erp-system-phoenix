@@ -19,6 +19,7 @@ public class OpportunitiesController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin,Employee")]
     public async Task<ActionResult<IEnumerable<SalesOpportunity>>> GetOpportunities()
     {
         return await _context.Opportunities
@@ -28,6 +29,7 @@ public class OpportunitiesController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize(Roles = "Admin,Employee")]
     public async Task<ActionResult<SalesOpportunity>> GetOpportunity(int id)
     {
         var opportunity = await _context.Opportunities
@@ -43,6 +45,7 @@ public class OpportunitiesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Employee")] // Sales reps can create opportunities
     public async Task<ActionResult<SalesOpportunity>> PostOpportunity(SalesOpportunity opportunity)
     {
         opportunity.CreatedAt = DateTime.UtcNow;
@@ -53,6 +56,7 @@ public class OpportunitiesController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin,Employee")]
     public async Task<IActionResult> PutOpportunity(int id, SalesOpportunity opportunity)
     {
         if (id != opportunity.Id)
@@ -83,6 +87,7 @@ public class OpportunitiesController : ControllerBase
     
     // For Kanban board drag and drop
     [HttpPatch("{id}/stage")]
+    [Authorize(Roles = "Admin,Employee")]
     public async Task<IActionResult> UpdateStage(int id, [FromBody] string stage)
     {
         var opportunity = await _context.Opportunities.FindAsync(id);
@@ -98,6 +103,7 @@ public class OpportunitiesController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteOpportunity(int id)
     {
         var opportunity = await _context.Opportunities.FindAsync(id);

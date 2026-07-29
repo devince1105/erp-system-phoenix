@@ -1,5 +1,6 @@
 using ERP.Modules.Inventory.Domain.Entities;
 using ERP.Modules.Inventory.Infrastructure.Database;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,6 +8,7 @@ namespace ERP.Modules.Inventory.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize] // All endpoints require login
 public class ProductsController : ControllerBase
 {
     private readonly InventoryDbContext _context;
@@ -17,12 +19,14 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin,Accountant,Employee")] // All roles can read product catalog
     public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
     {
         return await _context.Products.ToListAsync();
     }
 
     [HttpGet("{id}")]
+    [Authorize(Roles = "Admin,Accountant,Employee")]
     public async Task<ActionResult<Product>> GetProduct(int id)
     {
         var product = await _context.Products.FindAsync(id);
@@ -33,6 +37,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")] // Only Admin can create products
     public async Task<ActionResult<Product>> CreateProduct(Product product)
     {
         product.CreatedAt = DateTime.UtcNow;
@@ -43,6 +48,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")] // Only Admin can update products
     public async Task<IActionResult> UpdateProduct(int id, Product product)
     {
         if (id != product.Id)
@@ -66,6 +72,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")] // Only Admin can delete products
     public async Task<IActionResult> DeleteProduct(int id)
     {
         var product = await _context.Products.FindAsync(id);

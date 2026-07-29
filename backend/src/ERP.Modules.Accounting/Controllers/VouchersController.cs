@@ -38,6 +38,7 @@ public class VouchersController : ControllerBase
     /// 取得所有傳票
     /// </summary>
     [HttpGet]
+    [Authorize(Roles = "Admin,Accountant")]
     public async Task<ActionResult<IEnumerable<Voucher>>> GetVouchers()
     {
         return await _context.Vouchers
@@ -52,6 +53,7 @@ public class VouchersController : ControllerBase
     /// 依 ID 取得傳票詳細資訊
     /// </summary>
     [HttpGet("{id}")]
+    [Authorize(Roles = "Admin,Accountant")]
     public async Task<ActionResult<Voucher>> GetVoucher(int id)
     {
         var voucher = await _context.Vouchers
@@ -67,6 +69,7 @@ public class VouchersController : ControllerBase
     /// 新增會計傳票（含借貸平衡檢核）
     /// </summary>
     [HttpPost]
+    [Authorize(Roles = "Admin,Accountant")] // Accountants can create vouchers for Admin review
     public async Task<ActionResult<Voucher>> CreateVoucher(CreateVoucherDto dto)
     {
         if (dto.Details == null || !dto.Details.Any())
@@ -268,5 +271,37 @@ public class VouchersController : ControllerBase
         await _context.SaveChangesAsync();
 
         return Ok(voucher);
+    }
+
+    /// <summary>
+    /// 審核傳票：將狀態從 Draft → Approved，並記錄審核人與時間。
+    /// 僅 Admin 可執行。已審核或已過帳的傳票不得重複審核。
+    /// </summary>
+    [HttpPost("{id}/approve")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ApproveVoucher(int id)
+    {
+        var voucher = await _context.Vouchers.FindAsync(id);
+        if (voucher == null) return NotFound();
+
+        if (voucher.Status != VoucherStatus.Draft)
+            return BadRequest($"只有草稿狀態的傳票可以審核。目前狀態: {voucher.Status}");
+
+        // Extract approver's UserId from JWT claim (sub = user ID)
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+
+        voucher.Status = VoucherStatus.Approved;
+        voucher.ApprovedByUserId = userIdClaim != null && int.TryParse(userIdClaim.Value, out var uid) ? uid : null;
+        voucher.ApprovedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            message = $"傳票 {voucher.VoucherNo} 已審核通過。",
+            voucher.Status,
+            voucher.ApprovedByUserId,
+            voucher.ApprovedAt
+        });
     }
 }
