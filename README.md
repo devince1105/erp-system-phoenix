@@ -94,7 +94,12 @@ erp-system-phoenix/                # 專案總根目錄
 │   ├── ERP.Host.csproj            # .NET 專案檔
 │   └── Program.cs                 # API 入口與 Swagger 配置
 │
-├── frontend/                      # 👈 前端 Web 應用專案 (預留)
+├── frontend/                      # 👈 前端 Web 應用 (Next.js 16 / React 19 / Tailwind CSS v4)
+│   ├── src/
+│   │   ├── app/                   # App Router 頁面
+│   │   └── components/            # UI 元件
+│   ├── package.json
+│   └── next.config.ts
 │
 ├── docker-compose.yml             # MS-SQL Docker 容器設定檔
 ├── .env                           # 本地環境變數 (SA密碼/Port)
@@ -103,3 +108,74 @@ erp-system-phoenix/                # 專案總根目錄
 │   └── 01-init-db.sql             # 自動建立資料庫與 Schema
 └── README.md                      # 設定與連線說明文件
 ```
+
+---
+
+## ▶️ 本地開發啟動指南 (Local Development)
+
+> 建議開三個終端視窗分別執行下方步驟。
+
+### 終端 1 — 啟動資料庫（MS-SQL Docker）
+
+```bash
+# 從專案根目錄執行
+docker compose up -d
+
+# 確認容器正常運作（Status 應為 running）
+docker compose ps
+```
+
+### 終端 2 — 啟動後端 API（.NET 10）
+
+```bash
+cd backend/src/ERP.Host
+
+# 首次執行：還原套件
+dotnet restore
+
+# 啟動開發伺服器（自動套用 Migration 並 Seed 資料）
+dotnet run
+```
+
+後端啟動後可存取：
+- **Swagger UI**：`http://localhost:5268/openapi`（或終端顯示的 Port）
+- **API Base URL**：`http://localhost:5268/api`
+
+### 終端 3 — 啟動前端（Next.js）
+
+```bash
+cd frontend
+
+# 首次執行：安裝套件
+pnpm install
+
+# 啟動開發伺服器（Hot Reload）
+pnpm dev
+```
+
+前端啟動後可存取：
+- **Web 應用**：`http://localhost:3000`
+
+---
+
+### 一鍵停止所有服務
+
+```bash
+# 停止 Docker 資料庫（在專案根目錄）
+docker compose down
+
+# 後端與前端按 Ctrl + C 結束
+```
+
+---
+
+### 常見問題排查
+
+| 問題 | 解法 |
+|------|------|
+| `dotnet run` 後出現 Migration 錯誤 | 確認 Docker MS-SQL 容器已啟動：`docker compose ps` |
+| 前端 API 請求失敗（CORS / 401） | 確認後端已啟動，檢查 `frontend/src/` 中的 `NEXT_PUBLIC_API_URL` 設定 |
+| SQL Server 連線逾時 | 容器首次啟動需約 10-15 秒初始化，稍等後再試 |
+| Port `5268` 被佔用 | 修改 `backend/src/ERP.Host/Properties/launchSettings.json` 中的 `applicationUrl` |
+| `pnpm` 指令找不到 | 確認使用 Node.js v22：`nvm use v22.22.0`，再執行 `npm install -g pnpm` |
+| `pnpm install` 失敗 | 確認 Node.js 版本 ≥ 18，執行 `node -v` 確認 |
