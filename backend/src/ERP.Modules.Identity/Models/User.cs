@@ -10,5 +10,11 @@ public class User
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    /// <summary>
+    /// Soft reference to HR.Employee (cross-module, no FK constraint).
+    /// Allows the system to map a logged-in user to their employee record.
+    /// </summary>
+    public int? EmployeeId { get; set; }
+
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 }

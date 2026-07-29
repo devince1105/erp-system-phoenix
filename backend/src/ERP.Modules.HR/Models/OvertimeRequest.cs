@@ -24,4 +24,15 @@ public class OvertimeRequest
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
+
+    // ── Approval Audit Trail ─────────────────────────────────────────────────
+    /// <summary>Soft reference to Identity.User who approved/rejected this request.</summary>
+    public int? ApprovedByUserId { get; set; }
+
+    /// <summary>Timestamp when the request was approved or rejected.</summary>
+    public DateTime? ApprovedAt { get; set; }
+
+    /// <summary>Reason provided when the request is rejected.</summary>
+    [MaxLength(500)]
+    public string? RejectedReason { get; set; }
 }

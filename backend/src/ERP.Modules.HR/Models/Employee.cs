@@ -60,6 +60,12 @@ public class Employee
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 
+    /// <summary>
+    /// Soft reference to Identity.User (cross-module, no FK constraint).
+    /// Null means the employee has no system login account yet.
+    /// </summary>
+    public int? UserId { get; set; }
+
     public ICollection<Education> Educations { get; set; } = new List<Education>();
     public ICollection<Experience> Experiences { get; set; } = new List<Experience>();
     public ICollection<JobHistory> JobHistories { get; set; } = new List<JobHistory>();

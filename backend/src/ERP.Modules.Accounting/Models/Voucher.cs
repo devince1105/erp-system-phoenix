@@ -40,5 +40,15 @@ public class Voucher
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    // ── Approval Audit Trail ─────────────────────────────────────────────────
+    /// <summary>
+    /// Soft reference to Identity.User who approved this voucher.
+    /// Set when Status transitions from Draft → Approved.
+    /// </summary>
+    public int? ApprovedByUserId { get; set; }
+
+    /// <summary>Timestamp when the voucher was approved.</summary>
+    public DateTime? ApprovedAt { get; set; }
+
     public List<VoucherDetail> Details { get; set; } = new();
 }

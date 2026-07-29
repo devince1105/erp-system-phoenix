@@ -73,6 +73,13 @@ public class AuthController : ControllerBase
             new Claim(ClaimTypes.Name, user.FullName)
         };
 
+        // Include EmployeeId in token so downstream controllers can apply
+        // per-employee data access control without an extra DB lookup
+        if (user.EmployeeId.HasValue)
+        {
+            claims.Add(new Claim("employee_id", user.EmployeeId.Value.ToString()));
+        }
+
         foreach (var userRole in user.UserRoles)
         {
             claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name));

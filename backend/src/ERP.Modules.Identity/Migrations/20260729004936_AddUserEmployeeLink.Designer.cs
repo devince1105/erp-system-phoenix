@@ -4,6 +4,7 @@ using ERP.Modules.Identity.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ERP.Modules.Identity.Migrations
 {
     [DbContext(typeof(ERPIdentityDbContext))]
-    partial class ERPIdentityDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260729004936_AddUserEmployeeLink")]
+    partial class AddUserEmployeeLink
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
