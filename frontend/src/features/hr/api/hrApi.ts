@@ -1,5 +1,5 @@
 import axiosClient from '@/api/axiosClient';
-import { Department, Employee, AttendanceRecord, LeaveRequest, PayrollRecord, OvertimeRequest, CalendarEvent, Project, ApprovalRequest } from '../types/hr';
+import { Department, Employee, AttendanceRecord, LeaveRequest, PayrollRecord, OvertimeRequest, CalendarEvent, Project, ApprovalRequest, LeaveBalance, SalaryStructure, ExpenseClaim, HrParameterSetting } from '../types/hr';
 
 export const hrApi = {
   // Departments
@@ -139,5 +139,79 @@ export const hrApi = {
   },
   processApproval: async (id: number, action: 'Approved' | 'Rejected' | 'Forwarded', comment: string): Promise<void> => {
     await axiosClient.post(`/hr/approvals/${id}/process`, { action, comment });
+  },
+
+  // LeaveBalances
+  getLeaveBalances: async (): Promise<LeaveBalance[]> => {
+    const { data } = await axiosClient.get('/hr/leaveBalances');
+    return data;
+  },
+  getLeaveBalancesByEmployee: async (employeeId: number): Promise<LeaveBalance[]> => {
+    const { data } = await axiosClient.get(`/hr/leaveBalances/employee/${employeeId}`);
+    return data;
+  },
+  createLeaveBalance: async (lb: Partial<LeaveBalance>): Promise<LeaveBalance> => {
+    const { data } = await axiosClient.post('/hr/leaveBalances', lb);
+    return data;
+  },
+  updateLeaveBalance: async (id: number, lb: Partial<LeaveBalance>): Promise<void> => {
+    await axiosClient.put(`/hr/leaveBalances/${id}`, lb);
+  },
+
+  // SalaryStructures
+  getSalaryStructures: async (): Promise<SalaryStructure[]> => {
+    const { data } = await axiosClient.get('/hr/salaryStructures');
+    return data;
+  },
+  getSalaryStructureByEmployee: async (employeeId: number): Promise<SalaryStructure> => {
+    const { data } = await axiosClient.get(`/hr/salaryStructures/employee/${employeeId}`);
+    return data;
+  },
+  createSalaryStructure: async (ss: Partial<SalaryStructure>): Promise<SalaryStructure> => {
+    const { data } = await axiosClient.post('/hr/salaryStructures', ss);
+    return data;
+  },
+  updateSalaryStructure: async (id: number, ss: Partial<SalaryStructure>): Promise<void> => {
+    await axiosClient.put(`/hr/salaryStructures/${id}`, ss);
+  },
+
+  // ExpenseClaims
+  getExpenseClaims: async (): Promise<ExpenseClaim[]> => {
+    const { data } = await axiosClient.get('/hr/expenseClaims');
+    return data;
+  },
+  getExpenseClaimsByEmployee: async (employeeId: number): Promise<ExpenseClaim[]> => {
+    const { data } = await axiosClient.get(`/hr/expenseClaims/employee/${employeeId}`);
+    return data;
+  },
+  createExpenseClaim: async (ec: Partial<ExpenseClaim>): Promise<ExpenseClaim> => {
+    const { data } = await axiosClient.post('/hr/expenseClaims', ec);
+    return data;
+  },
+  updateExpenseClaim: async (id: number, ec: Partial<ExpenseClaim>): Promise<void> => {
+    await axiosClient.put(`/hr/expenseClaims/${id}`, ec);
+  },
+  deleteExpenseClaim: async (id: number): Promise<void> => {
+    await axiosClient.delete(`/hr/expenseClaims/${id}`);
+  },
+
+  // HrParameterSettings
+  getHrParameterSettings: async (): Promise<HrParameterSetting[]> => {
+    const { data } = await axiosClient.get('/hr/hrParameterSettings');
+    return data;
+  },
+  getHrParameterSettingsByGroup: async (group: string): Promise<HrParameterSetting[]> => {
+    const { data } = await axiosClient.get(`/hr/hrParameterSettings/${group}`);
+    return data;
+  },
+  createHrParameterSetting: async (setting: Partial<HrParameterSetting>): Promise<HrParameterSetting> => {
+    const { data } = await axiosClient.post('/hr/hrParameterSettings', setting);
+    return data;
+  },
+  updateHrParameterSetting: async (id: number, setting: Partial<HrParameterSetting>): Promise<void> => {
+    await axiosClient.put(`/hr/hrParameterSettings/${id}`, setting);
+  },
+  deleteHrParameterSetting: async (id: number): Promise<void> => {
+    await axiosClient.delete(`/hr/hrParameterSettings/${id}`);
   }
 };

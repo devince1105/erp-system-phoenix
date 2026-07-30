@@ -106,9 +106,13 @@ export const Sidebar = () => {
     { name: "人資總覽 (Dashboard)", href: "/hr", icon: LayoutDashboard, perm: 'HR_DASHBOARD' },
     { name: "員工管理 (Employees)", href: "/hr/employees", icon: Users, perm: 'HR_EMPLOYEES' },
     { name: "部門架構 (Departments)", href: "/hr/departments", icon: FolderTree, perm: 'HR_DEPARTMENTS' },
-    { name: "出勤與請假 (Attendance)", href: "/hr/attendance", icon: Landmark, perm: 'HR_ATTENDANCE' },
+    { name: "出勤打卡 (Attendance)", href: "/hr/attendance", icon: Landmark, perm: 'HR_ATTENDANCE' },
+    { name: "請假與特休 (Leaves)", href: "/hr/leaves", icon: Activity, perm: 'HR_ATTENDANCE' },
+    { name: "加班申請 (Overtimes)", href: "/hr/overtimes", icon: Activity, perm: 'HR_ATTENDANCE' },
+    { name: "費用報支 (Expenses)", href: "/hr/expenses", icon: DollarSign, perm: 'HR_PAYROLL' },
     { name: "簽核中心 (Approvals)", href: "/hr/approvals", icon: CheckSquare, perm: 'HR_APPROVALS' },
     { name: "薪資結算 (Payroll)", href: "/hr/payroll", icon: DollarSign, perm: 'HR_PAYROLL' },
+    { name: "人資參數 (HR Settings)", href: "/hr/settings", icon: Settings, perm: 'SYS_SETTINGS' },
   ].filter(i => canView(i.perm));
 
   const crmItems = [

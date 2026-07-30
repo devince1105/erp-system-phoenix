@@ -14,9 +14,15 @@ public class PayrollRecord
     public int Month { get; set; }
 
     public decimal BaseSalary { get; set; }
+    public decimal Allowances { get; set; }
+    public decimal OvertimePay { get; set; }
+    public decimal ExpenseReimbursements { get; set; }
     public decimal Bonus { get; set; }
-    public decimal Deductions { get; set; }
+    public decimal LeaveDeductions { get; set; }
+    public decimal Deductions { get; set; } // General deductions like insurance
     public decimal NetSalary { get; set; }
+    
+    public ICollection<ExpenseClaim> ExpenseClaims { get; set; } = new List<ExpenseClaim>();
 
     public DateTime? PaymentDate { get; set; }
 

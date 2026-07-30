@@ -20,7 +20,10 @@ public class HRDbContext : DbContext
     public DbSet<CalendarEvent> CalendarEvents => Set<CalendarEvent>();
     public DbSet<PayrollRecord> Payrolls => Set<PayrollRecord>();
     public DbSet<Project> Projects => Set<Project>();
-
+    public DbSet<LeaveBalance> LeaveBalances => Set<LeaveBalance>();
+    public DbSet<SalaryStructure> SalaryStructures => Set<SalaryStructure>();
+    public DbSet<ExpenseClaim> ExpenseClaims => Set<ExpenseClaim>();
+    public DbSet<HrParameterSetting> HrParameterSettings => Set<HrParameterSetting>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -84,6 +87,30 @@ public class HRDbContext : DbContext
             .WithMany(emp => emp.OvertimeRequests)
             .HasForeignKey(o => o.EmployeeId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<LeaveBalance>()
+            .HasOne(lb => lb.Employee)
+            .WithMany(emp => emp.LeaveBalances)
+            .HasForeignKey(lb => lb.EmployeeId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<SalaryStructure>()
+            .HasOne(ss => ss.Employee)
+            .WithMany(emp => emp.SalaryStructures)
+            .HasForeignKey(ss => ss.EmployeeId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ExpenseClaim>()
+            .HasOne(ec => ec.Employee)
+            .WithMany(emp => emp.ExpenseClaims)
+            .HasForeignKey(ec => ec.EmployeeId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ExpenseClaim>()
+            .HasOne(ec => ec.PayrollRecord)
+            .WithMany(pr => pr.ExpenseClaims)
+            .HasForeignKey(ec => ec.PayrollRecordId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<Project>()
             .HasOne(p => p.Department)

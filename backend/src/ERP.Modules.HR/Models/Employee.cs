@@ -67,6 +67,10 @@ public class Employee
     public ICollection<LeaveRequest> LeaveRequests { get; set; } = new List<LeaveRequest>();
     public ICollection<OvertimeRequest> OvertimeRequests { get; set; } = new List<OvertimeRequest>();
     public ICollection<PayrollRecord> Payrolls { get; set; } = new List<PayrollRecord>();
+    
+    public ICollection<LeaveBalance> LeaveBalances { get; set; } = new List<LeaveBalance>();
+    public ICollection<SalaryStructure> SalaryStructures { get; set; } = new List<SalaryStructure>();
+    public ICollection<ExpenseClaim> ExpenseClaims { get; set; } = new List<ExpenseClaim>();
 }
 
 public enum EmployeeStatus

@@ -65,6 +65,9 @@ export interface Employee {
   educations?: Education[];
   experiences?: Experience[];
   jobHistories?: JobHistory[];
+  leaveBalances?: LeaveBalance[];
+  salaryStructures?: SalaryStructure[];
+  expenseClaims?: ExpenseClaim[];
 }
 
 export interface AttendanceRecord {
@@ -115,11 +118,66 @@ export interface PayrollRecord {
   year: number;
   month: number;
   baseSalary: number;
+  allowances: number;
+  overtimePay: number;
+  expenseReimbursements: number;
   bonus: number;
+  leaveDeductions: number;
   deductions: number;
   netSalary: number;
   paymentDate?: string;
   status: string; // Draft, Processed, Paid
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface LeaveBalance {
+  id: number;
+  employeeId: number;
+  employee?: Employee;
+  year: number;
+  annualTotal: number;
+  annualUsed: number;
+  sickTotal: number;
+  sickUsed: number;
+  personalTotal: number;
+  personalUsed: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface SalaryStructure {
+  id: number;
+  employeeId: number;
+  employee?: Employee;
+  baseSalary: number;
+  mealAllowance: number;
+  positionAllowance: number;
+  laborInsuranceDeduction: number;
+  healthInsuranceDeduction: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ExpenseClaim {
+  id: number;
+  employeeId: number;
+  employee?: Employee;
+  claimDate: string;
+  expenseType: string;
+  amount: number;
+  description: string;
+  status: string;
+  payrollRecordId?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface HrParameterSetting {
+  id: number;
+  settingGroup: string;
+  key: string;
+  value: string;
   createdAt?: string;
   updatedAt?: string;
 }
