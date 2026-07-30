@@ -114,6 +114,21 @@
 **結果**：後端 `dotnet build` → **0 warnings, 0 errors**。
 **commit**：`06645a5`
 
-## 待辦
+## 階段 7 — JWT 簽章金鑰硬編（深入安全檢視發現）
 
-- 選配：再對傳票 / 庫存 / HR 等頁面做執行期點測。
+**問題（嚴重 / 認證繞過）**：`Program.cs` 與 `AuthController.GenerateJwtToken` 都以硬編字串 `nexus_erp_...` 作為 `Jwt:Key` 的 fallback。由於任何地方都未設定 `Jwt:Key`，系統實際使用這把**公開在原始碼（且已在 GitHub）**的金鑰簽發與驗證 JWT——任何看得到原始碼的人都能偽造任意使用者（含 Admin）的 token。
+
+**處理**：
+1. 兩處改為從設定讀取 `Jwt:Key`，缺少即 `throw`（fail-fast），永不再靜默使用弱金鑰。
+2. 以 `openssl rand -base64 48` 產生強隨機金鑰，存入 dev user-secrets（`UserSecretsId=erp-phoenix-host`，不進 git）。正式環境須另行設定自己的金鑰。
+
+**驗證**：後端啟動正常（金鑰讀到）；`POST /api/auth/login` 簽發 token；`/api/AccountTitles` 在有效 admin token → 200、無 token → 401、**偽造簽章 → 401**。
+**commit**：`377be07`
+**副作用**：換金鑰後，先前用舊金鑰簽的 token 全部失效（前端會出現 401，需重新登入）——此為預期行為，也證明舊 token 已無法使用。
+
+## 尚待處理 / 建議（後續）
+
+- **CORS 過寬**（`Program.cs`：`AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()`，policy "AllowAll"）：正式環境建議改為白名單網域。
+- **舊金鑰與舊密碼仍存在於 git 歷史**：DB 密碼已於階段 1.4 清除；JWT 舊金鑰（`377be07` 之前）尚在歷史中，但換金鑰後已失效，風險低。若要徹底清除可再跑一次 `git filter-repo --replace-text`。
+- **啟動時自動 migrate**（`Program.cs` 對六個 DbContext 呼叫 `Database.Migrate()`）：正式多實例環境建議改由部署流程執行 migration，避免併發衝突。
+- 選配：再對傳票 / 庫存 / HR 等頁面做執行期點測（已完成主要流程）。
