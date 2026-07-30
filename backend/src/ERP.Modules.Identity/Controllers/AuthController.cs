@@ -61,7 +61,9 @@ public class AuthController : ControllerBase
     private string GenerateJwtToken(User user)
     {
         var jwtSettings = _configuration.GetSection("Jwt");
-        var secretKey = jwtSettings["Key"] ?? "nexus_erp_very_secure_secret_key_2026_!@#";
+        var secretKey = jwtSettings["Key"]
+            ?? throw new InvalidOperationException(
+                "Jwt:Key is not configured. Set it via user-secrets (dev) or environment / secret store (prod).");
         
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
