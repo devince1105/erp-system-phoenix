@@ -9,7 +9,6 @@ namespace ERP.Modules.HR.Controllers;
 
 [ApiController]
 [Route("api/hr/[controller]")]
-[Authorize]
 public class DepartmentsController : ControllerBase
 {
     private readonly HRDbContext _context;
