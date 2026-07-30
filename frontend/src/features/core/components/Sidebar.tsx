@@ -109,6 +109,7 @@ export const Sidebar = () => {
     { name: "出勤打卡 (Attendance)", href: "/hr/attendance", icon: Landmark, perm: 'HR_ATTENDANCE' },
     { name: "請假與特休 (Leaves)", href: "/hr/leaves", icon: Activity, perm: 'HR_ATTENDANCE' },
     { name: "加班申請 (Overtimes)", href: "/hr/overtimes", icon: Activity, perm: 'HR_ATTENDANCE' },
+    { name: "假別餘額 (Leave Balances)", href: "/hr/leave-balances", icon: Activity, perm: 'HR_ATTENDANCE' },
     { name: "費用報支 (Expenses)", href: "/hr/expenses", icon: DollarSign, perm: 'HR_PAYROLL' },
     { name: "簽核中心 (Approvals)", href: "/hr/approvals", icon: CheckSquare, perm: 'HR_APPROVALS' },
     { name: "薪資結算 (Payroll)", href: "/hr/payroll", icon: DollarSign, perm: 'HR_PAYROLL' },
