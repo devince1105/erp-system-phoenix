@@ -104,7 +104,16 @@
 - 確認同步：`git fetch` 後 `origin/main` == 本機 `HEAD` == `7765313`，工作區乾淨。
   - 註：先前 `git push` 曾回報「Everything up-to-date」，係因 filter-repo 重建 remote 後 remote-tracking ref 過期；`git fetch` 後確認遠端實際已含全部 commit。
 
+## 階段 6 — 後端 nullable 警告清理（後續補做）
+
+清除 HR 模組 14 個既有編譯警告：
+- **CS8602**（8）：EF `ThenInclude` 鏈中 `Employee` 導覽屬性可為 null，改用 `e!.Department`（expression tree 內 null-forgiving，執行期無影響）— Attendances / Leaves / Overtimes / Payrolls。
+- **CS8600**（2）：Departments / Employees 的 cache `TryGetValue` out 變數宣告為 nullable。
+- **CS8618**（4）：`CalendarEvent` 的 required string 屬性初始化為 `string.Empty`。
+
+**結果**：後端 `dotnet build` → **0 warnings, 0 errors**。
+**commit**：`06645a5`
+
 ## 待辦
 
-- 後端 14 個既有 nullable/CS 警告尚未處理（非本次範圍）。
 - 選配：再對傳票 / 庫存 / HR 等頁面做執行期點測。
