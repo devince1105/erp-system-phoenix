@@ -25,7 +25,7 @@ public class DepartmentsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Department>>> GetDepartments()
     {
-        if (_cache.TryGetValue(CacheKey, out IEnumerable<Department> cachedDepartments))
+        if (_cache.TryGetValue(CacheKey, out IEnumerable<Department>? cachedDepartments))
         {
             return Ok(cachedDepartments);
         }

@@ -21,7 +21,7 @@ public class OvertimesController : ControllerBase
     {
         return await _context.OvertimeRequests
             .Include(o => o.Employee)
-                .ThenInclude(e => e.Department)
+                .ThenInclude(e => e!.Department)
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
     }
@@ -31,7 +31,7 @@ public class OvertimesController : ControllerBase
     {
         return await _context.OvertimeRequests
             .Include(o => o.Employee)
-                .ThenInclude(e => e.Department)
+                .ThenInclude(e => e!.Department)
             .Where(o => o.EmployeeId == employeeId)
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();

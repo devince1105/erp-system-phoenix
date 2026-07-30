@@ -12,17 +12,17 @@ namespace ERP.Modules.HR.Models
 
         [Required]
         [StringLength(10)]
-        public string Date { get; set; } // Format: YYYY-MM-DD
+        public string Date { get; set; } = string.Empty; // Format: YYYY-MM-DD
 
         [Required]
         [StringLength(200)]
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
 
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         [Required]
         [StringLength(50)]
-        public string Type { get; set; } // e.g. "Announcement", "Note"
+        public string Type { get; set; } = string.Empty; // e.g. "Announcement", "Note"
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

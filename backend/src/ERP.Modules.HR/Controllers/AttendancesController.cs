@@ -21,7 +21,7 @@ public class AttendancesController : ControllerBase
     {
         return await _context.Attendances
             .Include(a => a.Employee)
-                .ThenInclude(e => e.Department)
+                .ThenInclude(e => e!.Department)
             .OrderByDescending(a => a.Date)
             .ThenByDescending(a => a.Id)
             .ToListAsync();
@@ -32,7 +32,7 @@ public class AttendancesController : ControllerBase
     {
         return await _context.Attendances
             .Include(a => a.Employee)
-                .ThenInclude(e => e.Department)
+                .ThenInclude(e => e!.Department)
             .Where(a => a.EmployeeId == employeeId)
             .OrderByDescending(a => a.Date)
             .ToListAsync();

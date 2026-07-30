@@ -25,7 +25,7 @@ public class EmployeesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Employee>>> GetEmployees()
     {
-        if (_cache.TryGetValue(CacheKey, out IEnumerable<Employee> cachedEmployees))
+        if (_cache.TryGetValue(CacheKey, out IEnumerable<Employee>? cachedEmployees))
         {
             return Ok(cachedEmployees);
         }

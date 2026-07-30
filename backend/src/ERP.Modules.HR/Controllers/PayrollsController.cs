@@ -27,7 +27,7 @@ public class PayrollsController : ControllerBase
     {
         return await _context.Payrolls
             .Include(p => p.Employee)
-                .ThenInclude(e => e.Department)
+                .ThenInclude(e => e!.Department)
             .OrderByDescending(p => p.Year).ThenByDescending(p => p.Month)
             .ToListAsync();
     }
@@ -38,7 +38,7 @@ public class PayrollsController : ControllerBase
     {
         return await _context.Payrolls
             .Include(p => p.Employee)
-                .ThenInclude(e => e.Department)
+                .ThenInclude(e => e!.Department)
             .Where(p => p.EmployeeId == employeeId)
             .OrderByDescending(p => p.Year).ThenByDescending(p => p.Month)
             .ToListAsync();

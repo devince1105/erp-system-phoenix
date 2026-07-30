@@ -21,7 +21,7 @@ public class LeavesController : ControllerBase
     {
         return await _context.LeaveRequests
             .Include(l => l.Employee)
-                .ThenInclude(e => e.Department)
+                .ThenInclude(e => e!.Department)
             .OrderByDescending(l => l.CreatedAt)
             .ToListAsync();
     }
@@ -31,7 +31,7 @@ public class LeavesController : ControllerBase
     {
         return await _context.LeaveRequests
             .Include(l => l.Employee)
-                .ThenInclude(e => e.Department)
+                .ThenInclude(e => e!.Department)
             .Where(l => l.EmployeeId == employeeId)
             .OrderByDescending(l => l.CreatedAt)
             .ToListAsync();
