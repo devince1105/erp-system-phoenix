@@ -126,6 +126,27 @@
 **commit**：`377be07`
 **副作用**：換金鑰後，先前用舊金鑰簽的 token 全部失效（前端會出現 401，需重新登入）——此為預期行為，也證明舊 token 已無法使用。
 
+## 階段 8 — 各系統 3 個月示範資料灌製（EF Seeder）
+
+**需求**：模擬寫入近三個月（2026-05 ~ 07）各模組資料到 **Azure MS-SQL**。
+
+**關鍵限制**：`SalesOrders`/`PurchaseOrders` 的 Create API 強制 `OrderDate = DateTime.UtcNow`，無法透過 API 產生歷史日期；`Vouchers`/`Attendance` 則吃傳入日期。因此改用 **EF Core seeder**（可控制歷史日期、尊重 schema、程式碼內確保傳票借貸平衡）。
+
+**新增工具**：`backend/tools/ERP.Seeder`（console，沿用 `erp-phoenix-host` user-secrets 連線，不碰明文密碼；每模組 idempotent）。commit `6662389`、`992331f`。
+
+**灌入量（散佈 5–7 月，API + 畫面雙重驗證）**：
+- HR：7 部門、30 員工（SME 規模，含主管）、請假額度、~1,820 出勤、90 薪資、18 請假
+- MDM：18 企業夥伴　Inventory：14 採購單 + 53 銷售單（沿用既有 partner）
+- CRM：12 客戶、16 商機（跨階段）　Accounting：45 張平衡傳票（租金/水電/薪資/銷貨/進貨）
+
+## 階段 9 — CRM API 修正 + Settings 功能移植
+
+- **CRM api bug**（`4be722a`）：`crmApi` 原本硬編 `http://localhost:5001/api/crm` 且用原始 axios（不帶 JWT）→ 改用共用 `axiosClient`（吃 `NEXT_PUBLIC_API_URL` + auth interceptor）。
+- **前端連線**：新增 `frontend/.env.local`（gitignore）指向後端 `:5000`（axiosClient 預設是 :5001)。
+- **Settings 移植**（`890cb89`）：從 **Antigravity 分支 `feature/hr-payroll-and-settings`** 挑出純前端檔案移到 main（頁面權限 / 員工權限 / 職位級距 / 簽核流程 4 頁 + `utils/rbac.ts`），清到 main lint 標準（tsc/eslint 0），Sidebar 加子連結，四頁瀏覽器實測正常。
+  - ⚠️ **該分支不可整包 merge**：它會把 Azure 密碼寫回 appsettings（`b518773`）、拿掉 `[Authorize]`（`ce5ec42`）、刪除本次資安/lint 修復。只能挑檔案移植。
+  - 排錯備忘：Turbopack 曾對「先前 404 過、後來才新增」的路由（workflows）快取 404 → `rm -rf .next && pnpm dev` 解決。
+
 ## 尚待處理 / 建議（後續）
 
 - **CORS 過寬**（`Program.cs`：`AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()`，policy "AllowAll"）：正式環境建議改為白名單網域。
