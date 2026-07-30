@@ -20,7 +20,8 @@ import {
   Activity,
   CheckSquare,
   Briefcase,
-  DollarSign
+  DollarSign,
+  ShieldCheck
 } from "lucide-react";
 
 export const Sidebar = () => {
@@ -70,6 +71,10 @@ export const Sidebar = () => {
 
   const settingsItems = [
     { name: "系統設定 (Settings)", href: "/settings", icon: Settings },
+    { name: "頁面權限 (Permissions)", href: "/settings/permissions", icon: ShieldCheck },
+    { name: "員工權限 (Employee Perms)", href: "/settings/employee-permissions", icon: Users },
+    { name: "簽核流程 (Workflows)", href: "/settings/workflows", icon: CheckSquare },
+    { name: "組織與職級 (Organization)", href: "/settings/organization", icon: FolderTree },
   ];
 
   return (
