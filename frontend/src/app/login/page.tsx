@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useAuth } from "@/features/core/contexts/AuthContext";
 import { Hexagon, Lock, User, Loader2, Eye, EyeOff } from "lucide-react";
 import axiosClient from "@/api/axiosClient";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -23,12 +24,8 @@ export default function LoginPage() {
       const data = res.data;
 
       login(data.token, data.user);
-    } catch (err: any) {
-      if (err.response && err.response.data && err.response.data.message) {
-        setError(err.response.data.message);
-      } else {
-        setError(err.message || "登入失敗，請檢查網路連線");
-      }
+    } catch (err) {
+      setError(getApiErrorMessage(err, "登入失敗，請檢查網路連線"));
     } finally {
       setLoading(false);
     }

@@ -6,9 +6,7 @@ import { useAuth } from "@/features/core/contexts/AuthContext";
 import { useCommandPalette } from "@/features/core/contexts/CommandPaletteContext";
 import { ThemeToggle } from "./ThemeToggle";
 
-interface NavbarProps {}
-
-export const Navbar: React.FC<NavbarProps> = () => {
+export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
   const { setIsOpen } = useCommandPalette();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);

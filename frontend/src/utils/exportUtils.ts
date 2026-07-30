@@ -5,7 +5,7 @@ import * as XLSX from "xlsx";
  * @param data 要匯出的陣列資料 (JSON Array)
  * @param filename 匯出檔案名稱 (不含副檔名)
  */
-export const exportToExcel = (data: any[], filename: string = "export") => {
+export const exportToExcel = (data: Record<string, unknown>[], filename: string = "export") => {
   if (!data || data.length === 0) {
     alert("沒有可匯出的資料");
     return;

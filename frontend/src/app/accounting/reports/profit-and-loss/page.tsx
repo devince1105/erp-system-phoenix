@@ -82,7 +82,7 @@ export default function ProfitAndLossPage() {
   const totalNonOp = sum(nonOpItems);
   const preTaxProfit = opProfit + totalNonOp;
 
-  const renderPrintSection = (title: string, items: any[], isDeduction = false) => {
+  const renderPrintSection = (title: string, items: { title: string; amount: number }[], isDeduction = false) => {
     if (!items || items.length === 0) return null;
     const total = sum(items);
     return (
@@ -108,7 +108,7 @@ export default function ProfitAndLossPage() {
     );
   };
 
-  const renderWebSection = (title: string, items: any[], isDeduction = false) => {
+  const renderWebSection = (title: string, items: { title: string; amount: number }[], isDeduction = false) => {
     if (!items || items.length === 0) return null;
     const total = sum(items);
     return (

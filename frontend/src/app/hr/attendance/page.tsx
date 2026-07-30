@@ -7,6 +7,7 @@ import { Pagination } from "@/features/core/components/Pagination";
 import { Clock, Calendar, Clock3 } from "lucide-react";
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
 import { HRDashboard as HRDashboardOverview } from "@/features/hr/components/HRDashboard";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 export default function AttendancePage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -124,8 +125,8 @@ export default function AttendancePage() {
       await hrApi.createOvertime(request);
       setOvertimeForm({ date: "", hours: "", reason: "" });
       fetchData();
-    } catch (error: any) {
-      alert(error.response?.data || "加班申請失敗");
+    } catch (error) {
+      alert(getApiErrorMessage(error, "加班申請失敗"));
     }
   };
 

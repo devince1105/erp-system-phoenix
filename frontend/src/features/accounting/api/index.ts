@@ -1,5 +1,6 @@
 import { AccountTitle, AccountCategory, Voucher, CreateVoucherPayload, BankAccount, BankApiIntegrationType, CreateBankAccountPayload } from "@/features/accounting/types/accounting";
 import axiosClient from "@/api/axiosClient";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 export async function fetchAccountTitles(category?: AccountCategory): Promise<AccountTitle[]> {
   try {
@@ -29,8 +30,8 @@ export async function createVoucher(payload: CreateVoucherPayload): Promise<{ su
   try {
     const res = await axiosClient.post("/Vouchers", payload);
     return { success: true, data: res.data };
-  } catch (err: any) {
-    return { success: false, error: err.response?.data?.message || err.message || "建立連線失敗" };
+  } catch (err) {
+    return { success: false, error: getApiErrorMessage(err, "建立連線失敗") };
   }
 }
 
@@ -38,8 +39,8 @@ export async function updateVoucher(id: number, payload: CreateVoucherPayload): 
   try {
     await axiosClient.put(`/Vouchers/${id}`, payload);
     return { success: true };
-  } catch (err: any) {
-    return { success: false, error: err.message || "修改連線失敗" };
+  } catch (err) {
+    return { success: false, error: getApiErrorMessage(err, "修改連線失敗") };
   }
 }
 
@@ -47,8 +48,8 @@ export async function deleteVoucher(id: number): Promise<{ success: boolean; err
   try {
     await axiosClient.delete(`/Vouchers/${id}`);
     return { success: true };
-  } catch (err: any) {
-    return { success: false, error: err.message || "刪除連線失敗" };
+  } catch (err) {
+    return { success: false, error: getApiErrorMessage(err, "刪除連線失敗") };
   }
 }
 
@@ -56,8 +57,8 @@ export async function postVoucher(id: number): Promise<{ success: boolean; data?
   try {
     const res = await axiosClient.post(`/Vouchers/${id}/post`);
     return { success: true, data: res.data };
-  } catch (err: any) {
-    return { success: false, error: err.message || "過帳連線失敗" };
+  } catch (err) {
+    return { success: false, error: getApiErrorMessage(err, "過帳連線失敗") };
   }
 }
 
@@ -76,8 +77,8 @@ export async function createBankAccount(payload: CreateBankAccountPayload): Prom
   try {
     const res = await axiosClient.post("/BankAccounts", payload);
     return { success: true, data: res.data };
-  } catch (err: any) {
-    return { success: false, error: err.response?.data?.message || err.message || "無法連線至 API" };
+  } catch (err) {
+    return { success: false, error: getApiErrorMessage(err, "無法連線至 API") };
   }
 }
 
@@ -85,8 +86,8 @@ export async function updateBankAccount(id: number, payload: CreateBankAccountPa
   try {
     await axiosClient.put(`/BankAccounts/${id}`, payload);
     return { success: true };
-  } catch (err: any) {
-    return { success: false, error: err.response?.data?.message || err.message || "連線失敗" };
+  } catch (err) {
+    return { success: false, error: getApiErrorMessage(err, "連線失敗") };
   }
 }
 
@@ -94,8 +95,8 @@ export async function syncBankAccountApi(id: number): Promise<{ success: boolean
   try {
     const res = await axiosClient.post(`/BankAccounts/${id}/sync`);
     return { success: true, message: res.data?.message || "同步成功" };
-  } catch (err: any) {
-    return { success: false, error: err.response?.data?.message || err.message || "連線失敗" };
+  } catch (err) {
+    return { success: false, error: getApiErrorMessage(err, "連線失敗") };
   }
 }
 
@@ -103,8 +104,8 @@ export async function deleteBankAccount(id: number): Promise<{ success: boolean;
   try {
     await axiosClient.delete(`/BankAccounts/${id}`);
     return { success: true };
-  } catch (err: any) {
-    return { success: false, error: err.response?.data?.message || err.message || "刪除失敗" };
+  } catch (err) {
+    return { success: false, error: getApiErrorMessage(err, "刪除失敗") };
   }
 }
 

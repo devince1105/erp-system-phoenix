@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { accountingApi, AccountTitle, CreateVoucherDto } from '@/features/accounting/api/accountingApi';
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
 import { ArrowLeft, Save, Plus, Trash2, Calculator, AlertCircle, FilePlus } from 'lucide-react';
+import { getApiErrorMessage } from "@/utils/apiError";
 
 interface DetailRow {
   id: string; // for React key
@@ -62,7 +63,7 @@ export default function CreateVoucherPage() {
     setDetails(details.filter(d => d.id !== id));
   };
 
-  const updateDetail = (id: string, field: keyof DetailRow, value: any) => {
+  const updateDetail = <K extends keyof DetailRow>(id: string, field: K, value: DetailRow[K]) => {
     setDetails(details.map(d => {
       if (d.id === id) {
         return { ...d, [field]: value };
@@ -101,8 +102,8 @@ export default function CreateVoucherPage() {
 
       await accountingApi.createVoucher(payload);
       router.push('/accounting/vouchers');
-    } catch (err: any) {
-      setError(err.response?.data || err.message || '儲存失敗');
+    } catch (err) {
+      setError(getApiErrorMessage(err, '儲存失敗'));
     } finally {
       setIsSaving(false);
     }

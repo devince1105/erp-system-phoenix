@@ -6,6 +6,7 @@ import { BankAccount, CreateBankAccountPayload, AccountTitle } from '@/features/
 import { Wallet, Plus, RefreshCw, AlertCircle, CheckCircle2, Edit2 } from 'lucide-react';
 import { CreateBankAccountModal } from '@/features/accounting/components/CreateBankAccountModal';
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
+import { getApiErrorMessage } from "@/utils/apiError";
 
 export default function BankAccountsPage() {
   const [banks, setBanks] = useState<BankAccount[]>([]);
@@ -44,10 +45,10 @@ export default function BankAccountsPage() {
       const res = await accountingApi.syncBankAccount(id);
       setNotification({ type: 'success', message: res.message || 'Sync successful!' });
       fetchBanks(); // Refresh balances
-    } catch (err: any) {
+    } catch (err) {
       setNotification({ 
         type: 'error', 
-        message: err.response?.data || err.message || 'Failed to sync with Open API.' 
+        message: getApiErrorMessage(err, 'Failed to sync with Open API.')
       });
     } finally {
       setSyncingId(null);
@@ -57,16 +58,16 @@ export default function BankAccountsPage() {
   const handleSave = async (payload: CreateBankAccountPayload, editingId?: number) => {
     try {
       if (editingId) {
-        await accountingApi.updateBankAccount(editingId, payload as any);
+        await accountingApi.updateBankAccount(editingId, payload as Partial<BankAccount>);
         setNotification({ type: 'success', message: '銀行帳戶已更新' });
       } else {
-        await accountingApi.createBankAccount(payload as any);
+        await accountingApi.createBankAccount(payload as Partial<BankAccount>);
         setNotification({ type: 'success', message: '銀行帳戶已新增' });
       }
       fetchBanks();
       return true;
-    } catch (err: any) {
-      setNotification({ type: 'error', message: err.response?.data || '儲存失敗' });
+    } catch (err) {
+      setNotification({ type: 'error', message: getApiErrorMessage(err, '儲存失敗') });
       return false;
     }
   };

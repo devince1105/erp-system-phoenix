@@ -174,7 +174,7 @@ export const FinancialCharts: React.FC<FinancialChartsProps> = ({ vouchers, acco
                 <Tooltip
                   contentStyle={{ backgroundColor: "#020617", borderColor: "#334155", borderRadius: "8px", fontSize: "12px" }}
                   itemStyle={{ color: "#e2e8f0" }}
-                  formatter={(value: any) => [`$${Number(value).toLocaleString()}`, ""]}
+                  formatter={(value) => [`$${Number(value).toLocaleString()}`, ""]}
                 />
                 <Line type="monotone" dataKey="營收" stroke="#10b981" strokeWidth={2.5} dot={{ fill: "#10b981", r: 4 }} activeDot={{ r: 6 }} />
                 <Line type="monotone" dataKey="淨利" stroke="#06b6d4" strokeWidth={2} strokeDasharray="4 4" dot={{ fill: "#06b6d4", r: 3 }} />
@@ -221,7 +221,7 @@ export const FinancialCharts: React.FC<FinancialChartsProps> = ({ vouchers, acco
                   </Pie>
                   <Tooltip
                     contentStyle={{ backgroundColor: "#020617", borderColor: "#334155", borderRadius: "8px", fontSize: "12px" }}
-                    formatter={(val: any) => [`$${Number(val).toLocaleString()} (${((Number(val) / totalExpenseSum) * 100).toFixed(1)}%)`, "金額"]}
+                    formatter={(val) => [`$${Number(val).toLocaleString()} (${((Number(val) / totalExpenseSum) * 100).toFixed(1)}%)`, "金額"]}
                   />
                 </PieChart>
               </ResponsiveContainer>

@@ -114,7 +114,7 @@ export const HRDashboard: React.FC<HRDashboardProps> = ({ employees, attendances
                   <Tooltip
                     contentStyle={{ backgroundColor: "#020617", borderColor: "#334155", borderRadius: "8px", fontSize: "12px" }}
                     itemStyle={{ color: "#e2e8f0" }}
-                    formatter={(val: any) => [`${val} 人`, "人數"]}
+                    formatter={(val) => [`${val} 人`, "人數"]}
                   />
                 </PieChart>
               </ResponsiveContainer>

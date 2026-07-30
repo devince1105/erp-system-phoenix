@@ -206,7 +206,7 @@ export default function AccountingDashboardPage() {
                       tickLine={false} 
                     />
                     <RechartsTooltip 
-                      formatter={(value: any) => [`$${value.toLocaleString()}`, '金額']}
+                      formatter={(value) => [`$${Number(value).toLocaleString()}`, '金額']}
                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     />
                     <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={40}>

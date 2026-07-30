@@ -70,7 +70,7 @@ export default function BalanceSheetPage() {
 
   const sum = (items: {amount: number}[]) => items.reduce((acc, curr) => acc + curr.amount, 0);
 
-  const renderPrintSection = (title: string, items: any[]) => {
+  const renderPrintSection = (title: string, items: { title: string; amount: number }[]) => {
     if (!items || items.length === 0) return null;
     const total = sum(items);
     return (
@@ -94,7 +94,7 @@ export default function BalanceSheetPage() {
     );
   };
 
-  const renderWebSection = (title: string, items: any[]) => {
+  const renderWebSection = (title: string, items: { title: string; amount: number }[]) => {
     if (!items || items.length === 0) return null;
     const total = sum(items);
     return (

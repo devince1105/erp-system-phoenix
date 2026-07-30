@@ -142,7 +142,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, o
     });
   };
 
-  const handleUpdateEducation = (index: number, field: keyof Education, value: any) => {
+  const handleUpdateEducation = <K extends keyof Education>(index: number, field: K, value: Education[K]) => {
     const newEdu = [...(formData.educations || [])];
     newEdu[index] = { ...newEdu[index], [field]: value };
     setFormData({ ...formData, educations: newEdu });
@@ -164,7 +164,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, o
     });
   };
 
-  const handleUpdateExperience = (index: number, field: keyof Experience, value: any) => {
+  const handleUpdateExperience = <K extends keyof Experience>(index: number, field: K, value: Experience[K]) => {
     const newExp = [...(formData.experiences || [])];
     newExp[index] = { ...newExp[index], [field]: value };
     setFormData({ ...formData, experiences: newExp });
@@ -186,7 +186,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, o
     });
   };
 
-  const handleUpdateJobHistory = (index: number, field: keyof JobHistory, value: any) => {
+  const handleUpdateJobHistory = <K extends keyof JobHistory>(index: number, field: K, value: JobHistory[K]) => {
     const newJh = [...(formData.jobHistories || [])];
     newJh[index] = { ...newJh[index], [field]: value };
     setFormData({ ...formData, jobHistories: newJh });

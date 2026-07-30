@@ -16,8 +16,8 @@ export default function InventoryDashboard() {
     salesCount: 0,
     salesTotal: 0,
   });
-  const [salesData, setSalesData] = useState<any[]>([]);
-  const [topProductsData, setTopProductsData] = useState<any[]>([]);
+  const [salesData, setSalesData] = useState<{ name: string; total: number }[]>([]);
+  const [topProductsData, setTopProductsData] = useState<{ name: string; value: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -149,7 +149,7 @@ export default function InventoryDashboard() {
                     tickLine={false} 
                   />
                   <RechartsTooltip 
-                    formatter={(value: any) => [`$${value.toLocaleString()}`, '營收']}
+                    formatter={(value) => [`$${Number(value).toLocaleString()}`, '營收']}
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />
                   <Line type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6' }} activeDot={{ r: 6 }} />
@@ -175,7 +175,7 @@ export default function InventoryDashboard() {
                   <XAxis type="number" hide />
                   <YAxis dataKey="name" type="category" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
                   <RechartsTooltip 
-                    formatter={(value: any) => [value, '銷售數量']}
+                    formatter={(value) => [value, '銷售數量']}
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />
                   <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>

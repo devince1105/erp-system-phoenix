@@ -85,7 +85,7 @@ export const CreateVoucherModal: React.FC<CreateVoucherModalProps> = ({
     setDetails(details.filter((_, i) => i !== index));
   };
 
-  const handleRowChange = (index: number, field: keyof DetailRow, value: any) => {
+  const handleRowChange = <K extends keyof DetailRow>(index: number, field: K, value: DetailRow[K]) => {
     const newDetails = [...details];
     newDetails[index] = { ...newDetails[index], [field]: value };
     setDetails(newDetails);

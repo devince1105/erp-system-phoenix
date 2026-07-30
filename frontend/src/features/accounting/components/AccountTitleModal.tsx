@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AccountTitle } from '@/features/accounting/api/accountingApi';
 import { X, Save, AlertCircle } from 'lucide-react';
+import { getApiErrorMessage } from "@/utils/apiError";
 
 interface AccountTitleModalProps {
   isOpen: boolean;
@@ -49,8 +50,8 @@ export function AccountTitleModal({ isOpen, onClose, onSave, initialData }: Acco
     try {
       await onSave(formData);
       onClose();
-    } catch (err: any) {
-      setError(err.response?.data || err.message || '儲存失敗');
+    } catch (err) {
+      setError(getApiErrorMessage(err, '儲存失敗'));
     } finally {
       setIsSubmitting(false);
     }

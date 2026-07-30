@@ -8,6 +8,7 @@ import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
 import { Plus, Search, Filter, FileText, CheckCircle2, Edit, Trash2, Download, Printer } from 'lucide-react';
 import { exportToExcel, exportToPDF } from '@/utils/exportUtils';
 import { ReportPrintView } from '@/features/accounting/components/ReportPrintView';
+import { getApiErrorMessage } from "@/utils/apiError";
 
 export default function VouchersPage() {
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
@@ -29,8 +30,8 @@ export default function VouchersPage() {
     try {
       await accountingApi.deleteVoucher(id);
       setVouchers(vouchers.filter(v => v.id !== id));
-    } catch (error: any) {
-      alert(error.response?.data?.title || error.response?.data || '刪除失敗');
+    } catch (error) {
+      alert(getApiErrorMessage(error, '刪除失敗'));
     }
   };
 
