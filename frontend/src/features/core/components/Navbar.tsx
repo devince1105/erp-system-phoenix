@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Puzzle, ShieldCheck, LogOut, PlusCircle, RefreshCw, ChevronDown, User, Search } from "lucide-react";
+import { Puzzle, LogOut, ChevronDown, User, Search } from "lucide-react";
 import { useAuth } from "@/features/core/contexts/AuthContext";
 import { useCommandPalette } from "@/features/core/contexts/CommandPaletteContext";
 import { ThemeToggle } from "./ThemeToggle";

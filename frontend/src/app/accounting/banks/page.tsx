@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { accountingApi } from '@/features/accounting/api/accountingApi';
 import { BankAccount, CreateBankAccountPayload, AccountTitle } from '@/features/accounting/types/accounting';
-import { Wallet, Plus, RefreshCw, AlertCircle, CheckCircle2, Edit2, Trash2 } from 'lucide-react';
+import { Wallet, Plus, RefreshCw, AlertCircle, CheckCircle2, Edit2 } from 'lucide-react';
 import { CreateBankAccountModal } from '@/features/accounting/components/CreateBankAccountModal';
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
 

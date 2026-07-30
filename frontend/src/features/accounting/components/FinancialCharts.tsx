@@ -13,11 +13,8 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  BarChart,
-  Bar,
-  Legend
 } from "recharts";
-import { PieChart as PieIcon, TrendingUp, DollarSign, Scale, ArrowUpRight, ArrowDownRight, Landmark, BarChart4 } from "lucide-react";
+import { PieChart as PieIcon, DollarSign, ArrowUpRight, Landmark, BarChart4 } from "lucide-react";
 import { Voucher, AccountTitle, AccountCategory } from "@/features/accounting/types/accounting";
 
 interface FinancialChartsProps {

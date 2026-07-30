@@ -8,7 +8,7 @@ import {
   BalanceSheetReport 
 } from "@/features/accounting/api/accountingApi";
 import { accountingApi } from "@/features/accounting/api/accountingApi";
-import { Wallet, Calculator, Building2, BookOpen, Clock, Activity, LineChart, FileText, TrendingUp, Landmark, PlusCircle, ArrowRight, BarChart3, PieChart } from "lucide-react";
+import { Wallet, BookOpen, FileText, TrendingUp, Landmark, PlusCircle, ArrowRight, BarChart3, PieChart } from "lucide-react";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
 import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from 'recharts';
 

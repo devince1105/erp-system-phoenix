@@ -2,7 +2,7 @@
 
 import React, { useCallback, useState, useEffect } from 'react';
 import { accountingApi, BalanceSheetReport } from '@/features/accounting/api/accountingApi';
-import { Printer, Download, Search, FileText } from 'lucide-react';
+import { Printer, Download, FileText } from 'lucide-react';
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
 import * as XLSX from 'xlsx';
 import { ReportPrintView } from '@/features/accounting/components/ReportPrintView';

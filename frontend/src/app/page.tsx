@@ -18,7 +18,7 @@ import { FinancialCharts } from "@/features/accounting/components/FinancialChart
 import { HRDashboard } from "@/features/hr/components/HRDashboard";
 import { InventoryDashboard } from "@/features/inventory/components/InventoryDashboard";
 import { CRMDashboard } from "@/features/crm/components/CRMDashboard";
-import { ArrowUpRight, ArrowDownRight, Package, Users, ShoppingCart, DollarSign, Activity, TrendingUp, Calendar, AlertCircle, LayoutDashboard } from "lucide-react";
+import { LayoutDashboard } from "lucide-react";
 
 export default function DashboardPage() {
   const [accountTitles, setAccountTitles] = useState<AccountTitle[]>([]);

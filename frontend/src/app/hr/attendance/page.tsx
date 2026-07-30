@@ -4,7 +4,7 @@ import React, { useCallback, useState, useEffect } from "react";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { Employee, AttendanceRecord, LeaveRequest, OvertimeRequest, Department } from "@/features/hr/types/hr";
 import { Pagination } from "@/features/core/components/Pagination";
-import { Clock, Calendar, Search, MapPin, Clock3 } from "lucide-react";
+import { Clock, Calendar, Clock3 } from "lucide-react";
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
 import { HRDashboard as HRDashboardOverview } from "@/features/hr/components/HRDashboard";
 
@@ -180,19 +180,16 @@ export default function AttendancePage() {
 
   // Pagination calculations - Attendances
   const attTotalItems = filteredAttendances.length;
-  const attTotalPages = Math.ceil(attTotalItems / attPageSize) || 1;
   const attStartIndex = (attPage - 1) * attPageSize;
   const paginatedAttendances = filteredAttendances.slice(attStartIndex, attStartIndex + attPageSize);
 
   // Pagination calculations - Leaves
   const leaveTotalItems = filteredLeaves.length;
-  const leaveTotalPages = Math.ceil(leaveTotalItems / leavePageSize) || 1;
   const leaveStartIndex = (leavePage - 1) * leavePageSize;
   const paginatedLeaves = filteredLeaves.slice(leaveStartIndex, leaveStartIndex + leavePageSize);
 
   // Pagination calculations - Overtimes
   const overtimeTotalItems = filteredOvertimes.length;
-  const overtimeTotalPages = Math.ceil(overtimeTotalItems / overtimePageSize) || 1;
   const overtimeStartIndex = (overtimePage - 1) * overtimePageSize;
   const paginatedOvertimes = filteredOvertimes.slice(overtimeStartIndex, overtimeStartIndex + overtimePageSize);
 

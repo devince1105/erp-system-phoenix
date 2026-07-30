@@ -3,7 +3,7 @@
 import React, { useCallback, useState, useEffect } from "react";
 import { crmApi } from "@/features/crm/api/crmApi";
 import { Customer } from "@/features/crm/types/crm";
-import { Users, Search, Building2, User, Phone, Mail, MapPin, Briefcase, Plus, Edit2, Trash2 } from "lucide-react";
+import { Users, Search, Building2, User, Plus, Edit2, Trash2 } from "lucide-react";
 import { CustomerModal } from "@/features/crm/components/CustomerModal";
 import { Pagination } from "@/features/core/components/Pagination";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
@@ -58,7 +58,6 @@ export default function CustomersPage() {
     c.contactPerson.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filteredCustomers.length / pageSize);
   const paginatedCustomers = filteredCustomers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (

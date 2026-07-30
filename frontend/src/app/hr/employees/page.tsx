@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useState, useEffect } from "react";
-import { Users, Plus, Pencil, Trash2, Search, Mail, Phone, Briefcase, Building2, MoreHorizontal, UserCheck, Filter, Download, Printer } from "lucide-react";
+import { Users, Plus, Pencil, Trash2, Search, Download, Printer } from "lucide-react";
 import dynamic from "next/dynamic";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
 import { hrApi } from "@/features/hr/api/hrApi";

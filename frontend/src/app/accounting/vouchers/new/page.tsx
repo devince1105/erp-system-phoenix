@@ -212,7 +212,7 @@ export default function CreateVoucherPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
-                {details.map((row, index) => (
+                {details.map((row) => (
                   <tr key={row.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                     <td className="px-4 py-3">
                       <select 

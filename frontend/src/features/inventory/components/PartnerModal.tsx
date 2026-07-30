@@ -50,7 +50,7 @@ export function PartnerModal({ isOpen, onClose, onSave, initialData }: PartnerMo
   if (!isOpen) return null;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: name === 'type' ? Number(value) : value,

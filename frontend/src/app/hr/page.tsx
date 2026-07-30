@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Users, Building2, Calendar, ClipboardCheck, ArrowUpRight, Clock, MapPin, Activity, FolderTree, ArrowRight, UserPlus } from "lucide-react";
+import { Users, FolderTree, UserPlus } from "lucide-react";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
-import Link from "next/link";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { LeaveRequest, OvertimeRequest, CalendarEvent } from "@/features/hr/types/hr";
 import { HRCalendar } from "@/features/hr/components/HRCalendar";

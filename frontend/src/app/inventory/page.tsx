@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { PackageSearch, Users, TrendingUp, FolderTree, AlertCircle, Package } from "lucide-react";
+import { PackageSearch, Users, TrendingUp, FolderTree, Package } from "lucide-react";
 import { inventoryApi } from "@/features/inventory/api/inventoryApi";
-import { SalesOrder, PurchaseOrder } from "@/features/inventory/types/inventory";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,

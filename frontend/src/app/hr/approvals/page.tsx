@@ -36,7 +36,7 @@ export default function ApprovalsPage() {
     try {
       await hrApi.updateLeave(id, { ...request, status: "Approved" });
       fetchData();
-    } catch (error) {
+    } catch {
       alert("核准失敗");
     }
   };
@@ -45,7 +45,7 @@ export default function ApprovalsPage() {
     try {
       await hrApi.updateLeave(id, { ...request, status: "Rejected" });
       fetchData();
-    } catch (error) {
+    } catch {
       alert("退回失敗");
     }
   };
@@ -54,7 +54,7 @@ export default function ApprovalsPage() {
     try {
       await hrApi.updateOvertime(id, { ...request, status: "Approved" });
       fetchData();
-    } catch (error) {
+    } catch {
       alert("核准失敗");
     }
   };
@@ -63,7 +63,7 @@ export default function ApprovalsPage() {
     try {
       await hrApi.updateOvertime(id, { ...request, status: "Rejected" });
       fetchData();
-    } catch (error) {
+    } catch {
       alert("退回失敗");
     }
   };
@@ -72,7 +72,7 @@ export default function ApprovalsPage() {
     try {
       await hrApi.updateExpenseClaimStatus(id, "Approved");
       fetchData();
-    } catch (error) {
+    } catch {
       alert("核准失敗");
     }
   };
@@ -81,7 +81,7 @@ export default function ApprovalsPage() {
     try {
       await hrApi.updateExpenseClaimStatus(id, "Rejected");
       fetchData();
-    } catch (error) {
+    } catch {
       alert("退回失敗");
     }
   };

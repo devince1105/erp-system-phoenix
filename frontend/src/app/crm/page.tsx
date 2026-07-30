@@ -3,7 +3,7 @@
 import React, { useCallback, useState, useEffect } from "react";
 import { crmApi } from "@/features/crm/api/crmApi";
 import { SalesOpportunity } from "@/features/crm/types/crm";
-import { Briefcase, Plus, DollarSign, Calendar, Building2, ChevronRight } from "lucide-react";
+import { Briefcase, Plus, DollarSign, Calendar, Building2 } from "lucide-react";
 import { NewOpportunityModal } from "@/features/crm/components/NewOpportunityModal";
 import { ConvertToOrderModal } from "@/features/crm/components/ConvertToOrderModal";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";

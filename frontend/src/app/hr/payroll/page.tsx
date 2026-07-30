@@ -2,8 +2,8 @@
 
 import React, { useCallback, useState, useEffect } from "react";
 import { hrApi } from "@/features/hr/api/hrApi";
-import { Employee, PayrollRecord } from "@/features/hr/types/hr";
-import { Calculator, CheckCircle2, DollarSign, Download, Plus, Save } from "lucide-react";
+import { PayrollRecord } from "@/features/hr/types/hr";
+import { Calculator, DollarSign, Plus, Save } from "lucide-react";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
 import { Pagination } from "@/features/core/components/Pagination";
 
@@ -80,7 +80,6 @@ export default function PayrollPage() {
 
   // Pagination calculation
   const totalItems = payrolls.length;
-  const totalPages = Math.ceil(totalItems / pageSize) || 1;
   const startIndex = (currentPage - 1) * pageSize;
   const paginatedPayrolls = payrolls.slice(startIndex, startIndex + pageSize);
 

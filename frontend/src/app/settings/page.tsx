@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Save, AlertCircle, RefreshCw, Power, PowerOff, Building2, LayoutDashboard, Store, Users, ShoppingCart, Lock, Database, Info, Settings as SettingsIcon, Landmark, PackageSearch, BarChart3 } from "lucide-react";
+import { Save, Users, Lock, Settings as SettingsIcon, Landmark, PackageSearch, BarChart3 } from "lucide-react";
 import { accountingApi } from "@/features/accounting/api/accountingApi";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
 

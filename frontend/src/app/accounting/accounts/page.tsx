@@ -5,7 +5,6 @@ import { accountingApi, AccountTitle } from '@/features/accounting/api/accountin
 import { ListTree, Plus, Search, Filter, Edit2, Trash2 } from 'lucide-react';
 import { AccountTitleModal } from '@/features/accounting/components/AccountTitleModal';
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
-import { mutate } from 'swr';
 
 export default function AccountTitlesPage() {
   const [accounts, setAccounts] = useState<AccountTitle[]>([]);

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Wallet, TrendingUp, TrendingDown, FileText, ArrowUpRight, Scale } from "lucide-react";
+import { Wallet, TrendingUp, TrendingDown, FileText, ArrowUpRight } from "lucide-react";
 import { Voucher, AccountTitle, AccountCategory } from "@/features/accounting/types/accounting";
 
 interface StatCardsProps {
@@ -12,7 +12,6 @@ interface StatCardsProps {
 export const StatCards: React.FC<StatCardsProps> = ({ vouchers, accountTitles }) => {
   // Calculate summary metrics
   const totalAssetsTitles = accountTitles.filter(t => t.category === AccountCategory.Asset).length;
-  const totalLiabilitiesTitles = accountTitles.filter(t => t.category === AccountCategory.Liability).length;
   const totalRevenueTitles = accountTitles.filter(t => t.category === AccountCategory.Revenue).length;
   const totalExpenseTitles = accountTitles.filter(t => t.category === AccountCategory.Expense).length;
 
