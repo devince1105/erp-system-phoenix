@@ -42,3 +42,7 @@ mssql_log/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# EF Seeder build output
+backend/tools/**/bin/
+backend/tools/**/obj/
