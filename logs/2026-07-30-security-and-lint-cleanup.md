@@ -97,7 +97,14 @@
 - `frontend/src/utils/useHydrated.ts` — SSR 水合守衛 hook。
 - `frontend/src/utils/apiError.ts` — 統一 API 錯誤訊息擷取。
 
+## 推送紀錄
+
+- 階段 1（`5508594`）於當下即以 `git push --force` 覆蓋遠端（歷史改寫後）。
+- 階段 2–4 及本紀錄 commit（`898d7ef` … `7765313`）已推送至 `origin/main`。
+- 確認同步：`git fetch` 後 `origin/main` == 本機 `HEAD` == `7765313`，工作區乾淨。
+  - 註：先前 `git push` 曾回報「Everything up-to-date」，係因 filter-repo 重建 remote 後 remote-tracking ref 過期；`git fetch` 後確認遠端實際已含全部 commit。
+
 ## 待辦
 
-- 階段 2–4 的 5 個 commit（`898d7ef` … `1d863fc`）尚未推送：`git push origin main`。
 - 後端 14 個既有 nullable/CS 警告尚未處理（非本次範圍）。
+- 選配：再對傳票 / 庫存 / HR 等頁面做執行期點測。
