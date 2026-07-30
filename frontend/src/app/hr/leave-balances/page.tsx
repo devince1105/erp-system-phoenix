@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { CalendarDays, Plus, Trash2 } from "lucide-react";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
 import { Pagination } from "@/features/core/components/Pagination";
@@ -23,25 +23,22 @@ export default function LeaveBalancesPage() {
     usedDays: 0,
   });
 
-  const fetchData = async () => {
-    setIsLoading(true);
-    try {
-      const [balanceData, employeeData] = await Promise.all([
-        hrApi.getLeaveBalances(),
-        hrApi.getEmployees(),
-      ]);
-      setBalances(balanceData.sort((a, b) => b.year - a.year || a.employeeId - b.employeeId));
-      setEmployees(employeeData);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const fetchData = useCallback(() => {
+    Promise.all([
+      hrApi.getLeaveBalances(),
+      hrApi.getEmployees(),
+    ])
+      .then(([balanceData, employeeData]) => {
+        setBalances(balanceData.sort((a, b) => b.year - a.year || a.employeeId - b.employeeId));
+        setEmployees(employeeData);
+      })
+      .catch(error => console.error(error))
+      .finally(() => setIsLoading(false));
+  }, []);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

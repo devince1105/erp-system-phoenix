@@ -34,7 +34,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const storedToken = localStorage.getItem("erp_token");
     const storedUser = localStorage.getItem("erp_user");
 
+    // One-time hydration of auth state from localStorage after mount. Doing this
+    // in an effect (rather than lazy useState init) keeps the server and first
+    // client render in sync, avoiding a hydration mismatch on the logged-in UI.
     if (storedToken && storedUser) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time localStorage hydration (see comment above)
       setToken(storedToken);
       try {
         setUser(JSON.parse(storedUser));

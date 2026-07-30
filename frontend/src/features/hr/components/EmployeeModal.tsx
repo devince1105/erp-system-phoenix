@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
 import { Employee, Department, Education, Experience, JobHistory } from "../types/hr";
 
@@ -37,40 +37,47 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, o
   
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (initialData) {
-      setFormData({
-        ...initialData,
-        hireDate: initialData.hireDate.split("T")[0],
-        dateOfBirth: initialData.dateOfBirth ? initialData.dateOfBirth.split("T")[0] : "",
-        educations: initialData.educations || [],
-        experiences: initialData.experiences || [],
-        jobHistories: initialData.jobHistories || []
-      });
-    } else {
-      setFormData({
-        name: "",
-        email: "",
-        departmentId: undefined,
-        jobTitle: "",
-        hireDate: new Date().toISOString().split("T")[0],
-        status: 1,
-        phone: "",
-        mobile: "",
-        lineId: "",
-        registeredAddress: "",
-        contactAddress: "",
-        dateOfBirth: "",
-        bloodType: "",
-        emergencyContactName: "",
-        emergencyContactPhone: "",
-        educations: [],
-        experiences: [],
-        jobHistories: []
-      });
+  const [now] = useState(() => Date.now());
+
+  const editKey = isOpen ? (initialData?.id ?? "new") : null;
+  const [loadedKey, setLoadedKey] = useState<number | string | null>(null);
+  if (editKey !== loadedKey) {
+    setLoadedKey(editKey);
+    if (isOpen) {
+      if (initialData) {
+        setFormData({
+          ...initialData,
+          hireDate: initialData.hireDate.split("T")[0],
+          dateOfBirth: initialData.dateOfBirth ? initialData.dateOfBirth.split("T")[0] : "",
+          educations: initialData.educations || [],
+          experiences: initialData.experiences || [],
+          jobHistories: initialData.jobHistories || []
+        });
+      } else {
+        setFormData({
+          name: "",
+          email: "",
+          departmentId: undefined,
+          jobTitle: "",
+          hireDate: new Date(now).toISOString().split("T")[0],
+          status: 1,
+          phone: "",
+          mobile: "",
+          lineId: "",
+          registeredAddress: "",
+          contactAddress: "",
+          dateOfBirth: "",
+          bloodType: "",
+          emergencyContactName: "",
+          emergencyContactPhone: "",
+          educations: [],
+          experiences: [],
+          jobHistories: []
+        });
+      }
+      setActiveTab("work");
     }
-    setActiveTab("work");
-  }, [initialData, isOpen]);
+  }
 
   // 計算年齡與星座的輔助函式
   const calculateAgeAndZodiac = (dobStr: string | undefined) => {
@@ -79,7 +86,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, o
     if (isNaN(dob.getTime())) return { age: "-", zodiac: "-" };
 
     // 計算年齡
-    const diff_ms = Date.now() - dob.getTime();
+    const diff_ms = now - dob.getTime();
     const age_dt = new Date(diff_ms); 
     const age = Math.abs(age_dt.getUTCFullYear() - 1970);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { accountingApi, BalanceSheetReport } from '@/features/accounting/api/accountingApi';
 import { Printer, Download, Search, FileText } from 'lucide-react';
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
@@ -15,25 +15,22 @@ export default function BalanceSheetPage() {
   
   const [report, setReport] = useState<BalanceSheetReport | null>(null);
   const [companyName, setCompanyName] = useState('Phoenix ERP');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const fetchReport = async () => {
-    setIsLoading(true);
-    try {
-      const data = await accountingApi.getBalanceSheet(asOfDate);
-      setReport(data);
-    } catch (error) {
-      console.error('Failed to fetch Balance Sheet report', error);
-      alert('無法載入資產負債表，請檢查日期或網路連線。');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const fetchReport = useCallback(() => {
+    accountingApi.getBalanceSheet(asOfDate)
+      .then(data => setReport(data))
+      .catch(error => {
+        console.error('Failed to fetch Balance Sheet report', error);
+        alert('無法載入資產負債表，請檢查日期或網路連線。');
+      })
+      .finally(() => setIsLoading(false));
+  }, [asOfDate]);
 
   useEffect(() => {
     fetchReport();
     accountingApi.getCompanyName().then(setCompanyName).catch(console.error);
-  }, []);
+  }, [fetchReport]);
 
   const handlePrint = () => {
     window.print();
@@ -170,8 +167,8 @@ export default function BalanceSheetPage() {
               className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:text-slate-200"
             />
           </div>
-          <button 
-            onClick={fetchReport}
+          <button
+            onClick={() => { setIsLoading(true); fetchReport(); }}
             disabled={isLoading}
             className="inline-flex items-center justify-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-sm shadow-sm shadow-blue-600/20 transition-all focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 disabled:opacity-50"
           >

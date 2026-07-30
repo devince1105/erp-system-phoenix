@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Partner } from '@/features/inventory/types/inventory';
 import { X, Save, Building2, User } from 'lucide-react';
 
@@ -20,7 +20,10 @@ export function PartnerModal({ isOpen, onClose, onSave, initialData }: PartnerMo
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
+  const editKey = isOpen ? (initialData?.id ?? 'new') : null;
+  const [loadedKey, setLoadedKey] = useState<number | string | null>(null);
+  if (editKey !== loadedKey) {
+    setLoadedKey(editKey);
     if (isOpen) {
       if (initialData) {
         setFormData({
@@ -42,7 +45,7 @@ export function PartnerModal({ isOpen, onClose, onSave, initialData }: PartnerMo
         });
       }
     }
-  }, [isOpen, initialData]);
+  }
 
   if (!isOpen) return null;
 

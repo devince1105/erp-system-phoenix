@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { crmApi } from "@/features/crm/api/crmApi";
 import { Customer } from "@/features/crm/types/crm";
 import { Users, Search, Building2, User, Phone, Mail, MapPin, Briefcase, Plus, Edit2, Trash2 } from "lucide-react";
@@ -19,21 +19,16 @@ export default function CustomersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  useEffect(() => {
-    fetchCustomers();
+  const fetchCustomers = useCallback(() => {
+    crmApi.getCustomers()
+      .then(data => setCustomers(data))
+      .catch(err => console.error("Failed to load customers", err))
+      .finally(() => setIsLoading(false));
   }, []);
 
-  const fetchCustomers = async () => {
-    setIsLoading(true);
-    try {
-      const data = await crmApi.getCustomers();
-      setCustomers(data);
-    } catch (err) {
-      console.error("Failed to load customers", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    fetchCustomers();
+  }, [fetchCustomers]);
 
   const handleEdit = (customer: Customer) => {
     setSelectedCustomer(customer);

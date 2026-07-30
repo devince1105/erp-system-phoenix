@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import useSWR from 'swr';
 import { PurchaseOrder, PurchaseOrderItem, Product, Partner } from '@/features/inventory/types/inventory';
 import { inventoryApi } from '@/features/inventory/api/inventoryApi';
@@ -20,7 +20,10 @@ export function PurchaseOrderModal({ isOpen, onClose, onSave, initialData }: Pur
   const [items, setItems] = useState<Partial<PurchaseOrderItem>[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
+  const editKey = isOpen ? (initialData?.id ?? 'new') : null;
+  const [loadedKey, setLoadedKey] = useState<number | string | null>(null);
+  if (editKey !== loadedKey) {
+    setLoadedKey(editKey);
     if (isOpen) {
       if (initialData) {
         setSupplierId(initialData.supplierId);
@@ -36,7 +39,7 @@ export function PurchaseOrderModal({ isOpen, onClose, onSave, initialData }: Pur
         setItems([]);
       }
     }
-  }, [isOpen, initialData]);
+  }
 
   if (!isOpen) return null;
 

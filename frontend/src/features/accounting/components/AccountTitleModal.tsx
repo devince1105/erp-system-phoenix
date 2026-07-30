@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { AccountTitle } from '@/features/accounting/api/accountingApi';
 import { X, Save, AlertCircle } from 'lucide-react';
 
@@ -20,7 +20,10 @@ export function AccountTitleModal({ isOpen, onClose, onSave, initialData }: Acco
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
+  const editKey = isOpen ? (initialData?.id ?? 'new') : null;
+  const [loadedKey, setLoadedKey] = useState<number | string | null>(null);
+  if (editKey !== loadedKey) {
+    setLoadedKey(editKey);
     if (isOpen) {
       if (initialData) {
         setFormData(initialData);
@@ -34,7 +37,7 @@ export function AccountTitleModal({ isOpen, onClose, onSave, initialData }: Acco
       }
       setError('');
     }
-  }, [isOpen, initialData]);
+  }
 
   if (!isOpen) return null;
 

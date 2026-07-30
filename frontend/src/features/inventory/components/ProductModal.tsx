@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Product } from '@/features/inventory/types/inventory';
 import { X, Save } from 'lucide-react';
 
@@ -21,7 +21,10 @@ export function ProductModal({ isOpen, onClose, onSave, initialData }: ProductMo
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
+  const editKey = isOpen ? (initialData?.id ?? 'new') : null;
+  const [loadedKey, setLoadedKey] = useState<number | string | null>(null);
+  if (editKey !== loadedKey) {
+    setLoadedKey(editKey);
     if (isOpen) {
       if (initialData) {
         setFormData({
@@ -45,7 +48,7 @@ export function ProductModal({ isOpen, onClose, onSave, initialData }: ProductMo
         });
       }
     }
-  }, [isOpen, initialData]);
+  }
 
   if (!isOpen) return null;
 

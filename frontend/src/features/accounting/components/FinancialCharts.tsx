@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
+import { useHydrated } from "@/utils/useHydrated";
 import {
   ResponsiveContainer,
   PieChart,
@@ -28,11 +29,7 @@ interface FinancialChartsProps {
 const PIE_COLORS = ["#10b981", "#06b6d4", "#f59e0b", "#f43f5e", "#8b5cf6", "#ec4899"];
 
 export const FinancialCharts: React.FC<FinancialChartsProps> = ({ vouchers, accountTitles }) => {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useHydrated();
 
   // 1. Calculate Expenses Pie Chart Data (費用科目占比圓餅圖)
   const expenseTitlesMap = new Map<number, string>();

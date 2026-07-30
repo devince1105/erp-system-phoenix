@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { crmApi } from "@/features/crm/api/crmApi";
 import { SalesOpportunity } from "@/features/crm/types/crm";
 import { Briefcase, Plus, DollarSign, Calendar, Building2, ChevronRight } from "lucide-react";
@@ -25,20 +25,16 @@ export default function CRMDashboard() {
   const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
   const [convertingOpportunity, setConvertingOpportunity] = useState<SalesOpportunity | null>(null);
 
-  useEffect(() => {
-    fetchOpportunities();
+  const fetchOpportunities = useCallback(() => {
+    crmApi.getOpportunities()
+      .then(data => setOpportunities(data))
+      .catch(error => console.error("Failed to load opportunities", error))
+      .finally(() => setIsLoading(false));
   }, []);
 
-  const fetchOpportunities = async () => {
-    try {
-      const data = await crmApi.getOpportunities();
-      setOpportunities(data);
-    } catch (error) {
-      console.error("Failed to load opportunities", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    fetchOpportunities();
+  }, [fetchOpportunities]);
 
   const handleDragStart = (e: React.DragEvent, id: number) => {
     e.dataTransfer.setData("opportunityId", id.toString());

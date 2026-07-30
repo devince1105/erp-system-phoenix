@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { accountingApi, AccountTitle } from '@/features/accounting/api/accountingApi';
 import { ListTree, Plus, Search, Filter, Edit2, Trash2 } from 'lucide-react';
 import { AccountTitleModal } from '@/features/accounting/components/AccountTitleModal';
@@ -15,17 +15,16 @@ export default function AccountTitlesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTitle, setEditingTitle] = useState<AccountTitle | undefined>(undefined);
 
-  const fetchAccounts = () => {
-    setIsLoading(true);
+  const fetchAccounts = useCallback(() => {
     accountingApi.getAccountTitles()
       .then(data => setAccounts(data))
       .catch(err => console.error('Failed to fetch account titles', err))
       .finally(() => setIsLoading(false));
-  };
+  }, []);
 
   useEffect(() => {
     fetchAccounts();
-  }, []);
+  }, [fetchAccounts]);
 
   const handleSave = async (data: Partial<AccountTitle>) => {
     if (editingTitle) {

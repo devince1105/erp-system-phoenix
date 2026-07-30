@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { Employee, PayrollRecord } from "@/features/hr/types/hr";
 import { Calculator, CheckCircle2, DollarSign, Download, Plus, Save } from "lucide-react";
@@ -23,24 +23,21 @@ export default function PayrollPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  useEffect(() => {
-    fetchPayrolls();
+  const fetchPayrolls = useCallback(() => {
+    hrApi.getPayrolls()
+      .then(allPayrolls => {
+        // Filter by selected year/month in frontend for simplicity (ideally backend should filter)
+        const filtered = allPayrolls.filter(p => p.year === selectedYear && p.month === selectedMonth);
+        setPayrolls(filtered);
+        setCurrentPage(1); // Reset to first page on data load
+      })
+      .catch(error => console.error(error))
+      .finally(() => setIsLoading(false));
   }, [selectedYear, selectedMonth]);
 
-  const fetchPayrolls = async () => {
-    setIsLoading(true);
-    try {
-      const allPayrolls = await hrApi.getPayrolls();
-      // Filter by selected year/month in frontend for simplicity (ideally backend should filter)
-      const filtered = allPayrolls.filter(p => p.year === selectedYear && p.month === selectedMonth);
-      setPayrolls(filtered);
-      setCurrentPage(1); // Reset to first page on data load
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    fetchPayrolls();
+  }, [fetchPayrolls]);
 
   const handleGenerate = async () => {
     if (!confirm(`確定要產生 ${selectedYear}年${selectedMonth}月 的全體薪資單嗎？`)) return;

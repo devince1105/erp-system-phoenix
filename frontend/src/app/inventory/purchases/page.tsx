@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { inventoryApi } from '@/features/inventory/api/inventoryApi';
 import { PurchaseOrder } from '@/features/inventory/types/inventory';
 import { FolderTree, Plus, CheckCircle2, Clock, Pencil, Trash2 } from 'lucide-react';
@@ -13,20 +13,16 @@ export default function PurchasesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<PurchaseOrder | undefined>(undefined);
 
-  useEffect(() => {
-    fetchOrders();
+  const fetchOrders = useCallback(() => {
+    inventoryApi.getPurchaseOrders()
+      .then(data => setOrders(data))
+      .catch(error => console.error('Failed to fetch purchase orders', error))
+      .finally(() => setIsLoading(false));
   }, []);
 
-  const fetchOrders = async () => {
-    try {
-      const data = await inventoryApi.getPurchaseOrders();
-      setOrders(data);
-    } catch (error) {
-      console.error('Failed to fetch purchase orders', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
   const handleConfirm = async (id: number) => {
     if (confirm("確定要確認入庫嗎？確認後將無法修改，並自動更新庫存。")) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { crmApi } from '@/features/crm/api/crmApi';
 import { Customer } from '@/features/crm/types/crm';
 import { X, Building2, User, Phone, Mail, MapPin, Briefcase } from 'lucide-react';
@@ -22,7 +22,10 @@ export function CustomerModal({ isOpen, onClose, onSuccess, customer }: Customer
     industry: ''
   });
 
-  useEffect(() => {
+  const editKey = isOpen ? (customer?.id ?? 'new') : null;
+  const [loadedKey, setLoadedKey] = useState<number | string | null>(null);
+  if (editKey !== loadedKey) {
+    setLoadedKey(editKey);
     if (customer && isOpen) {
       setFormData({
         name: customer.name,
@@ -44,7 +47,7 @@ export function CustomerModal({ isOpen, onClose, onSuccess, customer }: Customer
         industry: ''
       });
     }
-  }, [customer, isOpen]);
+  }
 
   if (!isOpen) return null;
 

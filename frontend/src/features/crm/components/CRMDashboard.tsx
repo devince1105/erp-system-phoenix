@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
+import { useHydrated } from "@/utils/useHydrated";
 import { Target, Users, TrendingUp, DollarSign } from "lucide-react";
 import { SalesOpportunity } from "@/features/crm/types/crm";
 
@@ -9,11 +10,7 @@ interface CRMDashboardProps {
 }
 
 export const CRMDashboard: React.FC<CRMDashboardProps> = ({ opportunities }) => {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useHydrated();
 
   // Prepare data for funnel chart
   const stageOrder = ["Requirement", "Proposal", "Contract", "Execution", "Review", "Closed"];

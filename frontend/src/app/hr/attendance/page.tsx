@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { Employee, AttendanceRecord, LeaveRequest, OvertimeRequest, Department } from "@/features/hr/types/hr";
 import { Pagination } from "@/features/core/components/Pagination";
@@ -35,31 +35,28 @@ export default function AttendancePage() {
   const [overtimePage, setOvertimePage] = useState(1);
   const [overtimePageSize, setOvertimePageSize] = useState(10);
 
-  useEffect(() => {
-    fetchData();
+  const fetchData = useCallback(() => {
+    Promise.all([
+      hrApi.getEmployees(),
+      hrApi.getDepartments(),
+      hrApi.getAttendances(),
+      hrApi.getLeaves(),
+      hrApi.getOvertimes()
+    ])
+      .then(([emps, depts, atts, lvs, ovts]) => {
+        setEmployees(emps);
+        setDepartments(depts);
+        setAttendances(atts);
+        setLeaves(lvs);
+        setOvertimes(ovts);
+      })
+      .catch(error => console.error(error))
+      .finally(() => setIsLoading(false));
   }, []);
 
-  const fetchData = async () => {
-    setIsLoading(true);
-    try {
-      const [emps, depts, atts, lvs, ovts] = await Promise.all([
-        hrApi.getEmployees(),
-        hrApi.getDepartments(),
-        hrApi.getAttendances(),
-        hrApi.getLeaves(),
-        hrApi.getOvertimes()
-      ]);
-      setEmployees(emps);
-      setDepartments(depts);
-      setAttendances(atts);
-      setLeaves(lvs);
-      setOvertimes(ovts);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleClockIn = async () => {
     if (!selectedEmpId) return alert("請先選擇員工");

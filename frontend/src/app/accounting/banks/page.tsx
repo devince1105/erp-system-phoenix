@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { accountingApi } from '@/features/accounting/api/accountingApi';
 import { BankAccount, CreateBankAccountPayload, AccountTitle } from '@/features/accounting/types/accounting';
 import { Wallet, Plus, RefreshCw, AlertCircle, CheckCircle2, Edit2, Trash2 } from 'lucide-react';
@@ -17,32 +17,25 @@ export default function BankAccountsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBank, setEditingBank] = useState<BankAccount | undefined>(undefined);
 
+  const fetchAccountTitles = useCallback(() => {
+    // Only keep asset accounts (category 0 or 1 depending on enum) for bank accounts, or just pass all.
+    // In types/accounting.ts AccountCategory.Asset is 1.
+    accountingApi.getAccountTitles()
+      .then(data => setAccountTitles(data as unknown as AccountTitle[]))
+      .catch(err => console.error(err));
+  }, []);
+
+  const fetchBanks = useCallback(() => {
+    accountingApi.getBankAccounts()
+      .then(data => setBanks(data))
+      .catch(error => console.error('Failed to fetch bank accounts', error))
+      .finally(() => setIsLoading(false));
+  }, []);
+
   useEffect(() => {
     fetchBanks();
     fetchAccountTitles();
-  }, []);
-
-  const fetchAccountTitles = async () => {
-    try {
-      const data = await accountingApi.getAccountTitles();
-      // Only keep asset accounts (category 0 or 1 depending on enum) for bank accounts, or just pass all.
-      // In types/accounting.ts AccountCategory.Asset is 1.
-      setAccountTitles(data as unknown as AccountTitle[]);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const fetchBanks = async () => {
-    try {
-      const data = await accountingApi.getBankAccounts();
-      setBanks(data);
-    } catch (error) {
-      console.error('Failed to fetch bank accounts', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [fetchBanks, fetchAccountTitles]);
 
   const handleSync = async (id: number) => {
     setSyncingId(id);

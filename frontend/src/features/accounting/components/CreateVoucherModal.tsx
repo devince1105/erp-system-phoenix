@@ -33,7 +33,10 @@ export const CreateVoucherModal: React.FC<CreateVoucherModalProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [details, setDetails] = useState<DetailRow[]>([]);
 
-  React.useEffect(() => {
+  const voucherKey = isOpen ? (editingVoucher?.id ?? "new") : null;
+  const [loadedVoucherKey, setLoadedVoucherKey] = useState<number | string | null>(null);
+  if (voucherKey !== loadedVoucherKey && (editingVoucher || accountTitles.length > 0)) {
+    setLoadedVoucherKey(voucherKey);
     if (editingVoucher) {
       setVoucherDate(editingVoucher.voucherDate.split("T")[0]);
       setType(editingVoucher.type);
@@ -46,7 +49,7 @@ export const CreateVoucherModal: React.FC<CreateVoucherModalProps> = ({
           summary: d.summary || ""
         }))
       );
-    } else if (accountTitles.length > 0 && details.length === 0) {
+    } else {
       const defaultDebitTitle = accountTitles[0]?.id || 1;
       const defaultCreditTitle = accountTitles.find(t => t.code === "4101")?.id || accountTitles[1]?.id || 12;
       setDetails([
@@ -54,7 +57,7 @@ export const CreateVoucherModal: React.FC<CreateVoucherModalProps> = ({
         { accountTitleId: defaultCreditTitle, isDebit: false, amount: 1000, summary: "銷貨收入" }
       ]);
     }
-  }, [editingVoucher, accountTitles]);
+  }
 
   if (!isOpen) return null;
 

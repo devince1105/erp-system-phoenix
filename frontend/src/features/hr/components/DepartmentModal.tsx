@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { X } from "lucide-react";
 import { Department, Employee } from "../types/hr";
 
@@ -17,16 +17,21 @@ export const DepartmentModal: React.FC<DepartmentModalProps> = ({ isOpen, onClos
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (initialData) {
-      setFormData(initialData);
-    } else {
-      setFormData({
-        name: "",
-        managerId: undefined
-      });
+  const editKey = isOpen ? (initialData?.id ?? "new") : null;
+  const [loadedKey, setLoadedKey] = useState<number | string | null>(null);
+  if (editKey !== loadedKey) {
+    setLoadedKey(editKey);
+    if (isOpen) {
+      if (initialData) {
+        setFormData(initialData);
+      } else {
+        setFormData({
+          name: "",
+          managerId: undefined
+        });
+      }
     }
-  }, [initialData, isOpen]);
+  }
 
   if (!isOpen) return null;
 

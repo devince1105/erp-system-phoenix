@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { accountingApi } from '@/features/accounting/api/accountingApi';
 import { Voucher } from '@/features/accounting/types/accounting';
@@ -13,20 +13,16 @@ export default function VouchersPage() {
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchVouchers();
+  const fetchVouchers = useCallback(() => {
+    accountingApi.getVouchers()
+      .then(data => setVouchers(data))
+      .catch(error => console.error('Failed to fetch vouchers', error))
+      .finally(() => setIsLoading(false));
   }, []);
 
-  const fetchVouchers = async () => {
-    try {
-      const data = await accountingApi.getVouchers();
-      setVouchers(data);
-    } catch (error) {
-      console.error('Failed to fetch vouchers', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    fetchVouchers();
+  }, [fetchVouchers]);
 
   const handleDelete = async (id: number) => {
     if (!confirm('確定要刪除這筆傳票嗎？此操作無法復原。')) return;

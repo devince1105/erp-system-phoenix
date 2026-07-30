@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
+import { useHydrated } from "@/utils/useHydrated";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { PackageSearch, TrendingUp, AlertOctagon } from "lucide-react";
 import { Product, SalesOrder } from "@/features/inventory/types/inventory";
@@ -11,11 +12,7 @@ interface InventoryDashboardProps {
 }
 
 export const InventoryDashboard: React.FC<InventoryDashboardProps> = ({ products, salesOrders }) => {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useHydrated();
 
   // 1. Calculate Low Stock Alerts (threshold: 10)
   const lowStockProducts = products.filter(p => p.stockQuantity < 10).sort((a, b) => a.stockQuantity - b.stockQuantity);

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { X, Landmark, Globe, Key, Save } from "lucide-react";
 import { BankAccount, BankApiIntegrationType, CreateBankAccountPayload, AccountTitle } from "@/features/accounting/types/accounting";
 
@@ -33,7 +33,10 @@ export const CreateBankAccountModal: React.FC<CreateBankAccountModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  useEffect(() => {
+  const editKey = isOpen ? (editingAccount?.id ?? "new") : null;
+  const [loadedKey, setLoadedKey] = useState<number | string | null>(null);
+  if (editKey !== loadedKey) {
+    setLoadedKey(editKey);
     if (editingAccount) {
       setBankCode(editingAccount.bankCode);
       setBankName(editingAccount.bankName);
@@ -58,7 +61,7 @@ export const CreateBankAccountModal: React.FC<CreateBankAccountModalProps> = ({
       setApiEndpoint("https://api.esunbank.com.tw/open-banking/v1");
       setApiClientId("");
     }
-  }, [editingAccount, isOpen]);
+  }
 
   if (!isOpen) return null;
 

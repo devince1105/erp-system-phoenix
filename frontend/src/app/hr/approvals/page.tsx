@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { CheckSquare, XCircle, CheckCircle, Clock } from "lucide-react";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
 import { hrApi } from "@/features/hr/api/hrApi";
@@ -13,27 +13,24 @@ export default function ApprovalsPage() {
   const [expenses, setExpenses] = useState<ExpenseClaim[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [lvData, ovData, expData] = await Promise.all([
-        hrApi.getLeaves(),
-        hrApi.getOvertimes(),
-        hrApi.getExpenseClaims(),
-      ]);
-      setLeaves(lvData.filter(l => l.status === "Pending"));
-      setOvertimes(ovData.filter(o => o.status === "Pending"));
-      setExpenses(expData.filter(e => e.status === "Pending"));
-    } catch (error) {
-      console.error("Failed to fetch approvals data", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const fetchData = useCallback(() => {
+    Promise.all([
+      hrApi.getLeaves(),
+      hrApi.getOvertimes(),
+      hrApi.getExpenseClaims(),
+    ])
+      .then(([lvData, ovData, expData]) => {
+        setLeaves(lvData.filter(l => l.status === "Pending"));
+        setOvertimes(ovData.filter(o => o.status === "Pending"));
+        setExpenses(expData.filter(e => e.status === "Pending"));
+      })
+      .catch(error => console.error("Failed to fetch approvals data", error))
+      .finally(() => setLoading(false));
+  }, []);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const handleApproveLeave = async (id: number, request: LeaveRequest) => {
     try {

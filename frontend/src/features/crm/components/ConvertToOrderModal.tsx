@@ -25,11 +25,14 @@ export function ConvertToOrderModal({ isOpen, onClose, onSuccess, opportunity }:
     }
   }, [isOpen]);
 
-  useEffect(() => {
+  const activeOppId = isOpen ? (opportunity?.id ?? null) : null;
+  const [pricedOppId, setPricedOppId] = useState<number | null>(null);
+  if (activeOppId !== pricedOppId) {
+    setPricedOppId(activeOppId);
     if (opportunity) {
       setUnitPrice(opportunity.estimatedValue);
     }
-  }, [opportunity]);
+  }
 
   if (!isOpen || !opportunity) return null;
 

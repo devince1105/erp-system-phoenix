@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { FolderTree, Plus, Pencil, Trash2, Building2 } from "lucide-react";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
 import { hrApi } from "@/features/hr/api/hrApi";
@@ -15,25 +15,22 @@ export default function DepartmentsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [deptData, empData] = await Promise.all([
-        hrApi.getDepartments(),
-        hrApi.getEmployees()
-      ]);
-      setDepartments(deptData);
-      setEmployees(empData);
-    } catch (error) {
-      console.error("Failed to fetch HR data", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const fetchData = useCallback(() => {
+    Promise.all([
+      hrApi.getDepartments(),
+      hrApi.getEmployees()
+    ])
+      .then(([deptData, empData]) => {
+        setDepartments(deptData);
+        setEmployees(empData);
+      })
+      .catch(error => console.error("Failed to fetch HR data", error))
+      .finally(() => setLoading(false));
+  }, []);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const handleCreate = () => {
     setEditingDepartment(null);

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { Users, Plus, Pencil, Trash2, Search, Mail, Phone, Briefcase, Building2, MoreHorizontal, UserCheck, Filter, Download, Printer } from "lucide-react";
 import dynamic from "next/dynamic";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
@@ -30,25 +30,22 @@ export default function EmployeesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [empData, deptData] = await Promise.all([
-        hrApi.getEmployees(),
-        hrApi.getDepartments()
-      ]);
-      setEmployees(empData);
-      setDepartments(deptData);
-    } catch (error) {
-      console.error("Failed to fetch HR data", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const fetchData = useCallback(() => {
+    Promise.all([
+      hrApi.getEmployees(),
+      hrApi.getDepartments()
+    ])
+      .then(([empData, deptData]) => {
+        setEmployees(empData);
+        setDepartments(deptData);
+      })
+      .catch(error => console.error("Failed to fetch HR data", error))
+      .finally(() => setLoading(false));
+  }, []);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const handleCreate = () => {
     setEditingEmployee(null);

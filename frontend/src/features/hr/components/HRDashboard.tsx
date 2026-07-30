@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
+import { useHydrated } from "@/utils/useHydrated";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
 import { Users, AlertTriangle, Clock } from "lucide-react";
 import { Employee, AttendanceRecord } from "@/features/hr/types/hr";
@@ -14,11 +15,7 @@ interface HRDashboardProps {
 const PIE_COLORS = ["#10b981", "#f59e0b", "#f43f5e", "#64748b"];
 
 export const HRDashboard: React.FC<HRDashboardProps> = ({ employees, attendances, layout = "horizontal" }) => {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useHydrated();
 
   // Today's date string (e.g., "2026-07-26")
   const today = new Date().toISOString().split("T")[0];

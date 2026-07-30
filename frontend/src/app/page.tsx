@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { 
   fetchAccountTitles,
   fetchVouchers
@@ -30,42 +30,32 @@ export default function DashboardPage() {
   const [opportunities, setOpportunities] = useState<SalesOpportunity[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const loadData = async () => {
-    try {
-      const [
-        titlesData, 
-        vouchersData, 
-        empData, 
-        attData, 
-        prodData, 
-        salesData,
-        oppData
-      ] = await Promise.all([
-        fetchAccountTitles(),
-        fetchVouchers(),
-        hrApi.getEmployees(),
-        hrApi.getAttendances(),
-        inventoryApi.getProducts(),
-        inventoryApi.getSalesOrders(),
-        crmApi.getOpportunities()
-      ]);
-      setAccountTitles(titlesData);
-      setVouchers(vouchersData);
-      setEmployees(empData);
-      setAttendances(attData);
-      setProducts(prodData);
-      setSalesOrders(salesData);
-      setOpportunities(oppData);
-    } catch (err) {
-      console.error("Failed to load dashboard data:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const loadData = useCallback(() => {
+    Promise.all([
+      fetchAccountTitles(),
+      fetchVouchers(),
+      hrApi.getEmployees(),
+      hrApi.getAttendances(),
+      inventoryApi.getProducts(),
+      inventoryApi.getSalesOrders(),
+      crmApi.getOpportunities()
+    ])
+      .then(([titlesData, vouchersData, empData, attData, prodData, salesData, oppData]) => {
+        setAccountTitles(titlesData);
+        setVouchers(vouchersData);
+        setEmployees(empData);
+        setAttendances(attData);
+        setProducts(prodData);
+        setSalesOrders(salesData);
+        setOpportunities(oppData);
+      })
+      .catch(err => console.error("Failed to load dashboard data:", err))
+      .finally(() => setIsLoading(false));
+  }, []);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
   return (
     <div className="flex flex-col text-slate-100">
