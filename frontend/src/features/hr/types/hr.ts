@@ -163,6 +163,28 @@ export interface SalaryStructure {
   updatedAt?: string;
 }
 
+export interface ApprovalStep {
+  id: number;
+  stepOrder: number;
+  role: string;
+  label: string;
+  status: string; // Pending, Approved, Rejected, Skipped
+  approverUserId?: number;
+  decidedAt?: string;
+  comment?: string;
+}
+
+export interface ApprovalInstance {
+  id: number;
+  formType: string;
+  documentId: number;
+  status: string; // Pending, Approved, Rejected
+  currentStepOrder: number;
+  createdAt?: string;
+  completedAt?: string;
+  steps: ApprovalStep[];
+}
+
 export interface BusinessTrip {
   id: number;
   employeeId: number;

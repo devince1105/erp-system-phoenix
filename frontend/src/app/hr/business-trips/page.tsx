@@ -2,9 +2,10 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { hrApi } from "@/features/hr/api/hrApi";
-import { BusinessTrip, Employee } from "@/features/hr/types/hr";
+import { BusinessTrip, Employee, ApprovalInstance } from "@/features/hr/types/hr";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
-import { Plane, Plus, X, Check, XCircle, Clock, Trash2, MapPin, CalendarDays, Undo2 } from "lucide-react";
+import { ApprovalFlow } from "@/features/hr/components/ApprovalFlow";
+import { Plane, Plus, X, Trash2, MapPin, CalendarDays, Eye, Check, Undo2 } from "lucide-react";
 
 const emptyForm = {
   employeeId: "" as number | "",
@@ -16,34 +17,30 @@ const emptyForm = {
   notes: "",
 };
 
-function statusBadge(status: string) {
-  switch (status) {
-    case "Approved":
-      return "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800/50";
-    case "Rejected":
-      return "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800/50";
-    case "Completed":
-      return "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700";
-    default:
-      return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800/50";
-  }
-}
-
-const statusLabel: Record<string, string> = { Pending: "待審核", Approved: "已核准", Rejected: "已駁回", Completed: "已完成" };
-
 export default function BusinessTripsPage() {
   const [trips, setTrips] = useState<BusinessTrip[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [approvals, setApprovals] = useState<Record<number, ApprovalInstance | null>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState(emptyForm);
 
+  // Detail / approval
+  const [detailTrip, setDetailTrip] = useState<BusinessTrip | null>(null);
+  const [detailApproval, setDetailApproval] = useState<ApprovalInstance | null>(null);
+  const [decideComment, setDecideComment] = useState("");
+  const [isDeciding, setIsDeciding] = useState(false);
+
   const fetchData = useCallback(() => {
     Promise.all([hrApi.getBusinessTrips(), hrApi.getEmployees()])
-      .then(([tripData, empData]) => {
+      .then(async ([tripData, empData]) => {
         setTrips(tripData);
         setEmployees(empData);
+        const entries = await Promise.all(
+          tripData.map((t) => hrApi.getApproval("BusinessTrip", t.id).then((inst) => [t.id, inst] as const))
+        );
+        setApprovals(Object.fromEntries(entries));
       })
       .catch((err) => console.error("Failed to load business trips", err))
       .finally(() => setIsLoading(false));
@@ -55,6 +52,8 @@ export default function BusinessTripsPage() {
 
   const employeeName = (id: number) => employees.find((e) => e.id === id)?.name || `員工 #${id}`;
   const money = (n: number) => `$${n.toLocaleString(undefined, { minimumFractionDigits: 0 })}`;
+  const tripDays = (t: BusinessTrip) =>
+    Math.max(1, Math.round((new Date(t.endDate).getTime() - new Date(t.startDate).getTime()) / 86400000) + 1);
 
   const openCreate = () => {
     setForm({ ...emptyForm, employeeId: employees[0]?.id ?? "" });
@@ -88,13 +87,26 @@ export default function BusinessTripsPage() {
     }
   };
 
-  const handleStatus = async (id: number, status: string) => {
+  const openDetail = async (trip: BusinessTrip) => {
+    setDetailTrip(trip);
+    setDecideComment("");
+    const inst = approvals[trip.id] ?? (await hrApi.getApproval("BusinessTrip", trip.id));
+    setDetailApproval(inst);
+  };
+
+  const handleDecide = async (approve: boolean) => {
+    if (!detailApproval) return;
+    setIsDeciding(true);
     try {
-      await hrApi.updateBusinessTripStatus(id, status);
+      const updated = await hrApi.decideApproval(detailApproval.id, approve, decideComment || undefined);
+      setDetailApproval(updated);
+      setDecideComment("");
       fetchData();
     } catch (err) {
       console.error(err);
-      alert("更新狀態失敗");
+      alert("簽核失敗");
+    } finally {
+      setIsDeciding(false);
     }
   };
 
@@ -109,8 +121,6 @@ export default function BusinessTripsPage() {
     }
   };
 
-  const tripDays = (t: BusinessTrip) =>
-    Math.max(1, Math.round((new Date(t.endDate).getTime() - new Date(t.startDate).getTime()) / 86400000) + 1);
   const pendingCount = trips.filter((t) => t.status === "Pending").length;
   const approvedCount = trips.filter((t) => t.status === "Approved").length;
 
@@ -124,7 +134,7 @@ export default function BusinessTripsPage() {
             <Plane className="h-6 w-6 text-indigo-600" />
             出差申請 (Business Trips)
           </h1>
-          <p className="text-sm text-slate-500 mt-1">事前申請出差；核准後即可據以申請差旅報支（預先授權，較易過審）。</p>
+          <p className="text-sm text-slate-500 mt-1">事前申請出差；送出後依簽核流程逐級核准，點「檢視」查看目前卡在哪一關。</p>
         </div>
         <button
           onClick={openCreate}
@@ -141,7 +151,7 @@ export default function BusinessTripsPage() {
           <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{trips.length}</p>
         </div>
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm p-4">
-          <p className="text-xs text-slate-500">待審核</p>
+          <p className="text-xs text-slate-500">簽核中</p>
           <p className="text-2xl font-bold text-amber-600 mt-1">{pendingCount}</p>
         </div>
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm p-4">
@@ -167,7 +177,7 @@ export default function BusinessTripsPage() {
                   <th className="px-6 py-3">目的地 / 事由</th>
                   <th className="px-6 py-3">出差期間</th>
                   <th className="px-6 py-3 text-right">預估費用</th>
-                  <th className="px-6 py-3">狀態</th>
+                  <th className="px-6 py-3">簽核進度</th>
                   <th className="px-6 py-3 text-right">操作</th>
                 </tr>
               </thead>
@@ -191,24 +201,13 @@ export default function BusinessTripsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-right text-slate-900 dark:text-white">{money(t.estimatedCost)}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold rounded-full border ${statusBadge(t.status)}`}>
-                        {t.status === "Approved" ? <Check className="w-3 h-3" /> : t.status === "Rejected" ? <XCircle className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                        {statusLabel[t.status] ?? t.status}
-                      </span>
+                      <ApprovalFlow instance={approvals[t.id] ?? null} compact />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="inline-flex items-center gap-1">
-                        {t.status === "Pending" && (
-                          <>
-                            <button onClick={() => handleStatus(t.id, "Approved")} title="核准" className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded">
-                              <Check className="w-4 h-4" />
-                            </button>
-                            <button onClick={() => handleStatus(t.id, "Rejected")} title="駁回（保留紀錄，狀態改為已駁回）" className="p-1.5 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded">
-                              <Undo2 className="w-4 h-4" />
-                            </button>
-                            <span className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-0.5" aria-hidden />
-                          </>
-                        )}
+                        <button onClick={() => openDetail(t)} title="檢視 / 簽核" className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
+                          <Eye className="w-3.5 h-3.5" /> 檢視
+                        </button>
                         <button onClick={() => handleDelete(t.id)} title="刪除（永久移除此筆）" className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -222,6 +221,7 @@ export default function BusinessTripsPage() {
         )}
       </div>
 
+      {/* Create Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 rounded-sm shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
@@ -294,6 +294,57 @@ export default function BusinessTripsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Detail / Approval Modal */}
+      {detailTrip && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-sm shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Plane className="w-5 h-5 text-indigo-600" /> 出差申請明細
+              </h2>
+              <button onClick={() => setDetailTrip(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-5 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div><p className="text-xs text-slate-500">申請人</p><p className="font-medium text-slate-800 dark:text-slate-200">{employeeName(detailTrip.employeeId)}</p></div>
+                <div><p className="text-xs text-slate-500">出差地點</p><p className="font-medium text-slate-800 dark:text-slate-200">{detailTrip.destination}</p></div>
+                <div className="col-span-2"><p className="text-xs text-slate-500">事由</p><p className="text-slate-700 dark:text-slate-300">{detailTrip.purpose || "-"}</p></div>
+                <div><p className="text-xs text-slate-500">出差期間</p><p className="text-slate-700 dark:text-slate-300">{new Date(detailTrip.startDate).toLocaleDateString()} ~ {new Date(detailTrip.endDate).toLocaleDateString()}（{tripDays(detailTrip)} 天）</p></div>
+                <div><p className="text-xs text-slate-500">預估費用</p><p className="font-mono text-slate-800 dark:text-slate-200">{money(detailTrip.estimatedCost)}</p></div>
+              </div>
+
+              <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">簽核流程</p>
+                <ApprovalFlow instance={detailApproval} />
+              </div>
+
+              {detailApproval && detailApproval.status === "Pending" && (
+                <div className="border-t border-slate-100 dark:border-slate-800 pt-4 space-y-3">
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">簽核意見（選填）</label>
+                  <textarea
+                    value={decideComment}
+                    onChange={(e) => setDecideComment(e.target.value)}
+                    rows={2}
+                    placeholder="輸入核准或駁回的意見..."
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-sm text-sm dark:text-slate-200"
+                  />
+                  <div className="flex items-center justify-end gap-3">
+                    <button onClick={() => handleDecide(false)} disabled={isDeciding} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-800 rounded-sm hover:bg-amber-50 dark:hover:bg-amber-900/20 disabled:opacity-50">
+                      <Undo2 className="w-4 h-4" /> 駁回
+                    </button>
+                    <button onClick={() => handleDecide(true)} disabled={isDeciding} className="inline-flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-600/50 text-white text-sm font-medium rounded-sm">
+                      <Check className="w-4 h-4" /> {isDeciding ? "處理中..." : "核准此關卡"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

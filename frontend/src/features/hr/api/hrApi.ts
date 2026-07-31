@@ -11,6 +11,7 @@ import {
   SalaryStructure,
   ExpenseClaim,
   BusinessTrip,
+  ApprovalInstance,
   HrParameterSetting,
 } from '../types/hr';
 
@@ -205,6 +206,20 @@ export const hrApi = {
   },
   deleteBusinessTrip: async (id: number): Promise<void> => {
     await axiosClient.delete(`/hr/businessTrips/${id}`);
+  },
+
+  // Approval workflow (簽核實例)
+  getApproval: async (formType: string, documentId: number): Promise<ApprovalInstance | null> => {
+    try {
+      const { data } = await axiosClient.get<ApprovalInstance>(`/hr/approvals/${formType}/${documentId}`);
+      return data;
+    } catch {
+      return null;
+    }
+  },
+  decideApproval: async (instanceId: number, approve: boolean, comment?: string): Promise<ApprovalInstance> => {
+    const { data } = await axiosClient.post<ApprovalInstance>(`/hr/approvals/${instanceId}/decide`, { approve, comment });
+    return data;
   },
 
   // Upload a receipt image/PDF; returns the stored file URL.
