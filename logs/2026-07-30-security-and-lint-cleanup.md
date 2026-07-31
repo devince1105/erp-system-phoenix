@@ -2,7 +2,7 @@
 
 **主題**：專案健康檢查、機密外洩處理、相依套件漏洞修補、前端 Lint 全面清理
 **分支**：`main`
-**起始 commit**：`9f1630e`　**結束 commit**：`1d863fc`
+**起始 commit**：`9f1630e`　**結束 commit**：`a6ca0b0`（階段 13–16 於 2026-07-31 續補）
 
 ---
 
@@ -186,6 +186,55 @@
 **端到端驗證**（瀏覽器）：建出差單 → 列表「待直屬主管簽核 (0/2)」→ 檢視 → 核准第 1 關(填意見)→ stepper 第 1 關轉綠、自動進第 2 關「部門主管 審核中」、意見記錄。tsc/eslint 0。
 
 **尚可強化**：嚴格角色控管（目前 admin 皆可簽,待接組織/職級）、流程設定持久化（settings 目前 mockup + 後端 registry,編輯未儲存）、套用到請假/採購頁、引擎前的舊單據無實例。
+
+## 階段 13 — 收據影像上傳（可插拔儲存）〔2026-07-31〕
+
+**需求**：差旅／費用報支要能附上收據影像(高鐵票、發票、收據),明細可檢視。
+
+**後端**（`aa778e1`）：
+- `IReceiptStorage` 介面 + 兩種實作:`LocalReceiptStorage`（存 `wwwroot/receipts`,開發用）與 Cloudflare R2（AWSSDK.S3,正式用）,以設定切換。
+- `ReceiptsController`：`POST /api/hr/receipts/upload`（multipart)→ 回傳檔案 URL。`ExpenseClaim.ReceiptUrl` 存連結。
+- 由 `DotNetEnv` 載入 `.env`（R2 金鑰等機密由使用者自管,不進 git)。
+
+**前端**：報支明細/表單可上傳並顯示縮圖(`<img>` 以 eslint-disable 標註)。
+
+**排錯備忘**：上傳後收據 404 —— `UseStaticFiles()` 預設服務路徑與實際存檔位置不符(啟動時 `wwwroot` 不存在→`WebRootPath` 為 null)。改用明確 `PhysicalFileProvider` 指向 `ContentRootPath/wwwroot` 解決。
+
+## 階段 14 — 費用拆分：差旅報支 vs 費用報銷〔2026-07-31〕
+
+**需求**：報支分兩類——**差旅報支**(有出差)與**費用報銷**(日常辦公室開銷:餐飲/聚餐、慶生/下午茶、辦公用品、雜支,無出差)。兩者類似但費用報銷不掛出差單。
+
+**後端**（`b2ac0d4`）：`ExpenseClaim` 加 `ExpenseType`（Travel/General）;migration `AddExpenseType`（已套用 Azure）。
+
+**前端**（`b2ac0d4`）：
+- `/hr/expenses` 差旅報支:篩 `Travel`,保留關聯出差單。
+- `/hr/office-expenses` 費用報銷（新頁,teal 主題）:篩 `General`,辦公室類別,無出差關聯。
+- Sidebar 加「費用報銷」;型別加 `expenseType`。
+
+## 階段 15 — 簽核中心抽離報銷、更名「假勤簽核」〔2026-07-31〕
+
+- 費用報銷已有自己的簽核入口,故從舊「簽核中心」抽離,頁面（`/hr/approvals`）**更名為「假勤簽核」**、改用 `CalendarCheck` 圖示,只留待批假單/加班單兩頁籤（`b088856`）。
+
+## 階段 16 — 請假／加班獨立頁,接通用簽核引擎〔2026-07-31〕
+
+**需求**：比照差旅,把**員工請假申請單／加班申請單**做成獨立頁,接通用簽核引擎——讓假勤也能升級成「明細 + 流程 stepper」。
+
+**後端**（`a6ca0b0`）：
+- `WorkflowDefinitions` 註冊 `Leave` / `Overtime` 流程（直屬主管→部門主管）。
+- `ApprovalService.SyncDocumentStatusAsync` 加 Leave / Overtime 回寫（核准時寫 `ApprovedAt`）。
+- `LeavesController` / `OvertimesController` 注入 `ApprovalService`,送單後 `CreateAsync("Leave"/"Overtime", id)` 自動起單。無需 migration(沿用 `ApprovalInstances` 表)。
+
+**前端**（`a6ca0b0`）：
+- `/hr/leaves`（請假,紫色):假別 特休/病假/事假/公假、起訖日期 + 天數統計。
+- `/hr/overtimes`（加班,橘色):單日時數上限 4 小時(勞基法)、已核准總時數統計。
+- 兩頁均:建立 modal、列表 compact `ApprovalFlow`、**檢視**明細含完整 stepper + **駁回/核准此關卡**(可填意見)。
+- `hrApi` 加 `deleteLeave` / `deleteOvertime`;Sidebar 加「請假申請」「加班申請」。
+
+**排錯備忘**：後端 `Reason` 為非可空字串,ASP.NET 隱含 `[Required]` 會擋空字串 → 兩表單「事由」改必填。
+
+**端到端驗證**（瀏覽器）：建請假 →「待直屬主管簽核 (0/2)」→ 檢視 → 核准第 1 關 → 轉綠、自動進「部門主管 審核中」;加班同樣通過。tsc/eslint 0。
+
+**尚待收尾**：**假勤簽核 `/hr/approvals` 尚未接引擎** —— 仍用 `updateLeave`/`updateOvertime` 直接改狀態,會繞過簽核實例、與關卡進度脫鉤。下一步應改用 `decideApproval`,與差旅一致。
 
 ## 尚待處理 / 建議（後續）
 
