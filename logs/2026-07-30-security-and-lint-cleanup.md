@@ -2,7 +2,7 @@
 
 **主題**：專案健康檢查、機密外洩處理、相依套件漏洞修補、前端 Lint 全面清理
 **分支**：`main`
-**起始 commit**：`9f1630e`　**結束 commit**：`f7373f0`（階段 13–16 於 2026-07-31、階段 17 於 2026-08-01 續補）
+**起始 commit**：`9f1630e`　**結束 commit**：`98b6576`（階段 13–16 於 2026-07-31、階段 17–19 於 2026-08-01 續補）
 
 ---
 
@@ -254,7 +254,42 @@
 
 **環境備忘**：後端在 :5000 需以 `ASPNETCORE_ENVIRONMENT=Development`（載入 user-secrets 的 `Jwt:Key`）+ `--no-launch-profile --urls http://localhost:5000` 啟動(預設 launch profile 會綁 :5001,前端 `.env.local` 指向 :5000)。
 
-**尚待處理**：嚴格角色控管(目前 admin 皆可簽,待接組織/職級,收件匣才能真正「只列輪到我的」);採購申請單 + 費用報銷選填關聯。
+**尚待處理**：嚴格角色控管 → 已於階段 18 完成;採購申請單 + 費用報銷選填關聯。
+
+## 階段 18 — 簽核嚴格角色控管〔2026-08-01〕
+
+**需求**：簽核收件匣應「只列輪到我的關卡」,且只有該關卡的簽核人能核准/駁回。
+
+**設計**:token 已帶 `employee_id` 與 `role` claims;`Department.ManagerId` 為部門主管(員工)。
+- **Admin** → 超級簽核人(可見/可簽全部),維持 demo 可用(admin 未綁員工)。
+- **DirectSupervisor / DepartmentManager** → 申請人所屬部門的 `ManagerId`。
+- **Finance** → 會計/財務部主管,或具 `Accountant` 角色者。
+
+**後端**（`a1c257d`）:
+- `ApprovalService.CanDecideAsync`(解析當前關卡授權)、`CanDecideInstanceAsync`、`GetPendingForUserAsync`(回傳我可簽的 Pending 實例;Admin 回全部)。
+- `POST /approvals/{id}/decide` 加授權檢查 → 非簽核人回 **403**。
+- `GET /approvals/mine` 供收件匣過濾。
+
+**前端**（`a1c257d`）:假勤簽核收件匣改用 `getMyApprovals()` 過濾,只列可簽項;決策遇 403 顯示「您不是此關卡的簽核人」並刷新。
+
+**驗證**:admin `/mine` 回全部 20 筆 Pending(bypass 正確);tsc/eslint 0。非 admin 強制驗證已實作,測試需建立綁定員工的主管帳號(依使用者自管帳密原則,未自動建立)。
+
+## 階段 19 — 薪資加扣項明細（請假/加班溯源）〔2026-08-01〕
+
+**需求**:薪資結算要能點進明細,看到該員工「因為什麼緣故有加扣項」——核准的請假/加班單即時帶入計算(時薪 × 時數)。
+
+**發現**:`GeneratePayrolls` 其實已從核准的加班/請假計算 Bonus/Deductions,但 `PayrollRecord` 只存彙總、看不到明細;且種子 90 筆薪資為合成值,與實際核准單據不對應。
+
+**後端**（`98b6576`）:
+- 抽出 `PayrollCalculator`(單一計算來源):時薪 = 本薪 ÷ 240;加班採勞基法倍率(前 2h ×1.34、其後 ×1.67);請假依假別計薪並裁切至當月(事假無薪、病假半薪、特休/公假全薪)。
+- `GeneratePayrolls` 改用之 → 儲存彙總與明細**完全對帳**。
+- `GET /payrolls/{id}/breakdown` 回傳逐項加項/扣項(即時由核准單據重算)。
+
+**前端**（`98b6576`）:薪資頁每列加「明細」鈕 → modal 顯示本薪/時薪、加項(加班)清單、扣項(請假)清單(日期、時數、時薪×倍率、金額)、以及 本薪→加→扣→實發 對帳。
+
+**驗證**:重算郭建宏 2026-05 → 病假(半薪) 2 天 16h × NT$312.5/h × 0.5 = NT$2,500,實發 72,500;儲存值與 breakdown **RECONCILES**;tsc/eslint 0。（加班明細路徑同一計算器,現有資料無核准加班故清單為空。）
+
+**尚待強化**:種子資料的歷史薪資為合成值,需重新 generate 才會與核准單據對帳;加班需有核准單才會出現加項。
 
 ## 尚待處理 / 建議（後續）
 
