@@ -149,7 +149,7 @@
 
 ## 尚待處理 / 建議（後續）
 
-- **CORS 過寬**（`Program.cs`：`AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()`，policy "AllowAll"）：正式環境建議改為白名單網域。
+- ~~**CORS 過寬**（`AllowAnyOrigin`）~~ ✅ 已處理（階段 10，`6350917`）：改為 `Cors:AllowedOrigins` 白名單,預設本機開發來源,policy 更名 "AppCors"。正式環境請於設定填入真實網域。
 - **舊金鑰與舊密碼仍存在於 git 歷史**：DB 密碼已於階段 1.4 清除；JWT 舊金鑰（`377be07` 之前）尚在歷史中，但換金鑰後已失效，風險低。若要徹底清除可再跑一次 `git filter-repo --replace-text`。
 - **啟動時自動 migrate**（`Program.cs` 對六個 DbContext 呼叫 `Database.Migrate()`）：正式多實例環境建議改由部署流程執行 migration，避免併發衝突。
 - 選配：再對傳票 / 庫存 / HR 等頁面做執行期點測（已完成主要流程）。
