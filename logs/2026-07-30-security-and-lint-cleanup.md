@@ -2,7 +2,7 @@
 
 **主題**：專案健康檢查、機密外洩處理、相依套件漏洞修補、前端 Lint 全面清理
 **分支**：`main`
-**起始 commit**：`9f1630e`　**結束 commit**：`a6ca0b0`（階段 13–16 於 2026-07-31 續補）
+**起始 commit**：`9f1630e`　**結束 commit**：`f7373f0`（階段 13–16 於 2026-07-31、階段 17 於 2026-08-01 續補）
 
 ---
 
@@ -234,7 +234,27 @@
 
 **端到端驗證**（瀏覽器）：建請假 →「待直屬主管簽核 (0/2)」→ 檢視 → 核准第 1 關 → 轉綠、自動進「部門主管 審核中」;加班同樣通過。tsc/eslint 0。
 
-**尚待收尾**：**假勤簽核 `/hr/approvals` 尚未接引擎** —— 仍用 `updateLeave`/`updateOvertime` 直接改狀態,會繞過簽核實例、與關卡進度脫鉤。下一步應改用 `decideApproval`,與差旅一致。
+**尚待收尾**：假勤簽核 `/hr/approvals` 接引擎 → 已於階段 17 完成。
+
+## 階段 17 — 假勤簽核改走簽核引擎 + 舊資料回填〔2026-08-01〕
+
+**需求**：把假勤簽核 `/hr/approvals` 從舊的「Row 直接改狀態」升級為引擎驅動的簽核收件匣,與差旅一致。
+
+**前端**（`f7373f0`）：
+- `/hr/approvals` 重寫為**簽核收件匣**:列表只列「有 Pending 簽核實例」的假單/加班單(真正待辦佇列),每列顯示 compact `ApprovalFlow`。
+- Row 操作改為單一「檢視」→ 明細 modal(依假單/加班單顯示不同欄位）+ 完整 stepper + **在明細內**核准/駁回(可填意見),走 `decideApproval`。
+- 移除舊的 `updateLeave`/`updateOvertime` 直接改狀態(不再繞過簽核實例)。
+
+**後端**（`f7373f0`）：
+- `ApprovalService.BackfillAsync(formType)`:為「仍 Pending 但無實例」的舊單據補建簽核實例(冪等,已有實例者跳過)。
+- `POST /api/hr/approvals/backfill/{formType}`（`[Authorize]`)觸發回填。
+- 執行結果:回填 **7 筆**引擎上線前的舊 Pending 假單(加班單 0 筆,唯一一筆已有實例)。
+
+**驗證**：API 層確認 8 筆 Pending 假單 + 1 筆加班單皆有 Pending 實例,收件匣完整顯示;tsc/eslint 0。決策流程與差旅/請假頁一致(已於階段 16 於瀏覽器實測同款 stepper 推進)。
+
+**環境備忘**：後端在 :5000 需以 `ASPNETCORE_ENVIRONMENT=Development`（載入 user-secrets 的 `Jwt:Key`）+ `--no-launch-profile --urls http://localhost:5000` 啟動(預設 launch profile 會綁 :5001,前端 `.env.local` 指向 :5000)。
+
+**尚待處理**：嚴格角色控管(目前 admin 皆可簽,待接組織/職級,收件匣才能真正「只列輪到我的」);採購申請單 + 費用報銷選填關聯。
 
 ## 尚待處理 / 建議（後續）
 
