@@ -207,6 +207,16 @@ export const hrApi = {
     await axiosClient.delete(`/hr/businessTrips/${id}`);
   },
 
+  // Upload a receipt image/PDF; returns the stored file URL.
+  uploadReceipt: async (file: File): Promise<string> => {
+    const fd = new FormData();
+    fd.append('file', file);
+    const { data } = await axiosClient.post<{ url: string }>('/hr/receipts/upload', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return data.url;
+  },
+
   // HR Parameter Settings
   getHrParameterSettings: async (): Promise<HrParameterSetting[]> => {
     const { data } = await axiosClient.get('/hr/hrParameterSettings');

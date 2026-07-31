@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { BusinessTrip, Employee } from "@/features/hr/types/hr";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
-import { Plane, Plus, X, Check, XCircle, Clock, Trash2, MapPin, CalendarDays } from "lucide-react";
+import { Plane, Plus, X, Check, XCircle, Clock, Trash2, MapPin, CalendarDays, Undo2 } from "lucide-react";
 
 const emptyForm = {
   employeeId: "" as number | "",
@@ -203,12 +203,13 @@ export default function BusinessTripsPage() {
                             <button onClick={() => handleStatus(t.id, "Approved")} title="核准" className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded">
                               <Check className="w-4 h-4" />
                             </button>
-                            <button onClick={() => handleStatus(t.id, "Rejected")} title="駁回" className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
-                              <XCircle className="w-4 h-4" />
+                            <button onClick={() => handleStatus(t.id, "Rejected")} title="駁回（保留紀錄，狀態改為已駁回）" className="p-1.5 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded">
+                              <Undo2 className="w-4 h-4" />
                             </button>
+                            <span className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-0.5" aria-hidden />
                           </>
                         )}
-                        <button onClick={() => handleDelete(t.id)} title="刪除" className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
+                        <button onClick={() => handleDelete(t.id)} title="刪除（永久移除此筆）" className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>

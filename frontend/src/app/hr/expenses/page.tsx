@@ -4,7 +4,9 @@ import React, { useCallback, useEffect, useState } from "react";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { ExpenseClaim, Employee, BusinessTrip } from "@/features/hr/types/hr";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
-import { Receipt, Plus, Plane, Hotel, Utensils, Package, X, Check, XCircle, Clock, Trash2, ShieldCheck } from "lucide-react";
+import { Receipt, Plus, Plane, Hotel, Utensils, Package, X, Check, XCircle, Clock, Trash2, ShieldCheck, Upload, FileText, Undo2 } from "lucide-react";
+
+const isImageUrl = (url: string) => /\.(jpe?g|png|webp|gif)$/i.test(url);
 
 // Travel-oriented expense categories (stored as the free-text Category on the backend)
 const CATEGORIES = [
@@ -45,6 +47,7 @@ export default function ExpensesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [form, setForm] = useState(emptyForm);
 
   const fetchData = useCallback(() => {
@@ -103,6 +106,21 @@ export default function ExpensesPage() {
     } catch (err) {
       console.error(err);
       alert("更新狀態失敗");
+    }
+  };
+
+  const handleReceiptUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      const url = await hrApi.uploadReceipt(file);
+      setForm((f) => ({ ...f, receiptUrl: url }));
+    } catch (err) {
+      console.error(err);
+      alert("收據上傳失敗，請確認為 5MB 內的圖片或 PDF");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -195,7 +213,14 @@ export default function ExpensesPage() {
                           {c.category || "-"}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400 max-w-xs truncate">{c.description || "-"}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400 max-w-xs">
+                        <div className="truncate">{c.description || "-"}</div>
+                        {c.receiptUrl && (
+                          <a href={c.receiptUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 mt-0.5">
+                            <Receipt className="w-3 h-3" /> 收據
+                          </a>
+                        )}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-right text-slate-900 dark:text-white">{money(c.amount)}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{c.claimDate ? new Date(c.claimDate).toLocaleDateString() : "-"}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -211,12 +236,13 @@ export default function ExpensesPage() {
                               <button onClick={() => handleStatus(c.id, "Approved")} title="核准" className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded">
                                 <Check className="w-4 h-4" />
                               </button>
-                              <button onClick={() => handleStatus(c.id, "Rejected")} title="駁回" className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
-                                <XCircle className="w-4 h-4" />
+                              <button onClick={() => handleStatus(c.id, "Rejected")} title="駁回（保留紀錄，狀態改為已駁回）" className="p-1.5 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded">
+                                <Undo2 className="w-4 h-4" />
                               </button>
+                              <span className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-0.5" aria-hidden />
                             </>
                           )}
-                          <button onClick={() => handleDelete(c.id)} title="刪除" className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
+                          <button onClick={() => handleDelete(c.id)} title="刪除（永久移除此筆）" className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -323,14 +349,26 @@ export default function ExpensesPage() {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">收據連結 (選填)</label>
-                <input
-                  type="text"
-                  value={form.receiptUrl}
-                  onChange={(e) => setForm({ ...form, receiptUrl: e.target.value })}
-                  placeholder="https://..."
-                  className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-sm text-sm dark:text-slate-200"
-                />
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">收據 / 發票 (選填)</label>
+                <div className="flex items-center gap-3">
+                  <label className={`inline-flex items-center gap-2 px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-sm text-sm cursor-pointer bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 ${isUploading ? "opacity-60 pointer-events-none" : ""}`}>
+                    <Upload className="w-4 h-4" />
+                    {isUploading ? "上傳中..." : form.receiptUrl ? "重新選擇" : "上傳圖片 / 發票"}
+                    <input type="file" accept="image/*,application/pdf" className="hidden" onChange={handleReceiptUpload} disabled={isUploading} />
+                  </label>
+                  {form.receiptUrl && (
+                    <a href={form.receiptUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400">
+                      {isImageUrl(form.receiptUrl) ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={form.receiptUrl} alt="收據預覽" className="h-10 w-10 object-cover rounded border border-slate-200 dark:border-slate-700" />
+                      ) : (
+                        <FileText className="w-5 h-5" />
+                      )}
+                      已上傳，點擊檢視
+                    </a>
+                  )}
+                </div>
+                <p className="text-xs text-slate-400">支援 jpg / png / webp / gif / pdf，5MB 內。</p>
               </div>
               <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-sm">

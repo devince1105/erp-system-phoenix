@@ -14,6 +14,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Amazon.S3;
+using ERP.Host.Storage;
+using ERP.Shared.Interfaces;
+using Microsoft.Extensions.FileProviders;
+
+// Load the repo-root .env into environment variables so the backend shares the
+// same config file as docker-compose (used for R2 / object-storage settings).
+DotNetEnv.Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +41,31 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddMemoryCache();
+
+// Receipt storage: Cloudflare R2 (S3-compatible) when configured via .env,
+// otherwise fall back to local wwwroot storage for development.
+var r2Account = Environment.GetEnvironmentVariable("R2_ACCOUNT_ID");
+var r2Bucket = Environment.GetEnvironmentVariable("R2_BUCKET");
+var r2Key = Environment.GetEnvironmentVariable("R2_ACCESS_KEY_ID");
+var r2Secret = Environment.GetEnvironmentVariable("R2_SECRET_ACCESS_KEY");
+var r2Public = Environment.GetEnvironmentVariable("R2_PUBLIC_BASE_URL");
+if (!string.IsNullOrWhiteSpace(r2Account) && !string.IsNullOrWhiteSpace(r2Bucket)
+    && !string.IsNullOrWhiteSpace(r2Key) && !string.IsNullOrWhiteSpace(r2Secret)
+    && !string.IsNullOrWhiteSpace(r2Public))
+{
+    var s3 = new AmazonS3Client(r2Key, r2Secret, new AmazonS3Config
+    {
+        ServiceURL = $"https://{r2Account}.r2.cloudflarestorage.com",
+        ForcePathStyle = true,
+    });
+    builder.Services.AddSingleton<IReceiptStorage>(new R2ReceiptStorage(s3, r2Bucket, r2Public));
+    Console.WriteLine($"[Storage] Receipts -> Cloudflare R2 bucket '{r2Bucket}'");
+}
+else
+{
+    builder.Services.AddScoped<IReceiptStorage, LocalReceiptStorage>();
+    Console.WriteLine("[Storage] Receipts -> local wwwroot (R2 not configured)");
+}
 
 builder.Services.AddControllers()
     .AddApplicationPart(typeof(ERP.Modules.Identity.IdentityModuleExtensions).Assembly)
@@ -89,6 +122,15 @@ app.MapOpenApi();
 
 app.UseCors("AppCors");
 app.UseHttpsRedirection();
+
+// Serve uploaded files (e.g. expense receipts). Use an explicit provider so it
+// works even when wwwroot did not exist when the app started.
+var wwwrootPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
+Directory.CreateDirectory(wwwrootPath);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(wwwrootPath),
+});
 
 app.UseAuthentication(); // Must be before Authorization
 app.UseAuthorization();

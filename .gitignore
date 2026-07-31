@@ -46,3 +46,6 @@ Thumbs.db
 # EF Seeder build output
 backend/tools/**/bin/
 backend/tools/**/obj/
+
+# Uploaded files (receipts etc.) — runtime only
+backend/src/ERP.Host/wwwroot/uploads/
