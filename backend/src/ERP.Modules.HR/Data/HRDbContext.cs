@@ -19,6 +19,7 @@ public class HRDbContext : DbContext
     public DbSet<OvertimeRequest> OvertimeRequests => Set<OvertimeRequest>();
     public DbSet<CalendarEvent> CalendarEvents => Set<CalendarEvent>();
     public DbSet<PayrollRecord> Payrolls => Set<PayrollRecord>();
+    public DbSet<BusinessTrip> BusinessTrips => Set<BusinessTrip>();
     public DbSet<LeaveBalance> LeaveBalances => Set<LeaveBalance>();
     public DbSet<SalaryStructure> SalaryStructures => Set<SalaryStructure>();
     public DbSet<ExpenseClaim> ExpenseClaims => Set<ExpenseClaim>();

@@ -10,6 +10,10 @@ public class ExpenseClaim
     public int EmployeeId { get; set; }
     public Employee? Employee { get; set; }
 
+    // Optional link to an approved 出差申請單 — pre-authorises this reimbursement.
+    public int? BusinessTripId { get; set; }
+    public BusinessTrip? BusinessTrip { get; set; }
+
     [MaxLength(200)]
     public string Description { get; set; } = string.Empty;
 
