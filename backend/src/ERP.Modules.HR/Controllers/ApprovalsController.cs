@@ -23,6 +23,17 @@ public class ApprovalsController : ControllerBase
         return instance is null ? NotFound() : instance;
     }
 
+    /// <summary>
+    /// Create missing approval instances for still-pending documents of a form type
+    /// (for data submitted before the engine was wired). Idempotent.
+    /// </summary>
+    [HttpPost("backfill/{formType}")]
+    public async Task<ActionResult<object>> Backfill(string formType)
+    {
+        var created = await _approvals.BackfillAsync(formType);
+        return Ok(new { formType, created });
+    }
+
     public record DecideDto(bool Approve, string? Comment);
 
     /// <summary>Approve or reject the current step of an approval instance.</summary>

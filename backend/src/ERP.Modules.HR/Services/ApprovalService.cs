@@ -60,6 +60,36 @@ public class ApprovalService
             .Include(i => i.Steps)
             .FirstOrDefaultAsync(i => i.FormType == formType && i.DocumentId == documentId);
 
+    /// <summary>
+    /// Create approval instances for still-pending documents that were submitted
+    /// before the engine existed (or before their form type was wired). Idempotent:
+    /// documents that already have an instance are skipped. Returns the count created.
+    /// </summary>
+    public async Task<int> BackfillAsync(string formType)
+    {
+        List<int> pendingIds = formType switch
+        {
+            "Leave" => await _db.LeaveRequests.Where(l => l.Status == "Pending").Select(l => l.Id).ToListAsync(),
+            "Overtime" => await _db.OvertimeRequests.Where(o => o.Status == "Pending").Select(o => o.Id).ToListAsync(),
+            _ => new List<int>(),
+        };
+        if (pendingIds.Count == 0) return 0;
+
+        var existing = await _db.ApprovalInstances
+            .Where(i => i.FormType == formType && pendingIds.Contains(i.DocumentId))
+            .Select(i => i.DocumentId)
+            .ToListAsync();
+        var missing = pendingIds.Except(existing).ToList();
+
+        var created = 0;
+        foreach (var id in missing)
+        {
+            await CreateAsync(formType, id);
+            created++;
+        }
+        return created;
+    }
+
     /// <summary>Approve or reject the instance's current step and advance the flow.</summary>
     public async Task<ApprovalInstance?> DecideAsync(int instanceId, bool approve, int userId, string? comment)
     {
