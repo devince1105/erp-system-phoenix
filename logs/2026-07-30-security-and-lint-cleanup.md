@@ -167,6 +167,26 @@
 
 **注意事項**：`dotnet ef` 工具因 `dotnet-tools.json` 放在非標準路徑（應為 `.config/dotnet-tools.json`）而無法用 manifest 解析,本次改以全域安裝 `dotnet-ef` 建 migration。
 
+## 階段 12 — 通用簽核流程系統（簽核實例引擎）
+
+**需求**：所有需簽核的單據不該在列表 Row 直接核准/駁回,而是**點進明細**查看後判決;判決依 `/settings/workflows` 設定的**表單類型**逐級跑給不同層級簽核,且申請人能看到**目前卡在哪一關**。
+
+**後端引擎**（`56dc6e7`）：
+- `ApprovalInstance`（簽核實例,每張單一份:FormType、DocumentId、Status、CurrentStepOrder）+ `ApprovalStep`（關卡:順序、角色、狀態、簽核人、時間、意見）。
+- `ApprovalService`：`WorkflowDefinitions` 流程定義（BusinessTrip / ExpenseClaim / Leave / Purchase,對應 `/settings/workflows`）、`CreateAsync`（送單自動展開關卡）、`DecideAsync`（核准/駁回當前關卡並推進,完成時同步單據狀態）。
+- `ApprovalsController`：`GET /api/hr/Approvals/{formType}/{documentId}`、`POST /{id}/decide`。
+- BusinessTrip / ExpenseClaim 建立時自動起單;migration `AddApprovalInstances`（已套用 Azure）。
+- `/settings/workflows` 補上「出差申請單」「差旅報支單」表單類型,與後端 registry 一致。
+
+**前端**（`d371df0` 出差、`eb9d9f7` 報支）：
+- `ApprovalFlow` 可重用 stepper（compact 給列表、full 給明細）,highlight「審核中」關卡。
+- 出差申請 + 差旅報支:Row 改「檢視」→ 明細顯示單據 + 完整流程 stepper + **在明細內**核准/駁回(含意見);列表顯示精簡流程指示「待○○簽核 (n/m)」。移除 Row 直接簽核。
+- `hrApi.getApproval / decideApproval` + `ApprovalInstance/Step` 型別。
+
+**端到端驗證**（瀏覽器）：建出差單 → 列表「待直屬主管簽核 (0/2)」→ 檢視 → 核准第 1 關(填意見)→ stepper 第 1 關轉綠、自動進第 2 關「部門主管 審核中」、意見記錄。tsc/eslint 0。
+
+**尚可強化**：嚴格角色控管（目前 admin 皆可簽,待接組織/職級）、流程設定持久化（settings 目前 mockup + 後端 registry,編輯未儲存）、套用到請假/採購頁、引擎前的舊單據無實例。
+
 ## 尚待處理 / 建議（後續）
 
 - ~~**CORS 過寬**（`AllowAnyOrigin`）~~ ✅ 已處理（階段 10，`6350917`）：改為 `Cors:AllowedOrigins` 白名單,預設本機開發來源,policy 更名 "AppCors"。正式環境請於設定填入真實網域。
