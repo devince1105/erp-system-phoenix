@@ -227,6 +227,11 @@ export const hrApi = {
     const { data } = await axiosClient.post<ApprovalInstance>(`/hr/approvals/${instanceId}/decide`, { approve, comment });
     return data;
   },
+  // Pending approval instances the current user is authorized to decide (Admin sees all).
+  getMyApprovals: async (): Promise<ApprovalInstance[]> => {
+    const { data } = await axiosClient.get<ApprovalInstance[]>('/hr/approvals/mine');
+    return data;
+  },
 
   // Upload a receipt image/PDF; returns the stored file URL.
   uploadReceipt: async (file: File): Promise<string> => {

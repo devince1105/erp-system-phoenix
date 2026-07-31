@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using ERP.Modules.HR.Models;
+using Microsoft.AspNetCore.Http;
 using ERP.Modules.HR.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,6 +24,14 @@ public class ApprovalsController : ControllerBase
         return instance is null ? NotFound() : instance;
     }
 
+    /// <summary>Pending approval instances the current user may decide (Admin sees all).</summary>
+    [HttpGet("mine")]
+    public async Task<ActionResult<IEnumerable<ApprovalInstance>>> Mine()
+    {
+        var instances = await _approvals.GetPendingForUserAsync(CurrentEmployeeId(), CurrentRoles());
+        return Ok(instances);
+    }
+
     /// <summary>
     /// Create missing approval instances for still-pending documents of a form type
     /// (for data submitted before the engine was wired). Idempotent.
@@ -40,6 +49,9 @@ public class ApprovalsController : ControllerBase
     [HttpPost("{id:int}/decide")]
     public async Task<ActionResult<ApprovalInstance>> Decide(int id, [FromBody] DecideDto dto)
     {
+        if (!await _approvals.CanDecideInstanceAsync(id, CurrentEmployeeId(), CurrentRoles()))
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "您不是此關卡的簽核人。" });
+
         var instance = await _approvals.DecideAsync(id, dto.Approve, CurrentUserId(), dto.Comment);
         return instance is null ? NotFound() : instance;
     }
@@ -51,4 +63,12 @@ public class ApprovalsController : ControllerBase
                   ?? User.FindFirst("nameid")?.Value;
         return int.TryParse(raw, out var id) ? id : 0;
     }
+
+    private int? CurrentEmployeeId() =>
+        int.TryParse(User.FindFirst("employee_id")?.Value, out var id) ? id : null;
+
+    private ISet<string> CurrentRoles() =>
+        User.FindAll(ClaimTypes.Role).Select(c => c.Value)
+            .Concat(User.FindAll("role").Select(c => c.Value))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 }

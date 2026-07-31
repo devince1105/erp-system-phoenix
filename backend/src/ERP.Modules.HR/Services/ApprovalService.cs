@@ -90,6 +90,77 @@ public class ApprovalService
         return created;
     }
 
+    // ----- Approver resolution (strict role control) -------------------------
+
+    /// <summary>Employee id of the document's applicant (for approver resolution).</summary>
+    private async Task<int?> ApplicantEmployeeIdAsync(string formType, int documentId) => formType switch
+    {
+        "Leave" => (await _db.LeaveRequests.FindAsync(documentId))?.EmployeeId,
+        "Overtime" => (await _db.OvertimeRequests.FindAsync(documentId))?.EmployeeId,
+        "BusinessTrip" => (await _db.BusinessTrips.FindAsync(documentId))?.EmployeeId,
+        "ExpenseClaim" => (await _db.ExpenseClaims.FindAsync(documentId))?.EmployeeId,
+        _ => null,
+    };
+
+    private Task<bool> IsFinanceManagerAsync(int? employeeId) =>
+        employeeId is null
+            ? Task.FromResult(false)
+            : _db.Departments.AnyAsync(d =>
+                (d.Name.Contains("會計") || d.Name.Contains("財務")) && d.ManagerId == employeeId);
+
+    /// <summary>
+    /// Whether the given user (identified by their linked employee id + roles) is the
+    /// authorized approver of the instance's current step. Admin is a super-approver.
+    /// </summary>
+    public async Task<bool> CanDecideAsync(ApprovalInstance instance, int? employeeId, ISet<string> roles)
+    {
+        if (roles.Contains("Admin")) return true;
+        if (instance.Status != "Pending") return false;
+
+        var step = instance.Steps.FirstOrDefault(s => s.StepOrder == instance.CurrentStepOrder && s.Status == "Pending");
+        if (step is null) return false;
+
+        if (step.Role == "Finance")
+            return roles.Contains("Accountant") || await IsFinanceManagerAsync(employeeId);
+
+        if (step.Role is "DepartmentManager" or "DirectSupervisor")
+        {
+            if (employeeId is null) return false;
+            var applicantEmpId = await ApplicantEmployeeIdAsync(instance.FormType, instance.DocumentId);
+            if (applicantEmpId is null) return false;
+            var applicant = await _db.Employees.FindAsync(applicantEmpId.Value);
+            if (applicant?.DepartmentId is null) return false;
+            var dept = await _db.Departments.FindAsync(applicant.DepartmentId.Value);
+            return dept?.ManagerId == employeeId;
+        }
+
+        return false; // unknown role → only Admin may act
+    }
+
+    /// <summary>Load an instance and evaluate <see cref="CanDecideAsync"/> for the user.</summary>
+    public async Task<bool> CanDecideInstanceAsync(int instanceId, int? employeeId, ISet<string> roles)
+    {
+        var instance = await _db.ApprovalInstances.Include(i => i.Steps).FirstOrDefaultAsync(i => i.Id == instanceId);
+        return instance is not null && await CanDecideAsync(instance, employeeId, roles);
+    }
+
+    /// <summary>All Pending instances the user may currently decide (Admin sees all).</summary>
+    public async Task<List<ApprovalInstance>> GetPendingForUserAsync(int? employeeId, ISet<string> roles)
+    {
+        var pending = await _db.ApprovalInstances
+            .Include(i => i.Steps)
+            .Where(i => i.Status == "Pending")
+            .ToListAsync();
+
+        if (roles.Contains("Admin")) return pending;
+
+        var mine = new List<ApprovalInstance>();
+        foreach (var instance in pending)
+            if (await CanDecideAsync(instance, employeeId, roles))
+                mine.Add(instance);
+        return mine;
+    }
+
     /// <summary>Approve or reject the instance's current step and advance the flow.</summary>
     public async Task<ApprovalInstance?> DecideAsync(int instanceId, bool approve, int userId, string? comment)
     {

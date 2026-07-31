@@ -27,10 +27,12 @@ export default function LeaveOvertimeApprovalsPage() {
   const [isDeciding, setIsDeciding] = useState(false);
 
   const fetchData = useCallback(() => {
-    Promise.all([hrApi.getLeaves(), hrApi.getOvertimes()])
-      .then(async ([lvData, ovData]) => {
-        const lvPending = lvData.filter((l) => l.status === "Pending");
-        const ovPending = ovData.filter((o) => o.status === "Pending");
+    Promise.all([hrApi.getLeaves(), hrApi.getOvertimes(), hrApi.getMyApprovals()])
+      .then(async ([lvData, ovData, mine]) => {
+        // Only keep documents whose current step this user is authorized to decide.
+        const mineKeys = new Set(mine.map((i) => `${i.formType}:${i.documentId}`));
+        const lvPending = lvData.filter((l) => l.status === "Pending" && mineKeys.has(`Leave:${l.id}`));
+        const ovPending = ovData.filter((o) => o.status === "Pending" && mineKeys.has(`Overtime:${o.id}`));
         const [lvInst, ovInst] = await Promise.all([
           Promise.all(lvPending.map((l) => hrApi.getApproval("Leave", l.id).then((a) => ({ req: l, approval: a })))),
           Promise.all(ovPending.map((o) => hrApi.getApproval("Overtime", o.id).then((a) => ({ req: o, approval: a })))),
@@ -81,8 +83,10 @@ export default function LeaveOvertimeApprovalsPage() {
       setDecideComment("");
       fetchData();
     } catch (err) {
+      const e = err as { response?: { status?: number; data?: { message?: string } } };
       console.error(err);
-      alert("簽核失敗");
+      alert(e.response?.status === 403 ? (e.response.data?.message ?? "您無權簽核此關卡。") : "簽核失敗");
+      if (e.response?.status === 403) { closeDetail(); fetchData(); }
     } finally {
       setIsDeciding(false);
     }
