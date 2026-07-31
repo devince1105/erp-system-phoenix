@@ -52,6 +52,24 @@ export default function WorkflowsPage() {
         { id: 's6', role: 'DirectSupervisor', label: '直屬主管', isRequired: true },
         { id: 's7', role: 'Finance', label: '財務部', isRequired: true },
       ]
+    },
+    {
+      id: 'wf-4',
+      formType: 'BusinessTrip',
+      formLabel: '出差申請單',
+      steps: [
+        { id: 's8', role: 'DirectSupervisor', label: '直屬主管', isRequired: true },
+        { id: 's9', role: 'DepartmentManager', label: '部門主管', isRequired: true },
+      ]
+    },
+    {
+      id: 'wf-5',
+      formType: 'ExpenseClaim',
+      formLabel: '差旅報支單',
+      steps: [
+        { id: 's10', role: 'DepartmentManager', label: '部門主管', isRequired: true },
+        { id: 's11', role: 'Finance', label: '財務部', isRequired: true },
+      ]
     }
   ]);
 

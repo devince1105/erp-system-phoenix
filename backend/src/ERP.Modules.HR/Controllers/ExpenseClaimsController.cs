@@ -1,5 +1,6 @@
 using ERP.Modules.HR.Data;
 using ERP.Modules.HR.Models;
+using ERP.Modules.HR.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,10 +13,12 @@ namespace ERP.Modules.HR.Controllers;
 public class ExpenseClaimsController : ControllerBase
 {
     private readonly HRDbContext _context;
+    private readonly ApprovalService _approvals;
 
-    public ExpenseClaimsController(HRDbContext context)
+    public ExpenseClaimsController(HRDbContext context, ApprovalService approvals)
     {
         _context = context;
+        _approvals = approvals;
     }
 
     [HttpGet]
@@ -57,6 +60,9 @@ public class ExpenseClaimsController : ControllerBase
 
         _context.ExpenseClaims.Add(expenseClaim);
         await _context.SaveChangesAsync();
+
+        // Kick off the approval workflow for this claim.
+        await _approvals.CreateAsync("ExpenseClaim", expenseClaim.Id);
 
         return CreatedAtAction(nameof(GetExpenseClaim), new { id = expenseClaim.Id }, expenseClaim);
     }

@@ -1,4 +1,5 @@
 using ERP.Modules.HR.Data;
+using ERP.Modules.HR.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +16,8 @@ public static class HRModuleExtensions
         services.AddDbContext<HRDbContext>(options =>
             options.UseSqlServer(connectionString,
                 sqlOptions => sqlOptions.MigrationsAssembly("ERP.Host")));
+
+        services.AddScoped<ApprovalService>();
 
         return services;
     }

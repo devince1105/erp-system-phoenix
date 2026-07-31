@@ -1,5 +1,6 @@
 using ERP.Modules.HR.Data;
 using ERP.Modules.HR.Models;
+using ERP.Modules.HR.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,10 +13,12 @@ namespace ERP.Modules.HR.Controllers;
 public class BusinessTripsController : ControllerBase
 {
     private readonly HRDbContext _context;
+    private readonly ApprovalService _approvals;
 
-    public BusinessTripsController(HRDbContext context)
+    public BusinessTripsController(HRDbContext context, ApprovalService approvals)
     {
         _context = context;
+        _approvals = approvals;
     }
 
     [HttpGet]
@@ -60,6 +63,9 @@ public class BusinessTripsController : ControllerBase
 
         _context.BusinessTrips.Add(trip);
         await _context.SaveChangesAsync();
+
+        // Kick off the approval workflow for this trip.
+        await _approvals.CreateAsync("BusinessTrip", trip.Id);
 
         return CreatedAtAction(nameof(GetBusinessTrip), new { id = trip.Id }, trip);
     }
