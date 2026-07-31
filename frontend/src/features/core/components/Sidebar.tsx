@@ -24,7 +24,8 @@ import {
   ShieldCheck,
   Plane,
   Receipt,
-  Wallet
+  Wallet,
+  CalendarCheck
 } from "lucide-react";
 
 export const Sidebar = () => {
@@ -66,7 +67,7 @@ export const Sidebar = () => {
     { name: "出差申請 (Business Trips)", href: "/hr/business-trips", icon: Plane },
     { name: "差旅報支 (Travel Expenses)", href: "/hr/expenses", icon: Receipt },
     { name: "費用報銷 (Office Expenses)", href: "/hr/office-expenses", icon: Wallet },
-    { name: "簽核中心 (Approvals)", href: "/hr/approvals", icon: CheckSquare },
+    { name: "假勤簽核 (Leave & Overtime)", href: "/hr/approvals", icon: CalendarCheck },
     { name: "薪資結算 (Payroll)", href: "/hr/payroll", icon: DollarSign },
   ];
 
