@@ -205,6 +205,7 @@ export interface ExpenseClaim {
   id: number;
   employeeId: number;
   employee?: Employee;
+  expenseType?: string; // Travel (差旅報支) or General (費用報銷)
   businessTripId?: number;
   businessTrip?: BusinessTrip;
   description: string;

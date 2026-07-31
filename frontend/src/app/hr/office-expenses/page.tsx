@@ -2,60 +2,57 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { hrApi } from "@/features/hr/api/hrApi";
-import { ExpenseClaim, Employee, BusinessTrip, ApprovalInstance } from "@/features/hr/types/hr";
+import { ExpenseClaim, Employee, ApprovalInstance } from "@/features/hr/types/hr";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
 import { ApprovalFlow } from "@/features/hr/components/ApprovalFlow";
-import { Receipt, Plus, Plane, Hotel, Utensils, Package, X, Check, Trash2, ShieldCheck, Upload, FileText, Undo2, Eye } from "lucide-react";
+import { Wallet, Plus, Utensils, Cake, Package, X, Check, Trash2, Upload, FileText, Undo2, Eye, ReceiptText } from "lucide-react";
 
 const isImageUrl = (url: string) => /\.(jpe?g|png|webp|gif)$/i.test(url);
 
-// Travel-oriented expense categories (stored as the free-text Category on the backend)
+// Daily office-spend categories (費用報銷, non-travel).
 const CATEGORIES = [
-  { key: "交通費", icon: Plane, color: "text-blue-600 dark:text-blue-400" },
-  { key: "住宿費", icon: Hotel, color: "text-purple-600 dark:text-purple-400" },
-  { key: "餐費", icon: Utensils, color: "text-amber-600 dark:text-amber-400" },
-  { key: "差旅雜支", icon: Package, color: "text-slate-600 dark:text-slate-400" },
+  { key: "餐飲/聚餐", icon: Utensils, color: "text-amber-600 dark:text-amber-400" },
+  { key: "慶生/下午茶", icon: Cake, color: "text-pink-600 dark:text-pink-400" },
+  { key: "辦公用品", icon: Package, color: "text-blue-600 dark:text-blue-400" },
+  { key: "其他雜支", icon: Wallet, color: "text-slate-600 dark:text-slate-400" },
 ];
 
 const emptyForm = {
   employeeId: "" as number | "",
-  businessTripId: "" as number | "",
-  category: "交通費",
+  category: "餐飲/聚餐",
   description: "",
   amount: 0,
   claimDate: new Date().toISOString().split("T")[0],
   receiptUrl: "",
-  notes: "",
 };
 
-export default function ExpensesPage() {
+export default function OfficeExpensesPage() {
   const [claims, setClaims] = useState<ExpenseClaim[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [trips, setTrips] = useState<BusinessTrip[]>([]);
+  const [approvals, setApprovals] = useState<Record<number, ApprovalInstance | null>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [form, setForm] = useState(emptyForm);
-  const [approvals, setApprovals] = useState<Record<number, ApprovalInstance | null>>({});
+
   const [detailClaim, setDetailClaim] = useState<ExpenseClaim | null>(null);
   const [detailApproval, setDetailApproval] = useState<ApprovalInstance | null>(null);
   const [decideComment, setDecideComment] = useState("");
   const [isDeciding, setIsDeciding] = useState(false);
 
   const fetchData = useCallback(() => {
-    Promise.all([hrApi.getExpenseClaims(), hrApi.getEmployees(), hrApi.getBusinessTrips()])
-      .then(async ([claimData, empData, tripData]) => {
-        const travel = claimData.filter((c) => (c.expenseType ?? "Travel") === "Travel");
-        setClaims(travel);
+    Promise.all([hrApi.getExpenseClaims(), hrApi.getEmployees()])
+      .then(async ([claimData, empData]) => {
+        const general = claimData.filter((c) => c.expenseType === "General");
+        setClaims(general);
         setEmployees(empData);
-        setTrips(tripData);
         const entries = await Promise.all(
-          travel.map((c) => hrApi.getApproval("ExpenseClaim", c.id).then((inst) => [c.id, inst] as const))
+          general.map((c) => hrApi.getApproval("ExpenseClaim", c.id).then((inst) => [c.id, inst] as const))
         );
         setApprovals(Object.fromEntries(entries));
       })
-      .catch((err) => console.error("Failed to load expense claims", err))
+      .catch((err) => console.error("Failed to load office expenses", err))
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -64,6 +61,7 @@ export default function ExpensesPage() {
   }, [fetchData]);
 
   const employeeName = (id: number) => employees.find((e) => e.id === id)?.name || `員工 #${id}`;
+  const money = (n: number) => `$${n.toLocaleString(undefined, { minimumFractionDigits: 0 })}`;
 
   const openCreate = () => {
     setForm({ ...emptyForm, employeeId: employees[0]?.id ?? "" });
@@ -78,14 +76,12 @@ export default function ExpensesPage() {
     try {
       await hrApi.createExpenseClaim({
         employeeId: Number(form.employeeId),
-        expenseType: "Travel",
-        businessTripId: form.businessTripId ? Number(form.businessTripId) : undefined,
+        expenseType: "General",
         category: form.category,
         description: form.description,
         amount: Number(form.amount),
         claimDate: new Date(form.claimDate).toISOString(),
         receiptUrl: form.receiptUrl || undefined,
-        notes: form.notes || undefined,
         status: "Pending",
       });
       setIsModalOpen(false);
@@ -95,6 +91,21 @@ export default function ExpensesPage() {
       alert("送出失敗，請重試");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleReceiptUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      const url = await hrApi.uploadReceipt(file);
+      setForm((f) => ({ ...f, receiptUrl: url }));
+    } catch (err) {
+      console.error(err);
+      alert("收據上傳失敗，請確認為 5MB 內的圖片或 PDF");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -121,23 +132,8 @@ export default function ExpensesPage() {
     }
   };
 
-  const handleReceiptUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setIsUploading(true);
-    try {
-      const url = await hrApi.uploadReceipt(file);
-      setForm((f) => ({ ...f, receiptUrl: url }));
-    } catch (err) {
-      console.error(err);
-      alert("收據上傳失敗，請確認為 5MB 內的圖片或 PDF");
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
   const handleDelete = async (id: number) => {
-    if (!confirm("確定要刪除這筆報支嗎？")) return;
+    if (!confirm("確定要刪除這筆報銷嗎？")) return;
     try {
       await hrApi.deleteExpenseClaim(id);
       fetchData();
@@ -149,34 +145,31 @@ export default function ExpensesPage() {
 
   const pendingTotal = claims.filter((c) => c.status === "Pending").reduce((s, c) => s + c.amount, 0);
   const approvedTotal = claims.filter((c) => c.status === "Approved").reduce((s, c) => s + c.amount, 0);
-  const money = (n: number) => `$${n.toLocaleString(undefined, { minimumFractionDigits: 0 })}`;
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <Breadcrumbs items={[{ label: "首頁", href: "/" }, { label: "人力資源系統 (HRM)", href: "/hr" }, { label: "差旅報支" }]} />
+      <Breadcrumbs items={[{ label: "首頁", href: "/" }, { label: "人力資源系統 (HRM)", href: "/hr" }, { label: "費用報銷" }]} />
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Receipt className="h-6 w-6 text-blue-600" />
-            差旅報支 (Travel Expenses)
+            <ReceiptText className="h-6 w-6 text-teal-600" />
+            費用報銷 (Office Expenses)
           </h1>
-          <p className="text-sm text-slate-500 mt-1">申請差旅費用報支（交通、住宿、餐費），送出後由主管簽核。</p>
+          <p className="text-sm text-slate-500 mt-1">日常辦公室開銷報銷（聚餐、慶生下午茶、辦公用品等），與出差無關，送出後依簽核流程核准。</p>
         </div>
         <button
           onClick={openCreate}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-sm shadow-sm transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium rounded-sm shadow-sm transition-colors"
         >
           <Plus className="w-4 h-4" />
-          新增報支
+          新增報銷
         </button>
       </div>
 
-      {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm p-4">
-          <p className="text-xs text-slate-500">總報支筆數</p>
+          <p className="text-xs text-slate-500">總報銷筆數</p>
           <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{claims.length}</p>
         </div>
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm p-4">
@@ -189,15 +182,14 @@ export default function ExpensesPage() {
         </div>
       </div>
 
-      {/* Table */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm shadow-sm overflow-hidden">
         {isLoading ? (
           <div className="py-12 flex flex-col items-center justify-center text-slate-500">
-            <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-            載入報支資料中...
+            <div className="w-8 h-8 border-2 border-teal-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+            載入報銷資料中...
           </div>
         ) : claims.length === 0 ? (
-          <div className="py-12 text-center text-slate-500">尚無報支紀錄，點右上角「新增報支」開始申請。</div>
+          <div className="py-12 text-center text-slate-500">尚無報銷紀錄，點右上角「新增報銷」開始申請。</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -215,7 +207,7 @@ export default function ExpensesPage() {
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {claims.map((c) => {
                   const cat = CATEGORIES.find((x) => x.key === c.category);
-                  const Icon = cat?.icon ?? Package;
+                  const Icon = cat?.icon ?? Wallet;
                   return (
                     <tr key={c.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-white">{employeeName(c.employeeId)}</td>
@@ -229,7 +221,7 @@ export default function ExpensesPage() {
                         <div className="truncate">{c.description || "-"}</div>
                         {c.receiptUrl && (
                           <a href={c.receiptUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 mt-0.5">
-                            <Receipt className="w-3 h-3" /> 收據
+                            <ReceiptText className="w-3 h-3" /> 收據
                           </a>
                         )}
                       </td>
@@ -240,7 +232,7 @@ export default function ExpensesPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <div className="inline-flex items-center gap-1">
-                          <button onClick={() => openDetail(c)} title="檢視 / 簽核" className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                          <button onClick={() => openDetail(c)} title="檢視 / 簽核" className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-800 rounded hover:bg-teal-50 dark:hover:bg-teal-900/20">
                             <Eye className="w-3.5 h-3.5" /> 檢視
                           </button>
                           <button onClick={() => handleDelete(c.id)} title="刪除（永久移除此筆）" className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
@@ -262,7 +254,7 @@ export default function ExpensesPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 rounded-sm shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
             <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">新增差旅報支</h2>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">新增費用報銷</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                 <X className="w-5 h-5" />
               </button>
@@ -270,7 +262,7 @@ export default function ExpensesPage() {
             <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">報支員工 <span className="text-red-500">*</span></label>
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">報銷員工 <span className="text-red-500">*</span></label>
                   <select
                     value={form.employeeId}
                     onChange={(e) => setForm({ ...form, employeeId: e.target.value ? Number(e.target.value) : "" })}
@@ -295,59 +287,23 @@ export default function ExpensesPage() {
                   </select>
                 </div>
               </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">關聯出差申請單 (選填)</label>
-                <select
-                  value={form.businessTripId}
-                  onChange={(e) => setForm({ ...form, businessTripId: e.target.value ? Number(e.target.value) : "" })}
-                  className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-sm text-sm dark:text-slate-200"
-                >
-                  <option value="">不關聯（一般報支）</option>
-                  {trips
-                    .filter((t) => t.status === "Approved" && (!form.employeeId || t.employeeId === Number(form.employeeId)))
-                    .map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.destination}（{new Date(t.startDate).toLocaleDateString()} ~ {new Date(t.endDate).toLocaleDateString()}）
-                      </option>
-                    ))}
-                </select>
-                {form.businessTripId ? (
-                  <p className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
-                    <ShieldCheck className="w-3.5 h-3.5" /> 已關聯核准的出差單，此報支視為預先授權，簽核較易通過。
-                  </p>
-                ) : (
-                  <p className="text-xs text-slate-400">關聯已核准的出差單可加速簽核；無出差單也可直接報支。</p>
-                )}
-              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-slate-700 dark:text-slate-300">金額 <span className="text-red-500">*</span></label>
-                  <input
-                    type="number" min={0}
-                    value={form.amount}
-                    onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })}
-                    className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-sm text-sm dark:text-slate-200"
-                  />
+                  <input type="number" min={0} value={form.amount} onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })}
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-sm text-sm dark:text-slate-200" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-slate-700 dark:text-slate-300">申請日期</label>
-                  <input
-                    type="date"
-                    value={form.claimDate}
-                    onChange={(e) => setForm({ ...form, claimDate: e.target.value })}
-                    className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-sm text-sm dark:text-slate-200"
-                  />
+                  <input type="date" value={form.claimDate} onChange={(e) => setForm({ ...form, claimDate: e.target.value })}
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-sm text-sm dark:text-slate-200" />
                 </div>
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">費用說明</label>
-                <input
-                  type="text"
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="例如：台北→台中 高鐵來回、出差住宿一晚"
-                  className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-sm text-sm dark:text-slate-200"
-                />
+                <input type="text" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  placeholder="例如：部門聚餐、七月壽星下午茶、影印紙採購"
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-sm text-sm dark:text-slate-200" />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">收據 / 發票 (選填)</label>
@@ -375,9 +331,9 @@ export default function ExpensesPage() {
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-sm">
                   取消
                 </button>
-                <button type="submit" disabled={isSubmitting} className="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 text-white text-sm font-medium rounded-sm">
-                  <Receipt className="w-4 h-4" />
-                  {isSubmitting ? "送出中..." : "送出報支"}
+                <button type="submit" disabled={isSubmitting} className="inline-flex items-center gap-2 px-5 py-2 bg-teal-600 hover:bg-teal-700 disabled:bg-teal-600/50 text-white text-sm font-medium rounded-sm">
+                  <ReceiptText className="w-4 h-4" />
+                  {isSubmitting ? "送出中..." : "送出報銷"}
                 </button>
               </div>
             </form>
@@ -391,7 +347,7 @@ export default function ExpensesPage() {
           <div className="bg-white dark:bg-slate-900 rounded-sm shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
               <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Receipt className="w-5 h-5 text-blue-600" /> 差旅報支明細
+                <ReceiptText className="w-5 h-5 text-teal-600" /> 費用報銷明細
               </h2>
               <button onClick={() => setDetailClaim(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                 <X className="w-5 h-5" />
@@ -404,11 +360,6 @@ export default function ExpensesPage() {
                 <div><p className="text-xs text-slate-500">金額</p><p className="font-mono text-slate-800 dark:text-slate-200">{money(detailClaim.amount)}</p></div>
                 <div><p className="text-xs text-slate-500">申請日</p><p className="text-slate-700 dark:text-slate-300">{detailClaim.claimDate ? new Date(detailClaim.claimDate).toLocaleDateString() : "-"}</p></div>
                 <div className="col-span-2"><p className="text-xs text-slate-500">說明</p><p className="text-slate-700 dark:text-slate-300">{detailClaim.description || "-"}</p></div>
-                {detailClaim.businessTripId && (
-                  <div className="col-span-2 flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
-                    <ShieldCheck className="w-3.5 h-3.5" /> 已關聯核准出差單（預先授權）
-                  </div>
-                )}
                 {detailClaim.receiptUrl && (
                   <div className="col-span-2">
                     <p className="text-xs text-slate-500 mb-1">收據 / 發票</p>

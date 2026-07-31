@@ -17,6 +17,10 @@ public class ExpenseClaim
     [MaxLength(200)]
     public string Description { get; set; } = string.Empty;
 
+    /// <summary>Travel (差旅報支, trip-related) or General (費用報銷, daily office spend).</summary>
+    [MaxLength(20)]
+    public string ExpenseType { get; set; } = "Travel";
+
     [MaxLength(50)]
     public string Category { get; set; } = string.Empty; // Travel, Meal, Equipment, etc.
 
