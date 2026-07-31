@@ -1,5 +1,6 @@
 using ERP.Modules.HR.Data;
 using ERP.Modules.HR.Models;
+using ERP.Modules.HR.Services;
 using ERP.Shared.Interfaces.Accounting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -44,6 +45,44 @@ public class PayrollsController : ControllerBase
             .ToListAsync();
     }
 
+    /// <summary>
+    /// Itemised breakdown of a payroll record: which approved overtime (加項) and
+    /// leave (扣項) fed into the Bonus/Deductions, recomputed live from the source
+    /// documents at the employee's hourly rate.
+    /// </summary>
+    [HttpGet("{id}/breakdown")]
+    [Authorize(Roles = "Admin,HR")]
+    public async Task<ActionResult<PayrollBreakdown>> GetBreakdown(int id)
+    {
+        var p = await _context.Payrolls.Include(x => x.Employee).FirstOrDefaultAsync(x => x.Id == id);
+        if (p == null) return NotFound();
+
+        decimal rate = PayrollCalculator.HourlyRate(p.BaseSalary);
+
+        var overtimes = await _context.OvertimeRequests
+            .Where(o => o.EmployeeId == p.EmployeeId && o.Status == "Approved" && o.Date.Year == p.Year && o.Date.Month == p.Month)
+            .ToListAsync();
+        var leaves = await _context.LeaveRequests
+            .Where(l => l.EmployeeId == p.EmployeeId && l.Status == "Approved"
+                        && ((l.StartDate.Year == p.Year && l.StartDate.Month == p.Month)
+                            || (l.EndDate.Year == p.Year && l.EndDate.Month == p.Month)))
+            .ToListAsync();
+
+        var additions = PayrollCalculator.BuildAdditions(overtimes, rate);
+        var deductions = PayrollCalculator.BuildDeductions(leaves, rate, p.Year, p.Month);
+        decimal totalAdd = additions.Sum(a => a.Amount);
+        decimal totalDed = deductions.Sum(d => d.Amount);
+
+        return new PayrollBreakdown(
+            p.EmployeeId,
+            p.Employee?.Name ?? $"員工 #{p.EmployeeId}",
+            p.Year, p.Month,
+            p.BaseSalary, Math.Round(rate, 2),
+            additions, deductions,
+            totalAdd, totalDed,
+            p.BaseSalary + totalAdd - totalDed);
+    }
+
     [HttpPost]
     public async Task<ActionResult<PayrollRecord>> CreatePayroll(PayrollRecord record)
     {
@@ -63,44 +102,22 @@ public class PayrollsController : ControllerBase
             var existing = await _context.Payrolls.FirstOrDefaultAsync(p => p.EmployeeId == emp.Id && p.Year == year && p.Month == month);
             if (existing == null)
             {
-                decimal hourlyRate = emp.BaseSalary / 240m;
-                
-                // Calculate Overtime Bonus
+                decimal hourlyRate = PayrollCalculator.HourlyRate(emp.BaseSalary);
+
                 var overtimes = await _context.OvertimeRequests
                     .Where(o => o.EmployeeId == emp.Id && o.Status == "Approved" && o.Date.Year == year && o.Date.Month == month)
                     .ToListAsync();
 
-                decimal bonus = 0;
-                foreach (var ov in overtimes)
-                {
-                    decimal firstTwo = Math.Min(ov.Hours, 2m);
-                    decimal remaining = Math.Max(0m, ov.Hours - 2m);
-                    bonus += (firstTwo * hourlyRate * 1.34m) + (remaining * hourlyRate * 1.67m);
-                }
-
-                // Calculate Leave Deductions
                 var leaves = await _context.LeaveRequests
-                    .Where(l => l.EmployeeId == emp.Id && l.Status == "Approved" 
-                                && ((l.StartDate.Year == year && l.StartDate.Month == month) 
+                    .Where(l => l.EmployeeId == emp.Id && l.Status == "Approved"
+                                && ((l.StartDate.Year == year && l.StartDate.Month == month)
                                     || (l.EndDate.Year == year && l.EndDate.Month == month)))
                     .ToListAsync();
 
-                decimal deductions = 0;
-                foreach (var lv in leaves)
-                {
-                    // Assume 8 hours per day
-                    int days = (lv.EndDate.Date - lv.StartDate.Date).Days + 1;
-                    decimal hours = days * 8m;
-                    
-                    if (lv.LeaveType == "Sick" || lv.LeaveType == "病假")
-                    {
-                        deductions += (hours * hourlyRate * 0.5m);
-                    }
-                    else if (lv.LeaveType == "Personal" || lv.LeaveType == "事假")
-                    {
-                        deductions += (hours * hourlyRate * 1.0m);
-                    }
-                }
+                // Same calculator the breakdown endpoint uses, so stored totals reconcile
+                // exactly with the itemised detail.
+                decimal bonus = PayrollCalculator.BuildAdditions(overtimes, hourlyRate).Sum(a => a.Amount);
+                decimal deductions = PayrollCalculator.BuildDeductions(leaves, hourlyRate, year, month).Sum(d => d.Amount);
 
                 var payroll = new PayrollRecord
                 {
@@ -108,9 +125,9 @@ public class PayrollsController : ControllerBase
                     Year = year,
                     Month = month,
                     BaseSalary = emp.BaseSalary,
-                    Bonus = Math.Round(bonus, 0),
-                    Deductions = Math.Round(deductions, 0),
-                    NetSalary = Math.Round(emp.BaseSalary + bonus - deductions, 0),
+                    Bonus = bonus,
+                    Deductions = deductions,
+                    NetSalary = emp.BaseSalary + bonus - deductions,
                     Status = "Draft"
                 };
                 _context.Payrolls.Add(payroll);

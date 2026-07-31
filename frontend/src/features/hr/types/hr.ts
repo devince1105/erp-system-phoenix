@@ -122,6 +122,31 @@ export interface PayrollRecord {
   updatedAt?: string;
 }
 
+export interface PayrollLineItem {
+  kind: string;        // "Addition" | "Deduction"
+  category: string;    // 加班, 事假(無薪), 病假(半薪), 特休(全薪)...
+  description: string;
+  date: string;
+  hours: number;
+  rate: number;
+  multiplier: number;
+  amount: number;
+}
+
+export interface PayrollBreakdown {
+  employeeId: number;
+  employeeName: string;
+  year: number;
+  month: number;
+  baseSalary: number;
+  hourlyRate: number;
+  additions: PayrollLineItem[];
+  deductions: PayrollLineItem[];
+  totalAdditions: number;
+  totalDeductions: number;
+  netSalary: number;
+}
+
 export interface CalendarEvent {
   id: number;
   date: string;

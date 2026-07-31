@@ -13,6 +13,7 @@ import {
   BusinessTrip,
   ApprovalInstance,
   HrParameterSetting,
+  PayrollBreakdown,
 } from '../types/hr';
 
 export const hrApi = {
@@ -116,6 +117,10 @@ export const hrApi = {
   },
   updatePayroll: async (id: number, record: Partial<PayrollRecord>): Promise<void> => {
     await axiosClient.put(`/hr/payrolls/${id}`, record);
+  },
+  getPayrollBreakdown: async (id: number): Promise<PayrollBreakdown> => {
+    const { data } = await axiosClient.get<PayrollBreakdown>(`/hr/payrolls/${id}/breakdown`);
+    return data;
   },
 
   // Calendar Events
