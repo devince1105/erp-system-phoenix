@@ -18,11 +18,15 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Add Core Platform Services
+// CORS: restrict to configured origins. Set Cors:AllowedOrigins (array) in
+// configuration for production; falls back to local dev origins otherwise.
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? new[] { "http://localhost:3000", "http://localhost:3100" };
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AppCors", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -83,7 +87,7 @@ var app = builder.Build();
 // 4. Configure HTTP request pipeline.
 app.MapOpenApi();
 
-app.UseCors("AllowAll");
+app.UseCors("AppCors");
 app.UseHttpsRedirection();
 
 app.UseAuthentication(); // Must be before Authorization
