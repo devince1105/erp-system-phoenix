@@ -163,10 +163,28 @@ export interface SalaryStructure {
   updatedAt?: string;
 }
 
+export interface BusinessTrip {
+  id: number;
+  employeeId: number;
+  employee?: Employee;
+  destination: string;
+  purpose: string;
+  startDate: string;
+  endDate: string;
+  estimatedCost: number;
+  status: string; // Pending, Approved, Rejected, Completed
+  approvedByUserId?: number;
+  approvedAt?: string;
+  notes?: string;
+  createdAt?: string;
+}
+
 export interface ExpenseClaim {
   id: number;
   employeeId: number;
   employee?: Employee;
+  businessTripId?: number;
+  businessTrip?: BusinessTrip;
   description: string;
   category: string;
   amount: number;

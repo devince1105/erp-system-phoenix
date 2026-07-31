@@ -21,7 +21,9 @@ import {
   CheckSquare,
   Briefcase,
   DollarSign,
-  ShieldCheck
+  ShieldCheck,
+  Plane,
+  Receipt
 } from "lucide-react";
 
 export const Sidebar = () => {
@@ -60,6 +62,8 @@ export const Sidebar = () => {
     { name: "部門架構 (Departments)", href: "/hr/departments", icon: FolderTree },
     { name: "出勤與請假 (Attendance)", href: "/hr/attendance", icon: Landmark },
     { name: "假別餘額 (Leave Balances)", href: "/hr/leave-balances", icon: Activity },
+    { name: "出差申請 (Business Trips)", href: "/hr/business-trips", icon: Plane },
+    { name: "差旅報支 (Expenses)", href: "/hr/expenses", icon: Receipt },
     { name: "簽核中心 (Approvals)", href: "/hr/approvals", icon: CheckSquare },
     { name: "薪資結算 (Payroll)", href: "/hr/payroll", icon: DollarSign },
   ];

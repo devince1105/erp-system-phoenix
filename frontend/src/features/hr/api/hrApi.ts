@@ -10,6 +10,7 @@ import {
   LeaveBalance,
   SalaryStructure,
   ExpenseClaim,
+  BusinessTrip,
   HrParameterSetting,
 } from '../types/hr';
 
@@ -186,6 +187,24 @@ export const hrApi = {
   },
   deleteExpenseClaim: async (id: number): Promise<void> => {
     await axiosClient.delete(`/hr/expenseClaims/${id}`);
+  },
+
+  // Business Trips (出差申請單)
+  getBusinessTrips: async (): Promise<BusinessTrip[]> => {
+    const { data } = await axiosClient.get('/hr/businessTrips');
+    return data;
+  },
+  createBusinessTrip: async (trip: Partial<BusinessTrip>): Promise<BusinessTrip> => {
+    const { data } = await axiosClient.post('/hr/businessTrips', trip);
+    return data;
+  },
+  updateBusinessTripStatus: async (id: number, status: string): Promise<void> => {
+    await axiosClient.patch(`/hr/businessTrips/${id}/status`, JSON.stringify(status), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  },
+  deleteBusinessTrip: async (id: number): Promise<void> => {
+    await axiosClient.delete(`/hr/businessTrips/${id}`);
   },
 
   // HR Parameter Settings
