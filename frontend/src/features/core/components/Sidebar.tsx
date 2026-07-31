@@ -25,7 +25,9 @@ import {
   Plane,
   Receipt,
   Wallet,
-  CalendarCheck
+  CalendarCheck,
+  CalendarDays,
+  Clock3
 } from "lucide-react";
 
 export const Sidebar = () => {
@@ -64,6 +66,8 @@ export const Sidebar = () => {
     { name: "部門架構 (Departments)", href: "/hr/departments", icon: FolderTree },
     { name: "出勤與請假 (Attendance)", href: "/hr/attendance", icon: Landmark },
     { name: "假別餘額 (Leave Balances)", href: "/hr/leave-balances", icon: Activity },
+    { name: "請假申請 (Leave Requests)", href: "/hr/leaves", icon: CalendarDays },
+    { name: "加班申請 (Overtime Requests)", href: "/hr/overtimes", icon: Clock3 },
     { name: "出差申請 (Business Trips)", href: "/hr/business-trips", icon: Plane },
     { name: "差旅報支 (Travel Expenses)", href: "/hr/expenses", icon: Receipt },
     { name: "費用報銷 (Office Expenses)", href: "/hr/office-expenses", icon: Wallet },

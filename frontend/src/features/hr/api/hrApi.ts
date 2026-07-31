@@ -86,6 +86,9 @@ export const hrApi = {
   updateLeave: async (id: number, request: Partial<LeaveRequest>): Promise<void> => {
     await axiosClient.put(`/hr/leaves/${id}`, request);
   },
+  deleteLeave: async (id: number): Promise<void> => {
+    await axiosClient.delete(`/hr/leaves/${id}`);
+  },
 
   // Overtimes
   getOvertimes: async (): Promise<OvertimeRequest[]> => {
@@ -98,6 +101,9 @@ export const hrApi = {
   },
   updateOvertime: async (id: number, request: Partial<OvertimeRequest>): Promise<void> => {
     await axiosClient.put(`/hr/overtimes/${id}`, request);
+  },
+  deleteOvertime: async (id: number): Promise<void> => {
+    await axiosClient.delete(`/hr/overtimes/${id}`);
   },
 
   // Payrolls

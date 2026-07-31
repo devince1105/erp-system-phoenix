@@ -1,5 +1,6 @@
 using ERP.Modules.HR.Data;
 using ERP.Modules.HR.Models;
+using ERP.Modules.HR.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,10 +11,12 @@ namespace ERP.Modules.HR.Controllers;
 public class OvertimesController : ControllerBase
 {
     private readonly HRDbContext _context;
+    private readonly ApprovalService _approvals;
 
-    public OvertimesController(HRDbContext context)
+    public OvertimesController(HRDbContext context, ApprovalService approvals)
     {
         _context = context;
+        _approvals = approvals;
     }
 
     [HttpGet]
@@ -47,6 +50,7 @@ public class OvertimesController : ControllerBase
 
         _context.OvertimeRequests.Add(request);
         await _context.SaveChangesAsync();
+        await _approvals.CreateAsync("Overtime", request.Id);
         return CreatedAtAction(nameof(GetOvertimes), new { id = request.Id }, request);
     }
 

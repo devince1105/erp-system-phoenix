@@ -1,5 +1,6 @@
 using ERP.Modules.HR.Data;
 using ERP.Modules.HR.Models;
+using ERP.Modules.HR.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,10 +11,12 @@ namespace ERP.Modules.HR.Controllers;
 public class LeavesController : ControllerBase
 {
     private readonly HRDbContext _context;
+    private readonly ApprovalService _approvals;
 
-    public LeavesController(HRDbContext context)
+    public LeavesController(HRDbContext context, ApprovalService approvals)
     {
         _context = context;
+        _approvals = approvals;
     }
 
     [HttpGet]
@@ -42,6 +45,7 @@ public class LeavesController : ControllerBase
     {
         _context.LeaveRequests.Add(request);
         await _context.SaveChangesAsync();
+        await _approvals.CreateAsync("Leave", request.Id);
         return CreatedAtAction(nameof(GetLeaves), new { id = request.Id }, request);
     }
 

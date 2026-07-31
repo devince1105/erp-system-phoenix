@@ -16,6 +16,7 @@ public static class WorkflowDefinitions
             ["BusinessTrip"] = new[] { ("DirectSupervisor", "直屬主管"), ("DepartmentManager", "部門主管") },
             ["ExpenseClaim"] = new[] { ("DepartmentManager", "部門主管"), ("Finance", "財務部") },
             ["Leave"] = new[] { ("DirectSupervisor", "直屬主管"), ("DepartmentManager", "部門主管") },
+            ["Overtime"] = new[] { ("DirectSupervisor", "直屬主管"), ("DepartmentManager", "部門主管") },
             ["Purchase"] = new[] { ("DirectSupervisor", "直屬主管"), ("Finance", "財務部") },
         };
 
@@ -121,6 +122,14 @@ public class ApprovalService
             case "ExpenseClaim":
                 var claim = await _db.ExpenseClaims.FindAsync(instance.DocumentId);
                 if (claim is not null) { claim.Status = instance.Status; claim.ProcessedDate = DateTime.UtcNow; claim.UpdatedAt = DateTime.UtcNow; }
+                break;
+            case "Leave":
+                var leave = await _db.LeaveRequests.FindAsync(instance.DocumentId);
+                if (leave is not null) { leave.Status = instance.Status; leave.UpdatedAt = DateTime.UtcNow; if (instance.Status == "Approved") leave.ApprovedAt = DateTime.UtcNow; }
+                break;
+            case "Overtime":
+                var overtime = await _db.OvertimeRequests.FindAsync(instance.DocumentId);
+                if (overtime is not null) { overtime.Status = instance.Status; overtime.UpdatedAt = DateTime.UtcNow; if (instance.Status == "Approved") overtime.ApprovedAt = DateTime.UtcNow; }
                 break;
         }
     }
