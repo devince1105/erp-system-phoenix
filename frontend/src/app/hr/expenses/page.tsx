@@ -2,9 +2,10 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { hrApi } from "@/features/hr/api/hrApi";
-import { ExpenseClaim, Employee, BusinessTrip } from "@/features/hr/types/hr";
+import { ExpenseClaim, Employee, BusinessTrip, ApprovalInstance } from "@/features/hr/types/hr";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
-import { Receipt, Plus, Plane, Hotel, Utensils, Package, X, Check, XCircle, Clock, Trash2, ShieldCheck, Upload, FileText, Undo2 } from "lucide-react";
+import { ApprovalFlow } from "@/features/hr/components/ApprovalFlow";
+import { Receipt, Plus, Plane, Hotel, Utensils, Package, X, Check, Trash2, ShieldCheck, Upload, FileText, Undo2, Eye } from "lucide-react";
 
 const isImageUrl = (url: string) => /\.(jpe?g|png|webp|gif)$/i.test(url);
 
@@ -27,19 +28,6 @@ const emptyForm = {
   notes: "",
 };
 
-function statusBadge(status: string) {
-  switch (status) {
-    case "Approved":
-      return "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800/50";
-    case "Rejected":
-      return "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800/50";
-    default:
-      return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800/50";
-  }
-}
-
-const statusLabel: Record<string, string> = { Pending: "待審核", Approved: "已核准", Rejected: "已駁回" };
-
 export default function ExpensesPage() {
   const [claims, setClaims] = useState<ExpenseClaim[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -49,13 +37,22 @@ export default function ExpensesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [approvals, setApprovals] = useState<Record<number, ApprovalInstance | null>>({});
+  const [detailClaim, setDetailClaim] = useState<ExpenseClaim | null>(null);
+  const [detailApproval, setDetailApproval] = useState<ApprovalInstance | null>(null);
+  const [decideComment, setDecideComment] = useState("");
+  const [isDeciding, setIsDeciding] = useState(false);
 
   const fetchData = useCallback(() => {
     Promise.all([hrApi.getExpenseClaims(), hrApi.getEmployees(), hrApi.getBusinessTrips()])
-      .then(([claimData, empData, tripData]) => {
+      .then(async ([claimData, empData, tripData]) => {
         setClaims(claimData);
         setEmployees(empData);
         setTrips(tripData);
+        const entries = await Promise.all(
+          claimData.map((c) => hrApi.getApproval("ExpenseClaim", c.id).then((inst) => [c.id, inst] as const))
+        );
+        setApprovals(Object.fromEntries(entries));
       })
       .catch((err) => console.error("Failed to load expense claims", err))
       .finally(() => setIsLoading(false));
@@ -99,13 +96,26 @@ export default function ExpensesPage() {
     }
   };
 
-  const handleStatus = async (id: number, status: string) => {
+  const openDetail = async (claim: ExpenseClaim) => {
+    setDetailClaim(claim);
+    setDecideComment("");
+    const inst = approvals[claim.id] ?? (await hrApi.getApproval("ExpenseClaim", claim.id));
+    setDetailApproval(inst);
+  };
+
+  const handleDecide = async (approve: boolean) => {
+    if (!detailApproval) return;
+    setIsDeciding(true);
     try {
-      await hrApi.updateExpenseClaimStatus(id, status);
+      const updated = await hrApi.decideApproval(detailApproval.id, approve, decideComment || undefined);
+      setDetailApproval(updated);
+      setDecideComment("");
       fetchData();
     } catch (err) {
       console.error(err);
-      alert("更新狀態失敗");
+      alert("簽核失敗");
+    } finally {
+      setIsDeciding(false);
     }
   };
 
@@ -196,7 +206,7 @@ export default function ExpensesPage() {
                   <th className="px-6 py-3">說明</th>
                   <th className="px-6 py-3 text-right">金額</th>
                   <th className="px-6 py-3">申請日</th>
-                  <th className="px-6 py-3">狀態</th>
+                  <th className="px-6 py-3">簽核進度</th>
                   <th className="px-6 py-3 text-right">操作</th>
                 </tr>
               </thead>
@@ -224,24 +234,13 @@ export default function ExpensesPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-right text-slate-900 dark:text-white">{money(c.amount)}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{c.claimDate ? new Date(c.claimDate).toLocaleDateString() : "-"}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold rounded-full border ${statusBadge(c.status)}`}>
-                          {c.status === "Approved" ? <Check className="w-3 h-3" /> : c.status === "Rejected" ? <XCircle className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                          {statusLabel[c.status] ?? c.status}
-                        </span>
+                        <ApprovalFlow instance={approvals[c.id] ?? null} compact />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <div className="inline-flex items-center gap-1">
-                          {c.status === "Pending" && (
-                            <>
-                              <button onClick={() => handleStatus(c.id, "Approved")} title="核准" className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded">
-                                <Check className="w-4 h-4" />
-                              </button>
-                              <button onClick={() => handleStatus(c.id, "Rejected")} title="駁回（保留紀錄，狀態改為已駁回）" className="p-1.5 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded">
-                                <Undo2 className="w-4 h-4" />
-                              </button>
-                              <span className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-0.5" aria-hidden />
-                            </>
-                          )}
+                          <button onClick={() => openDetail(c)} title="檢視 / 簽核" className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                            <Eye className="w-3.5 h-3.5" /> 檢視
+                          </button>
                           <button onClick={() => handleDelete(c.id)} title="刪除（永久移除此筆）" className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -380,6 +379,76 @@ export default function ExpensesPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Detail / Approval Modal */}
+      {detailClaim && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-sm shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Receipt className="w-5 h-5 text-blue-600" /> 差旅報支明細
+              </h2>
+              <button onClick={() => setDetailClaim(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-5 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div><p className="text-xs text-slate-500">申請人</p><p className="font-medium text-slate-800 dark:text-slate-200">{employeeName(detailClaim.employeeId)}</p></div>
+                <div><p className="text-xs text-slate-500">類別</p><p className="font-medium text-slate-800 dark:text-slate-200">{detailClaim.category || "-"}</p></div>
+                <div><p className="text-xs text-slate-500">金額</p><p className="font-mono text-slate-800 dark:text-slate-200">{money(detailClaim.amount)}</p></div>
+                <div><p className="text-xs text-slate-500">申請日</p><p className="text-slate-700 dark:text-slate-300">{detailClaim.claimDate ? new Date(detailClaim.claimDate).toLocaleDateString() : "-"}</p></div>
+                <div className="col-span-2"><p className="text-xs text-slate-500">說明</p><p className="text-slate-700 dark:text-slate-300">{detailClaim.description || "-"}</p></div>
+                {detailClaim.businessTripId && (
+                  <div className="col-span-2 flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
+                    <ShieldCheck className="w-3.5 h-3.5" /> 已關聯核准出差單（預先授權）
+                  </div>
+                )}
+                {detailClaim.receiptUrl && (
+                  <div className="col-span-2">
+                    <p className="text-xs text-slate-500 mb-1">收據 / 發票</p>
+                    <a href={detailClaim.receiptUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
+                      {isImageUrl(detailClaim.receiptUrl) ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={detailClaim.receiptUrl} alt="收據" className="h-16 w-16 object-cover rounded border border-slate-200 dark:border-slate-700" />
+                      ) : (
+                        <FileText className="w-6 h-6" />
+                      )}
+                      點擊檢視
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">簽核流程</p>
+                <ApprovalFlow instance={detailApproval} />
+              </div>
+
+              {detailApproval && detailApproval.status === "Pending" && (
+                <div className="border-t border-slate-100 dark:border-slate-800 pt-4 space-y-3">
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">簽核意見（選填）</label>
+                  <textarea
+                    value={decideComment}
+                    onChange={(e) => setDecideComment(e.target.value)}
+                    rows={2}
+                    placeholder="輸入核准或駁回的意見..."
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-sm text-sm dark:text-slate-200"
+                  />
+                  <div className="flex items-center justify-end gap-3">
+                    <button onClick={() => handleDecide(false)} disabled={isDeciding} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-800 rounded-sm hover:bg-amber-50 dark:hover:bg-amber-900/20 disabled:opacity-50">
+                      <Undo2 className="w-4 h-4" /> 駁回
+                    </button>
+                    <button onClick={() => handleDecide(true)} disabled={isDeciding} className="inline-flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-600/50 text-white text-sm font-medium rounded-sm">
+                      <Check className="w-4 h-4" /> {isDeciding ? "處理中..." : "核准此關卡"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
