@@ -147,6 +147,26 @@
   - ⚠️ **該分支不可整包 merge**：它會把 Azure 密碼寫回 appsettings（`b518773`）、拿掉 `[Authorize]`（`ce5ec42`）、刪除本次資安/lint 修復。只能挑檔案移植。
   - 排錯備忘：Turbopack 曾對「先前 404 過、後來才新增」的路由（workflows）快取 404 → `rm -rf .next && pnpm dev` 解決。
 
+## 階段 11 — 差旅報支系統（出差申請 → 差旅報支）
+
+**需求**：差旅報支應對應「出差申請單」——出差不強制先申請，但**關聯已核准的出差單**時視為預先授權、較易過審。
+
+**後端**（`00805ee`）：
+- 新增 `BusinessTrip`（出差申請單）實體 + `BusinessTripsController`（CRUD + 核准/駁回，`/api/hr/BusinessTrips`，`[Authorize]`）。
+- `ExpenseClaim` 加**選填** `BusinessTripId` FK（可獨立報支,也可掛核准出差單）。
+- EF migration `AddBusinessTrips`（BusinessTrips 表 + nullable FK + index），啟動時自動套用到 Azure,API 實測 `POST → 201`。
+
+**前端**（`d800daf`）：
+- `/hr/business-trips`：出差申請/列表/核准（摘要卡 + 天數計算）。
+- `/hr/expenses`：差旅報支（類別 交通/住宿/餐費/雜支）+ 核准/駁回 + **關聯出差單選單**（只列該員工已核准的出差單）+ 預先授權提示。
+- `hrApi` + 型別新增 `BusinessTrip`、`ExpenseClaim.businessTripId`；Sidebar 加「出差申請」「差旅報支」。
+
+**端到端驗證**（瀏覽器）：建出差單 → 核准 → 建關聯報支（顯示「已預先授權」）→ 列表顯示。tsc/eslint 0。
+
+**日後可強化**：出差單多筆明細（交通/住宿/餐費拆行）、收據檔案上傳、關聯已核准出差單時自動預核。
+
+**注意事項**：`dotnet ef` 工具因 `dotnet-tools.json` 放在非標準路徑（應為 `.config/dotnet-tools.json`）而無法用 manifest 解析,本次改以全域安裝 `dotnet-ef` 建 migration。
+
 ## 尚待處理 / 建議（後續）
 
 - ~~**CORS 過寬**（`AllowAnyOrigin`）~~ ✅ 已處理（階段 10，`6350917`）：改為 `Cors:AllowedOrigins` 白名單,預設本機開發來源,policy 更名 "AppCors"。正式環境請於設定填入真實網域。
