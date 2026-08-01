@@ -2,7 +2,7 @@
 
 **主題**：專案健康檢查、機密外洩處理、相依套件漏洞修補、前端 Lint 全面清理
 **分支**：`main`
-**起始 commit**：`9f1630e`　**結束 commit**：`79ead5f`（階段 13–16 於 2026-07-31、階段 17–20 於 2026-08-01 續補）
+**起始 commit**：`9f1630e`　**結束 commit**：`28a9477`（階段 13–16 於 2026-07-31、階段 17–20 於 2026-08-01、階段 21–22 於 2026-08-02 續補）
 
 ---
 
@@ -305,6 +305,34 @@
 - `/hr/salaries`(員工薪資設定):逐人設定月本薪 + 即時「時薪 = 本薪 ÷ 240」預覽;以 `useAuth().roles` 前端把關(非授權角色顯示「機密」擋頁),Sidebar 連結對非授權角色隱藏。
 
 **驗證**:一般員工清單 `baseSalary` 全為 0(不外洩);`/employees/salaries` 回 30 筆含時薪;調薪 75000→78000(時薪 312.5→325)成功;**一般員工編輯回填遮罩後的 0 仍保留原薪(PRESERVED)**;tsc/eslint 0。（角色 403 由 ASP.NET `[Authorize(Roles)]` 保證;非 admin 帳號測試同階段 18 需另建帳號。）
+
+## 階段 21 — 示範角色帳號（會計/業務/人資）〔2026-08-02〕
+
+**需求**:建立會計/業務/人資等角色帳號,密碼同 admin,用來實測角色控管與薪資權限。
+
+**後端**（`07cbe5d`）:
+- `IdentityDemoSeeder`(**僅 Development、冪等**):確保 HR/Sales/Manager 角色存在,建立 `hr`／`accountant`／`sales` 三個登入帳號(BCrypt 雜湊,密碼 `Admin123!`),各綁定對應部門主管員工(業務部=1、會計部=2、人資部=3),使 `employee_id` claim 能驅動簽核授權與薪資把關。掛在 Program.cs 啟動 migrate 區塊、`IsDevelopment()` 後。
+
+**驗證**(以真實帳號):
+- 薪資把關:`sales` 讀/寫薪資 → **403**;`accountant`／`hr` → 200。
+- 簽核收件匣 `/mine`:`sales`(業務部主管)只見業務部假單、`accountant` 見含財務關卡報銷、`admin` 全見(bypass)—— 階段 18 的角色控管至此可實際體驗。
+
+⚠️ 這些是**弱密碼示範帳號,僅限 Development**;正式環境不會種入(環境判斷擋掉)。
+
+## 階段 22 — 採購申請單 ↔ 費用報銷關聯〔2026-08-02〕
+
+**需求**:比照 出差申請 ↔ 差旅報支,做 採購申請單(請購單),費用報銷可選填關聯已核准的請購單作預先授權。
+
+**後端**（`28a9477`）:
+- `PurchaseRequest` 實體(品項/類別/數量/預估金額/用途)+ `PurchaseRequestsController`,接既有 **"Purchase" 流程(直屬主管→財務部)**,狀態由簽核實例回寫。
+- `ExpenseClaim` 加選填 `PurchaseRequestId`(對稱於 `BusinessTripId`)。migration `AddPurchaseRequests`(新表 + FK + nullable 欄,已套用)。
+- `ApprovalService` 補 Purchase 的 `SyncDocumentStatusAsync` 與 `ApplicantEmployeeIdAsync`。
+
+**前端**（`28a9477`）:
+- `/hr/purchase-requests`(採購申請,cyan):建立/列表/檢視 + 完整簽核 stepper + 明細內核准駁回。
+- 費用報銷表單加「關聯採購申請單」下拉(只列該員工已核准的請購單),明細顯示關聯單並標「已預先授權」。Sidebar 加「採購申請」。
+
+**端到端驗證**(API):建請購單 → 核准兩關(直屬主管→財務部)→ 狀態 Approved → 建 General 報銷關聯之 → `purchaseRequestId` 回寫並讀回 **LINK OK**;tsc/eslint 0。
 
 ## 尚待處理 / 建議（後續）
 
