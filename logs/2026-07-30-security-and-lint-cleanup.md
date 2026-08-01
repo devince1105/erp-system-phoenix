@@ -2,7 +2,7 @@
 
 **主題**：專案健康檢查、機密外洩處理、相依套件漏洞修補、前端 Lint 全面清理
 **分支**：`main`
-**起始 commit**：`9f1630e`　**結束 commit**：`98b6576`（階段 13–16 於 2026-07-31、階段 17–19 於 2026-08-01 續補）
+**起始 commit**：`9f1630e`　**結束 commit**：`79ead5f`（階段 13–16 於 2026-07-31、階段 17–20 於 2026-08-01 續補）
 
 ---
 
@@ -290,6 +290,21 @@
 **驗證**:重算郭建宏 2026-05 → 病假(半薪) 2 天 16h × NT$312.5/h × 0.5 = NT$2,500,實發 72,500;儲存值與 breakdown **RECONCILES**;tsc/eslint 0。（加班明細路徑同一計算器,現有資料無核准加班故清單為空。）
 
 **尚待強化**:種子資料的歷史薪資為合成值,需重新 generate 才會與核准單據對帳;加班需有核准單才會出現加項。
+
+## 階段 20 — 員工薪資設定（機密,限 Admin/HR/會計）〔2026-08-01〕
+
+**需求**:缺一個設定員工本薪的頁面;薪資屬機密,只有 Admin/人資/會計看得到。
+
+**發現的權限漏洞**:`SalaryStructuresController` 僅 `[Authorize]`(任何登入者可讀全公司薪資結構);`EmployeesController` 回傳的 Employee 帶 `BaseSalary`,對所有登入者外洩本薪(前端只擋頁面,API 沒擋欄位)。前端亦無任何本薪設定入口(只有 `/settings/organization` 的寫死職級表)。
+
+**後端**（`79ead5f`）:
+- `GET /employees/salaries`、`PUT /employees/{id}/base-salary`,皆 `[Authorize(Roles="Admin,HR,Accountant")]`。
+- **堵漏**:一般 `GET /employees`、`GET /employees/{id}` 把 `BaseSalary` 遮成 0(本薪不隨一般員工 payload 外流);`UpdateEmployee` 保留原本薪(一般編輯不動薪資,薪資只走專用端點)。`SalaryStructuresController` 收緊為同一組角色。
+
+**前端**（`79ead5f`）:
+- `/hr/salaries`(員工薪資設定):逐人設定月本薪 + 即時「時薪 = 本薪 ÷ 240」預覽;以 `useAuth().roles` 前端把關(非授權角色顯示「機密」擋頁),Sidebar 連結對非授權角色隱藏。
+
+**驗證**:一般員工清單 `baseSalary` 全為 0(不外洩);`/employees/salaries` 回 30 筆含時薪;調薪 75000→78000(時薪 312.5→325)成功;**一般員工編輯回填遮罩後的 0 仍保留原薪(PRESERVED)**;tsc/eslint 0。（角色 403 由 ASP.NET `[Authorize(Roles)]` 保證;非 admin 帳號測試同階段 18 需另建帳號。）
 
 ## 尚待處理 / 建議（後續）
 
