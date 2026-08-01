@@ -99,6 +99,7 @@ public class ApprovalService
         "Overtime" => (await _db.OvertimeRequests.FindAsync(documentId))?.EmployeeId,
         "BusinessTrip" => (await _db.BusinessTrips.FindAsync(documentId))?.EmployeeId,
         "ExpenseClaim" => (await _db.ExpenseClaims.FindAsync(documentId))?.EmployeeId,
+        "Purchase" => (await _db.PurchaseRequests.FindAsync(documentId))?.EmployeeId,
         _ => null,
     };
 
@@ -231,6 +232,10 @@ public class ApprovalService
             case "Overtime":
                 var overtime = await _db.OvertimeRequests.FindAsync(instance.DocumentId);
                 if (overtime is not null) { overtime.Status = instance.Status; overtime.UpdatedAt = DateTime.UtcNow; if (instance.Status == "Approved") overtime.ApprovedAt = DateTime.UtcNow; }
+                break;
+            case "Purchase":
+                var purchase = await _db.PurchaseRequests.FindAsync(instance.DocumentId);
+                if (purchase is not null) { purchase.Status = instance.Status; purchase.UpdatedAt = DateTime.UtcNow; if (instance.Status == "Approved") purchase.ApprovedAt = DateTime.UtcNow; }
                 break;
         }
     }

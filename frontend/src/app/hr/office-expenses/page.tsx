@@ -2,10 +2,10 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { hrApi } from "@/features/hr/api/hrApi";
-import { ExpenseClaim, Employee, ApprovalInstance } from "@/features/hr/types/hr";
+import { ExpenseClaim, Employee, ApprovalInstance, PurchaseRequest } from "@/features/hr/types/hr";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
 import { ApprovalFlow } from "@/features/hr/components/ApprovalFlow";
-import { Wallet, Plus, Utensils, Cake, Package, X, Check, Trash2, Upload, FileText, Undo2, Eye, ReceiptText } from "lucide-react";
+import { Wallet, Plus, Utensils, Cake, Package, X, Check, Trash2, Upload, FileText, Undo2, Eye, ReceiptText, ShoppingCart } from "lucide-react";
 
 const isImageUrl = (url: string) => /\.(jpe?g|png|webp|gif)$/i.test(url);
 
@@ -24,11 +24,13 @@ const emptyForm = {
   amount: 0,
   claimDate: new Date().toISOString().split("T")[0],
   receiptUrl: "",
+  purchaseRequestId: "" as number | "",
 };
 
 export default function OfficeExpensesPage() {
   const [claims, setClaims] = useState<ExpenseClaim[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [purchaseRequests, setPurchaseRequests] = useState<PurchaseRequest[]>([]);
   const [approvals, setApprovals] = useState<Record<number, ApprovalInstance | null>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,11 +44,12 @@ export default function OfficeExpensesPage() {
   const [isDeciding, setIsDeciding] = useState(false);
 
   const fetchData = useCallback(() => {
-    Promise.all([hrApi.getExpenseClaims(), hrApi.getEmployees()])
-      .then(async ([claimData, empData]) => {
+    Promise.all([hrApi.getExpenseClaims(), hrApi.getEmployees(), hrApi.getPurchaseRequests()])
+      .then(async ([claimData, empData, prData]) => {
         const general = claimData.filter((c) => c.expenseType === "General");
         setClaims(general);
         setEmployees(empData);
+        setPurchaseRequests(prData);
         const entries = await Promise.all(
           general.map((c) => hrApi.getApproval("ExpenseClaim", c.id).then((inst) => [c.id, inst] as const))
         );
@@ -82,6 +85,7 @@ export default function OfficeExpensesPage() {
         amount: Number(form.amount),
         claimDate: new Date(form.claimDate).toISOString(),
         receiptUrl: form.receiptUrl || undefined,
+        purchaseRequestId: form.purchaseRequestId ? Number(form.purchaseRequestId) : undefined,
         status: "Pending",
       });
       setIsModalOpen(false);
@@ -306,6 +310,22 @@ export default function OfficeExpensesPage() {
                   className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-sm text-sm dark:text-slate-200" />
               </div>
               <div className="space-y-1">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                  <ShoppingCart className="w-3.5 h-3.5 text-cyan-600" /> 關聯採購申請單 (選填)
+                </label>
+                <select value={form.purchaseRequestId}
+                  onChange={(e) => setForm({ ...form, purchaseRequestId: e.target.value ? Number(e.target.value) : "" })}
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-sm text-sm dark:text-slate-200">
+                  <option value="">不關聯（無預先請購）</option>
+                  {purchaseRequests
+                    .filter((p) => p.status === "Approved" && (!form.employeeId || p.employeeId === Number(form.employeeId)))
+                    .map((p) => (
+                      <option key={p.id} value={p.id}>{p.itemName}（{p.category}・預估 ${p.estimatedCost.toLocaleString()}）</option>
+                    ))}
+                </select>
+                <p className="text-xs text-slate-400">關聯已核准的請購單可作為預先授權，加速報銷審核。</p>
+              </div>
+              <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">收據 / 發票 (選填)</label>
                 <div className="flex items-center gap-3">
                   <label className={`inline-flex items-center gap-2 px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-sm text-sm cursor-pointer bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 ${isUploading ? "opacity-60 pointer-events-none" : ""}`}>
@@ -360,6 +380,21 @@ export default function OfficeExpensesPage() {
                 <div><p className="text-xs text-slate-500">金額</p><p className="font-mono text-slate-800 dark:text-slate-200">{money(detailClaim.amount)}</p></div>
                 <div><p className="text-xs text-slate-500">申請日</p><p className="text-slate-700 dark:text-slate-300">{detailClaim.claimDate ? new Date(detailClaim.claimDate).toLocaleDateString() : "-"}</p></div>
                 <div className="col-span-2"><p className="text-xs text-slate-500">說明</p><p className="text-slate-700 dark:text-slate-300">{detailClaim.description || "-"}</p></div>
+                {detailClaim.purchaseRequestId && (
+                  <div className="col-span-2">
+                    <p className="text-xs text-slate-500 mb-1">關聯採購申請單</p>
+                    {(() => {
+                      const pr = purchaseRequests.find((p) => p.id === detailClaim.purchaseRequestId);
+                      return (
+                        <span className="inline-flex items-center gap-1.5 text-sm px-2.5 py-1 rounded bg-cyan-50 text-cyan-700 dark:bg-cyan-900/20 dark:text-cyan-400">
+                          <ShoppingCart className="w-3.5 h-3.5" />
+                          {pr ? `${pr.itemName}（預估 ${money(pr.estimatedCost)}）` : `請購單 #${detailClaim.purchaseRequestId}`}
+                          <span className="text-xs text-emerald-600 dark:text-emerald-400">・已預先授權</span>
+                        </span>
+                      );
+                    })()}
+                  </div>
+                )}
                 {detailClaim.receiptUrl && (
                   <div className="col-span-2">
                     <p className="text-xs text-slate-500 mb-1">收據 / 發票</p>

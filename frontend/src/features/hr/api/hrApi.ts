@@ -11,6 +11,7 @@ import {
   SalaryStructure,
   ExpenseClaim,
   BusinessTrip,
+  PurchaseRequest,
   ApprovalInstance,
   HrParameterSetting,
   PayrollBreakdown,
@@ -227,6 +228,22 @@ export const hrApi = {
   },
   deleteBusinessTrip: async (id: number): Promise<void> => {
     await axiosClient.delete(`/hr/businessTrips/${id}`);
+  },
+
+  // Purchase Requests (採購申請單)
+  getPurchaseRequests: async (): Promise<PurchaseRequest[]> => {
+    const { data } = await axiosClient.get('/hr/purchaseRequests');
+    return data;
+  },
+  createPurchaseRequest: async (request: Partial<PurchaseRequest>): Promise<PurchaseRequest> => {
+    const { data } = await axiosClient.post('/hr/purchaseRequests', request);
+    return data;
+  },
+  updatePurchaseRequest: async (id: number, request: Partial<PurchaseRequest>): Promise<void> => {
+    await axiosClient.put(`/hr/purchaseRequests/${id}`, request);
+  },
+  deletePurchaseRequest: async (id: number): Promise<void> => {
+    await axiosClient.delete(`/hr/purchaseRequests/${id}`);
   },
 
   // Approval workflow (簽核實例)

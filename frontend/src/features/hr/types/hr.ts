@@ -235,6 +235,22 @@ export interface BusinessTrip {
   createdAt?: string;
 }
 
+export interface PurchaseRequest {
+  id: number;
+  employeeId: number;
+  employee?: Employee;
+  itemName: string;
+  category: string; // 辦公用品 / 設備 / 軟體授權 / 其他
+  quantity: number;
+  estimatedCost: number;
+  purpose: string;
+  status: string; // Pending, Approved, Rejected, Completed
+  approvedByUserId?: number;
+  approvedAt?: string;
+  notes?: string;
+  createdAt?: string;
+}
+
 export interface ExpenseClaim {
   id: number;
   employeeId: number;
@@ -242,6 +258,8 @@ export interface ExpenseClaim {
   expenseType?: string; // Travel (差旅報支) or General (費用報銷)
   businessTripId?: number;
   businessTrip?: BusinessTrip;
+  purchaseRequestId?: number;
+  purchaseRequest?: PurchaseRequest;
   description: string;
   category: string;
   amount: number;

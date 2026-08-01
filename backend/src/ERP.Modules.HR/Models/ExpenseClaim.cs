@@ -14,6 +14,10 @@ public class ExpenseClaim
     public int? BusinessTripId { get; set; }
     public BusinessTrip? BusinessTrip { get; set; }
 
+    // Optional link to an approved 採購申請單 — pre-authorises this reimbursement (費用報銷).
+    public int? PurchaseRequestId { get; set; }
+    public PurchaseRequest? PurchaseRequest { get; set; }
+
     [MaxLength(200)]
     public string Description { get; set; } = string.Empty;
 
