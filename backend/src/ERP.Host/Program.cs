@@ -163,6 +163,10 @@ using (var scope = app.Services.CreateScope())
     // Migrate MDM Module Database
     var mdmDb = scope.ServiceProvider.GetRequiredService<MdmDbContext>();
     mdmDb.Database.Migrate();
+
+    // Development-only: seed demo role accounts (會計/業務/人資) for role testing.
+    if (app.Environment.IsDevelopment())
+        ERP.Modules.Identity.Data.IdentityDemoSeeder.SeedAsync(identityDb).GetAwaiter().GetResult();
 }
 
 app.Run();
