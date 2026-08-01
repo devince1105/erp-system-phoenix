@@ -8,7 +8,7 @@ namespace ERP.Modules.HR.Controllers;
 
 [ApiController]
 [Route("api/hr/[controller]")]
-[Authorize]
+[Authorize(Roles = "Admin,HR,Accountant")] // Salary structures are confidential
 public class SalaryStructuresController : ControllerBase
 {
     private readonly HRDbContext _context;

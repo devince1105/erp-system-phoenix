@@ -122,6 +122,15 @@ export interface PayrollRecord {
   updatedAt?: string;
 }
 
+export interface EmployeeSalary {
+  id: number;
+  name: string;
+  departmentName?: string;
+  jobTitle: string;
+  baseSalary: number;
+  hourlyRate: number;
+}
+
 export interface PayrollLineItem {
   kind: string;        // "Addition" | "Deduction"
   category: string;    // 加班, 事假(無薪), 病假(半薪), 特休(全薪)...

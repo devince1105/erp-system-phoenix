@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using ERP.Modules.HR.Data;
 using ERP.Modules.HR.Models;
+using ERP.Modules.HR.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -35,6 +37,10 @@ public class EmployeesController : ControllerBase
             .OrderByDescending(e => e.Id)
             .ToListAsync();
 
+        // Salary is private: it never travels on the general employee payload. It is
+        // surfaced only through the role-gated /salaries and /base-salary endpoints.
+        foreach (var e in employees) e.BaseSalary = 0;
+
         var cacheEntryOptions = new MemoryCacheEntryOptions()
             .SetAbsoluteExpiration(TimeSpan.FromSeconds(60));
 
@@ -56,7 +62,50 @@ public class EmployeesController : ControllerBase
         if (employee == null)
             return NotFound();
 
+        employee.BaseSalary = 0; // private — see GetEmployees note
         return employee;
+    }
+
+    /// <summary>
+    /// Employee salaries for the salary-setup screen (本薪 + derived 時薪). Restricted
+    /// to HR/Accounting/Admin — salary is confidential.
+    /// </summary>
+    [HttpGet("salaries")]
+    [Authorize(Roles = "Admin,HR,Accountant")]
+    public async Task<ActionResult<IEnumerable<EmployeeSalaryDto>>> GetSalaries()
+    {
+        var employees = await _context.Employees
+            .Include(e => e.Department)
+            .OrderBy(e => e.DepartmentId).ThenBy(e => e.Id)
+            .ToListAsync();
+
+        return Ok(employees.Select(e => new EmployeeSalaryDto(
+            e.Id, e.Name, e.Department?.Name, e.JobTitle,
+            e.BaseSalary, Math.Round(PayrollCalculator.HourlyRate(e.BaseSalary), 2))));
+    }
+
+    public record EmployeeSalaryDto(
+        int Id, string Name, string? DepartmentName, string JobTitle,
+        decimal BaseSalary, decimal HourlyRate);
+
+    public record UpdateBaseSalaryDto(decimal BaseSalary);
+
+    /// <summary>Set an employee's monthly base salary (drives payroll). HR/Accounting/Admin only.</summary>
+    [HttpPut("{id}/base-salary")]
+    [Authorize(Roles = "Admin,HR,Accountant")]
+    public async Task<IActionResult> UpdateBaseSalary(int id, [FromBody] UpdateBaseSalaryDto dto)
+    {
+        if (dto.BaseSalary < 0) return BadRequest("本薪不可為負數。");
+
+        var employee = await _context.Employees.FindAsync(id);
+        if (employee == null) return NotFound();
+
+        employee.BaseSalary = dto.BaseSalary;
+        employee.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        _cache.Remove(CacheKey);
+
+        return NoContent();
     }
 
     [HttpPost]
@@ -89,8 +138,13 @@ public class EmployeesController : ControllerBase
         if (existingEmployee == null)
             return NotFound();
 
+        // Salary is managed only via the role-gated /base-salary endpoint, and is
+        // masked to 0 on reads — so never let a general profile edit change it.
+        var currentBaseSalary = existingEmployee.BaseSalary;
+
         // Update basic properties
         _context.Entry(existingEmployee).CurrentValues.SetValues(employee);
+        existingEmployee.BaseSalary = currentBaseSalary;
         existingEmployee.UpdatedAt = DateTime.UtcNow;
 
         // Update Educations

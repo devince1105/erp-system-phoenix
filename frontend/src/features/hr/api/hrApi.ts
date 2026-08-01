@@ -14,6 +14,7 @@ import {
   ApprovalInstance,
   HrParameterSetting,
   PayrollBreakdown,
+  EmployeeSalary,
 } from '../types/hr';
 
 export const hrApi = {
@@ -63,6 +64,15 @@ export const hrApi = {
 
   deleteEmployee: async (id: number): Promise<void> => {
     await axiosClient.delete(`/hr/employees/${id}`);
+  },
+
+  // Employee salaries (confidential — Admin/HR/Accountant only)
+  getEmployeeSalaries: async (): Promise<EmployeeSalary[]> => {
+    const { data } = await axiosClient.get<EmployeeSalary[]>('/hr/employees/salaries');
+    return data;
+  },
+  updateEmployeeBaseSalary: async (id: number, baseSalary: number): Promise<void> => {
+    await axiosClient.put(`/hr/employees/${id}/base-salary`, { baseSalary });
   },
 
   // Attendances

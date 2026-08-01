@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/features/core/contexts/AuthContext";
 import { 
   LayoutDashboard, 
   Landmark, 
@@ -32,6 +33,9 @@ import {
 
 export const Sidebar = () => {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const userRoles = user?.roles ?? [];
+  const canSee = (item: { roles?: string[] }) => !item.roles || item.roles.some((r) => userRoles.includes(r));
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const [isAccountingOpen, setIsAccountingOpen] = useState(true);
@@ -72,6 +76,7 @@ export const Sidebar = () => {
     { name: "差旅報支 (Travel Expenses)", href: "/hr/expenses", icon: Receipt },
     { name: "費用報銷 (Office Expenses)", href: "/hr/office-expenses", icon: Wallet },
     { name: "假勤簽核 (Leave & Overtime)", href: "/hr/approvals", icon: CalendarCheck },
+    { name: "員工薪資 (Salaries)", href: "/hr/salaries", icon: Wallet, roles: ["Admin", "HR", "Accountant"] },
     { name: "薪資結算 (Payroll)", href: "/hr/payroll", icon: DollarSign },
   ];
 
@@ -251,7 +256,7 @@ export const Sidebar = () => {
 
           {(isHROpen || isCollapsed) && (
             <div className={`space-y-0.5 ${!isCollapsed ? "mt-1 mb-2 ml-4 border-l-2 border-gray-200 dark:border-slate-800" : ""}`}>
-              {hrItems.map((item) => {
+              {hrItems.filter(canSee).map((item) => {
                 const isActive = pathname === item.href || (item.href !== "/hr" && pathname.startsWith(item.href));
                 return (
                   <Link
