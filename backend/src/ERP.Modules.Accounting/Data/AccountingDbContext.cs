@@ -15,6 +15,8 @@ public class AccountingDbContext : DbContext
     public DbSet<VoucherDetail> VoucherDetails => Set<VoucherDetail>();
     public DbSet<BankAccount> BankAccounts => Set<BankAccount>();
     public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
+    public DbSet<JournalTemplate> JournalTemplates => Set<JournalTemplate>();
+    public DbSet<JournalTemplateLine> JournalTemplateLines => Set<JournalTemplateLine>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

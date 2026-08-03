@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { accountingApi, AccountTitle, CreateVoucherDto } from '@/features/accounting/api/accountingApi';
+import { accountingApi, AccountTitle, CreateVoucherDto, JournalTemplate } from '@/features/accounting/api/accountingApi';
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
 import { ArrowLeft, Save, Plus, Trash2, Calculator, AlertCircle, FilePlus, Upload, FileText, X } from 'lucide-react';
 import { getApiErrorMessage } from "@/utils/apiError";
@@ -21,6 +21,7 @@ export default function CreateVoucherPage() {
   
   // Master data
   const [accountTitles, setAccountTitles] = useState<AccountTitle[]>([]);
+  const [templates, setTemplates] = useState<JournalTemplate[]>([]);
   
   // Form State
   const [voucherDate, setVoucherDate] = useState(new Date().toISOString().split('T')[0]);
@@ -41,7 +42,22 @@ export default function CreateVoucherPage() {
     accountingApi.getAccountTitles()
       .then(data => setAccountTitles(data.filter(a => a.isActive)))
       .catch(err => console.error(err));
+    accountingApi.getJournalTemplates()
+      .then(setTemplates)
+      .catch(err => console.error(err));
   }, []);
+
+  const applyTemplate = (templateId: number) => {
+    const t = templates.find(x => x.id === templateId);
+    if (!t) return;
+    setDetails(t.lines.map(l => ({
+      id: crypto.randomUUID(),
+      accountTitleId: l.accountTitleId,
+      isDebit: l.isDebit,
+      amount: l.amount > 0 ? String(l.amount) : '',
+      summary: l.summary ?? '',
+    })));
+  };
 
   const totalDebit = useMemo(() => {
     return details.filter(d => d.isDebit).reduce((sum, d) => sum + (parseFloat(d.amount) || 0), 0);
@@ -235,15 +251,28 @@ export default function CreateVoucherPage() {
 
         {/* Details Entry */}
         <div className="p-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">傳票明細</h3>
-            <button 
-              onClick={addDetailRow}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-sm transition-colors dark:text-blue-400 dark:bg-blue-900/30 dark:hover:bg-blue-900/50"
-            >
-              <Plus className="w-4 h-4" />
-              新增明細列
-            </button>
+            <div className="flex items-center gap-2">
+              {templates.length > 0 && (
+                <select
+                  defaultValue=""
+                  onChange={(e) => { if (e.target.value) { applyTemplate(Number(e.target.value)); e.target.value = ''; } }}
+                  className="px-3 py-1.5 text-sm bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300 rounded-sm focus:outline-none"
+                  title="套用常用分錄範本"
+                >
+                  <option value="">套用常用分錄…</option>
+                  {templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+              )}
+              <button
+                onClick={addDetailRow}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-sm transition-colors dark:text-blue-400 dark:bg-blue-900/30 dark:hover:bg-blue-900/50"
+              >
+                <Plus className="w-4 h-4" />
+                新增明細列
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">

@@ -53,6 +53,23 @@ export interface Voucher {
   details: VoucherDetail[];
 }
 
+export interface JournalTemplateLine {
+  id?: number;
+  accountTitleId: number;
+  accountTitle?: AccountTitle;
+  isDebit: boolean;
+  amount: number;
+  summary?: string;
+}
+
+export interface JournalTemplate {
+  id: number;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  lines: JournalTemplateLine[];
+}
+
 export interface CreateVoucherPayload {
   voucherDate: string;
   type: VoucherType;

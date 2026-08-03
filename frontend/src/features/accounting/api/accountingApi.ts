@@ -4,11 +4,12 @@ import {
   AccountTitle, 
   BankAccount, 
   VoucherDetail, 
-  Voucher, 
-  CreateVoucherPayload as CreateVoucherDto 
+  Voucher,
+  JournalTemplate,
+  CreateVoucherPayload as CreateVoucherDto
 } from '../types/accounting';
 
-export type { AccountTitle, BankAccount, VoucherDetail, Voucher, CreateVoucherDto };
+export type { AccountTitle, BankAccount, VoucherDetail, Voucher, JournalTemplate, CreateVoucherDto };
 
 export interface ReportItem {
   code?: string;
@@ -149,6 +150,12 @@ export const accountingApi = {
   getPayablesAging: async () => (await axiosClient.get<AgingReport>('/payables')).data,
   settleReceivable: async (orderId: number, amount: number) => { await axiosClient.post(`/receivables/${orderId}/settle`, { amount }); },
   settlePayable: async (orderId: number, amount: number) => { await axiosClient.post(`/payables/${orderId}/settle`, { amount }); },
+
+  // Common journal templates (常用分錄範本)
+  getJournalTemplates: async () => (await axiosClient.get<JournalTemplate[]>('/journaltemplates')).data,
+  createJournalTemplate: async (t: Partial<JournalTemplate>) => (await axiosClient.post<JournalTemplate>('/journaltemplates', t)).data,
+  updateJournalTemplate: async (id: number, t: Partial<JournalTemplate>) => { await axiosClient.put(`/journaltemplates/${id}`, t); },
+  deleteJournalTemplate: async (id: number) => { await axiosClient.delete(`/journaltemplates/${id}`); },
   getBalanceSheet: async (asOfDate: string) => {
     const res = await axiosClient.get<BalanceSheetReport>(`/reports/balance-sheet?asOfDate=${asOfDate}`);
     return res.data;

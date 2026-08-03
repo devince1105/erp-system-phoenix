@@ -53,6 +53,7 @@ export const Sidebar = () => {
     { name: "會計總覽 (Overview)", href: "/accounting", icon: LayoutDashboard },
     { name: "傳票管理 (Vouchers)", href: "/accounting/vouchers", icon: Landmark },
     { name: "會計科目 (Accounts)", href: "/accounting/accounts", icon: Puzzle },
+    { name: "常用分錄 (Templates)", href: "/accounting/journal-templates", icon: Puzzle, roles: ["Admin", "Accountant"] },
     { name: "銀行帳戶 (Banks)", href: "/accounting/banks", icon: Users },
     { name: "損益表 (P&L)", href: "/accounting/reports/profit-and-loss", icon: BarChart3 },
     { name: "資產負債表 (Balance Sheet)", href: "/accounting/reports/balance-sheet", icon: BarChart3 },

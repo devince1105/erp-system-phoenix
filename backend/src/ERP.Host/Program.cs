@@ -147,6 +147,9 @@ using (var scope = app.Services.CreateScope())
     // Migrate Accounting Module Database
     var accountingDb = scope.ServiceProvider.GetRequiredService<AccountingDbContext>();
     accountingDb.Database.Migrate();
+
+    // Seed common journal templates (常用分錄範本) if none exist (idempotent).
+    ERP.Modules.Accounting.Data.JournalTemplateSeeder.SeedAsync(accountingDb).GetAwaiter().GetResult();
     
     // Migrate Inventory Module Database
     var inventoryDb = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
