@@ -162,4 +162,103 @@ public class ReportsController : ControllerBase
             TotalLiabilitiesAndEquity = totalLiabilities + totalEquity
         });
     }
+
+    /// <summary>
+    /// 現金流量表（間接法）。由既有傳票推導:自本期損益出發,依會計科目分類（現金 / 流動 /
+    /// 非流動 / 權益,由科目代碼推得）彙總營業、投資、理財三段。因本帳未將損益結轉權益,
+    /// 三段淨額之和恰等於現金科目的實際期間變動（reconciles 供對帳）。
+    /// </summary>
+    [HttpGet("cash-flow")]
+    public async Task<IActionResult> GetCashFlow([FromQuery] string startDate, [FromQuery] string endDate)
+    {
+        if (!DateTime.TryParse(startDate, out var start) || !DateTime.TryParse(endDate, out var end))
+            return BadRequest("無效的日期格式");
+
+        // Period movement of every account, expressed as the increase in its own balance.
+        var periodVouchers = await _context.Vouchers
+            .Include(v => v.Details).ThenInclude(d => d.AccountTitle)
+            .Where(v => v.VoucherDate >= start && v.VoucherDate <= end && v.Status != VoucherStatus.Draft)
+            .ToListAsync();
+
+        var move = new Dictionary<int, (string Code, string Name, AccountCategory Cat, decimal Amount)>();
+        foreach (var v in periodVouchers)
+            foreach (var d in v.Details)
+            {
+                if (d.AccountTitle is null) continue;
+                var a = d.AccountTitle;
+                bool debitNormal = a.Category is AccountCategory.Asset or AccountCategory.Expense;
+                decimal signed = (d.IsDebit == debitNormal) ? d.Amount : -d.Amount;
+                var cur = move.TryGetValue(a.Id, out var e) ? e.Amount : 0m;
+                move[a.Id] = (a.Code, a.Name, a.Category, cur + signed);
+            }
+
+        bool IsCash(string code, string name, AccountCategory cat) =>
+            cat == AccountCategory.Asset && (name.Contains("現金") || name.Contains("約當") || name.Contains("銀行"));
+
+        var rows = move.Values.ToList();
+        decimal netIncome = rows.Where(r => r.Cat == AccountCategory.Revenue).Sum(r => r.Amount)
+                          - rows.Where(r => r.Cat == AccountCategory.Expense).Sum(r => r.Amount);
+
+        // Operating: add back non-cash expenses (折舊/攤銷/呆帳), then working-capital changes.
+        var addbacks = rows
+            .Where(r => r.Cat == AccountCategory.Expense && (r.Name.Contains("折舊") || r.Name.Contains("攤銷") || r.Name.Contains("呆帳")))
+            .Select(r => new { r.Code, Title = r.Name, Amount = r.Amount })
+            .Where(x => x.Amount != 0).ToList();
+
+        var workingCapital = rows
+            .Where(r => (r.Cat == AccountCategory.Asset && r.Code.StartsWith("11") && !IsCash(r.Code, r.Name, r.Cat))
+                     || (r.Cat == AccountCategory.Liability && r.Code.StartsWith("21")))
+            .Select(r => new
+            {
+                r.Code, Title = r.Name,
+                // current-asset increase uses cash (−); current-liability increase provides cash (+)
+                Amount = r.Cat == AccountCategory.Asset ? -r.Amount : r.Amount
+            })
+            .Where(x => x.Amount != 0).ToList();
+
+        decimal operatingTotal = netIncome + addbacks.Sum(x => x.Amount) + workingCapital.Sum(x => x.Amount);
+
+        // Investing: non-current assets (increase uses cash → −)
+        var investingItems = rows
+            .Where(r => r.Cat == AccountCategory.Asset && !r.Code.StartsWith("11") && !IsCash(r.Code, r.Name, r.Cat))
+            .Select(r => new { r.Code, Title = r.Name, Amount = -r.Amount })
+            .Where(x => x.Amount != 0).ToList();
+        decimal investingTotal = investingItems.Sum(x => x.Amount);
+
+        // Financing: non-current liabilities + equity (increase provides cash → +)
+        var financingItems = rows
+            .Where(r => (r.Cat == AccountCategory.Liability && !r.Code.StartsWith("21")) || r.Cat == AccountCategory.Equity)
+            .Select(r => new { r.Code, Title = r.Name, Amount = r.Amount })
+            .Where(x => x.Amount != 0).ToList();
+        decimal financingTotal = financingItems.Sum(x => x.Amount);
+
+        decimal netChange = operatingTotal + investingTotal + financingTotal;
+
+        // Opening cash = signed cash movement from all posted vouchers before the period.
+        var priorVouchers = await _context.Vouchers
+            .Include(v => v.Details).ThenInclude(d => d.AccountTitle)
+            .Where(v => v.VoucherDate < start && v.Status != VoucherStatus.Draft)
+            .ToListAsync();
+        decimal SignedCash(IEnumerable<Voucher> vs) => vs.SelectMany(v => v.Details)
+            .Where(d => d.AccountTitle != null && IsCash(d.AccountTitle.Code, d.AccountTitle.Name, d.AccountTitle.Category))
+            .Sum(d => d.IsDebit ? d.Amount : -d.Amount);
+        decimal openingCash = SignedCash(priorVouchers);
+        decimal periodCashMovement = SignedCash(periodVouchers); // independent reconciliation check
+        decimal endingCash = openingCash + netChange;
+
+        return Ok(new
+        {
+            StartDate = start.ToString("yyyy-MM-dd"),
+            EndDate = end.ToString("yyyy-MM-dd"),
+            NetIncome = netIncome,
+            Operating = new { Addbacks = addbacks, WorkingCapital = workingCapital, Total = operatingTotal },
+            Investing = new { Items = investingItems, Total = investingTotal },
+            Financing = new { Items = financingItems, Total = financingTotal },
+            NetChange = netChange,
+            OpeningCash = openingCash,
+            EndingCash = endingCash,
+            Reconciles = Math.Abs(periodCashMovement - netChange) < 0.005m,
+            CashMovementCheck = periodCashMovement
+        });
+    }
 }

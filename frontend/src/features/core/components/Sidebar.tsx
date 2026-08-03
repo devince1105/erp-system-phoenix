@@ -55,6 +55,7 @@ export const Sidebar = () => {
     { name: "銀行帳戶 (Banks)", href: "/accounting/banks", icon: Users },
     { name: "損益表 (P&L)", href: "/accounting/reports/profit-and-loss", icon: BarChart3 },
     { name: "資產負債表 (Balance Sheet)", href: "/accounting/reports/balance-sheet", icon: BarChart3 },
+    { name: "現金流量表 (Cash Flow)", href: "/accounting/reports/cash-flow", icon: BarChart3 },
   ];
 
   const inventoryItems = [

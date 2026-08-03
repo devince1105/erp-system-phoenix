@@ -37,6 +37,20 @@ export interface BalanceSheetReport {
   totalLiabilitiesAndEquity: number;
 }
 
+export interface CashFlowReport {
+  startDate: string;
+  endDate: string;
+  netIncome: number;
+  operating: { addbacks: ReportItem[]; workingCapital: ReportItem[]; total: number };
+  investing: { items: ReportItem[]; total: number };
+  financing: { items: ReportItem[]; total: number };
+  netChange: number;
+  openingCash: number;
+  endingCash: number;
+  reconciles: boolean;
+  cashMovementCheck: number;
+}
+
 // --- API Service ---
 
 export const accountingApi = {
@@ -105,6 +119,10 @@ export const accountingApi = {
   // Reports
   getProfitAndLoss: async (startDate: string, endDate: string) => {
     const res = await axiosClient.get<ProfitAndLossReport>(`/reports/profit-and-loss?startDate=${startDate}&endDate=${endDate}`);
+    return res.data;
+  },
+  getCashFlow: async (startDate: string, endDate: string) => {
+    const res = await axiosClient.get<CashFlowReport>(`/reports/cash-flow?startDate=${startDate}&endDate=${endDate}`);
     return res.data;
   },
   getBalanceSheet: async (asOfDate: string) => {
