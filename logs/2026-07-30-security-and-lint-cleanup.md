@@ -342,7 +342,9 @@
 - **階段 24 — 現金流量表**(`5b326c9`):`GET /reports/cash-flow` 間接法,依科目代碼分類(現金/流動/非流動/權益)彙總營業/投資/理財三段。因本帳未將損益結轉權益,三段和恰等於現金科目實際變動(`reconciles` 對帳)。前端 `/accounting/reports/cash-flow`(會計式括號負數、期初→期末、Excel、對帳徽章)。三本表補齊。
 - **階段 25 — 傳票憑證附件**(`d8a253a`):`Voucher.AttachmentUrl` + migration;新增 `POST /api/attachments/upload`(會計端,重用 `ERP.Shared` 的 `IReceiptStorage`,同 HR 收據可插拔本機/R2)。傳票 新增/編輯 可上傳影像縮圖、清單顯示迴紋針。驗證:上傳→建/改傳票回寫→檔案 200。
 
-**P0 剩最後一項**:簽核流程設定持久化(`/settings/workflows` 目前假資料、流程寫死於後端 registry)。
+- **階段 26 — 簽核流程設定持久化**(`ad17735`):新增 `WorkflowStepDefinition` 實體 + migration;`ApprovalService.CreateAsync` 改由 DB 解析各表單流程(`ResolveFlowAsync`,無資料時 fallback 預設),啟動時冪等 seed 預設值。新增 `GET/PUT /hr/workflows`(僅 Admin);`/settings/workflows` 由假資料改為真編輯器(關卡增刪、換角色、改名、重排、儲存;角色限 直屬主管/部門主管/財務部)。驗證:把 請假 改成 3 關 → 新提交假單即展開 3 關;不支援角色回 400;非 admin 403。**P0 四項全部完成。**
+
+**下一階段 P1**:進銷存 ↔ 會計金流閉環(採購鏈→應付、銷售鏈→應收→逾期帳齡),可沿用既有「單據關聯 + 簽核引擎」模式。
 
 ## 尚待處理 / 建議（後續）
 
