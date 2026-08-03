@@ -90,6 +90,28 @@ public class EmployeesController : ControllerBase
 
     public record UpdateBaseSalaryDto(decimal BaseSalary);
 
+    public record UpdateSupervisionDto(int? ManagerId, int? DelegateEmployeeId);
+
+    /// <summary>Set an employee's direct supervisor (直屬主管) and approval delegate (簽核代理人).</summary>
+    [HttpPut("{id}/supervision")]
+    [Authorize(Roles = "Admin,HR")]
+    public async Task<IActionResult> UpdateSupervision(int id, [FromBody] UpdateSupervisionDto dto)
+    {
+        var employee = await _context.Employees.FindAsync(id);
+        if (employee == null) return NotFound();
+
+        if (dto.ManagerId == id || dto.DelegateEmployeeId == id)
+            return BadRequest("主管或代理人不可為員工本人。");
+
+        employee.ManagerId = dto.ManagerId;
+        employee.DelegateEmployeeId = dto.DelegateEmployeeId;
+        employee.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        _cache.Remove(CacheKey);
+
+        return NoContent();
+    }
+
     /// <summary>Set an employee's monthly base salary (drives payroll). HR/Accounting/Admin only.</summary>
     [HttpPut("{id}/base-salary")]
     [Authorize(Roles = "Admin,HR,Accountant")]
@@ -138,13 +160,17 @@ public class EmployeesController : ControllerBase
         if (existingEmployee == null)
             return NotFound();
 
-        // Salary is managed only via the role-gated /base-salary endpoint, and is
-        // masked to 0 on reads — so never let a general profile edit change it.
+        // Salary and the approval reporting line are managed only via their own
+        // endpoints — never let a general profile edit change them.
         var currentBaseSalary = existingEmployee.BaseSalary;
+        var currentManagerId = existingEmployee.ManagerId;
+        var currentDelegateId = existingEmployee.DelegateEmployeeId;
 
         // Update basic properties
         _context.Entry(existingEmployee).CurrentValues.SetValues(employee);
         existingEmployee.BaseSalary = currentBaseSalary;
+        existingEmployee.ManagerId = currentManagerId;
+        existingEmployee.DelegateEmployeeId = currentDelegateId;
         existingEmployee.UpdatedAt = DateTime.UtcNow;
 
         // Update Educations

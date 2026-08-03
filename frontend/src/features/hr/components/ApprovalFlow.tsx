@@ -15,7 +15,9 @@ export function ApprovalFlow({ instance, compact = false }: { instance: Approval
   }
 
   const steps = [...instance.steps].sort((a, b) => a.stepOrder - b.stepOrder);
-  const currentLabel = steps.find((s) => s.stepOrder === instance.currentStepOrder)?.label;
+  const currentStep = steps.find((s) => s.stepOrder === instance.currentStepOrder);
+  const currentLabel = currentStep?.label;
+  const currentWho = currentStep?.approverName ? `${currentLabel}（${currentStep.approverName}）` : currentLabel;
 
   if (compact) {
     return (
@@ -26,7 +28,7 @@ export function ApprovalFlow({ instance, compact = false }: { instance: Approval
           <span className="inline-flex items-center gap-1 text-red-600 dark:text-red-400 font-medium"><X className="w-3 h-3" />已駁回</span>
         ) : (
           <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-medium">
-            <Clock className="w-3 h-3" />待「{currentLabel}」簽核
+            <Clock className="w-3 h-3" />待「{currentWho}」簽核
           </span>
         )}
         <span className="text-slate-400">
@@ -57,7 +59,11 @@ export function ApprovalFlow({ instance, compact = false }: { instance: Approval
                   {rejected ? <X className="w-4 h-4" /> : done ? <Check className="w-4 h-4" /> : s.stepOrder}
                 </div>
                 <span className={`text-xs mt-1.5 font-medium ${isCurrent ? "text-amber-600 dark:text-amber-400" : "text-slate-600 dark:text-slate-300"}`}>{s.label}</span>
+                {s.approverName && <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{s.approverName}</span>}
                 {isCurrent && <span className="text-[10px] text-amber-500 mt-0.5">審核中</span>}
+                {done && s.signedByEmployeeId && s.signedByEmployeeId !== s.approverEmployeeId && (
+                  <span className="text-[10px] text-violet-500 dark:text-violet-400 mt-0.5">{s.signedByName} 代簽</span>
+                )}
                 {done && s.decidedAt && <span className="text-[10px] text-slate-400 mt-0.5">{new Date(s.decidedAt).toLocaleDateString()}</span>}
               </div>
               {idx < steps.length - 1 && (

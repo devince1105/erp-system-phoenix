@@ -60,7 +60,7 @@ public class ApprovalsController : ControllerBase
         if (!await _approvals.CanDecideInstanceAsync(id, CurrentEmployeeId(), CurrentRoles()))
             return StatusCode(StatusCodes.Status403Forbidden, new { message = "您不是此關卡的簽核人。" });
 
-        var instance = await _approvals.DecideAsync(id, dto.Approve, CurrentUserId(), dto.Comment);
+        var instance = await _approvals.DecideAsync(id, dto.Approve, CurrentUserId(), dto.Comment, CurrentEmployeeId());
         return instance is null ? NotFound() : instance;
     }
 

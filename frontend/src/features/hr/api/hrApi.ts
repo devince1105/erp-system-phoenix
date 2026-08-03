@@ -78,6 +78,10 @@ export const hrApi = {
   updateEmployeeBaseSalary: async (id: number, baseSalary: number): Promise<void> => {
     await axiosClient.put(`/hr/employees/${id}/base-salary`, { baseSalary });
   },
+  // Direct supervisor (直屬主管) + approval delegate (簽核代理人) — Admin/HR only.
+  updateSupervision: async (id: number, managerId: number | null, delegateEmployeeId: number | null): Promise<void> => {
+    await axiosClient.put(`/hr/employees/${id}/supervision`, { managerId, delegateEmployeeId });
+  },
 
   // Attendances
   getAttendances: async (): Promise<AttendanceRecord[]> => {

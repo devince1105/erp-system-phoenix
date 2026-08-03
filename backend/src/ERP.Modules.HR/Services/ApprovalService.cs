@@ -147,17 +147,43 @@ public class ApprovalService
         };
         var order = 1;
         foreach (var (role, label) in def)
-            instance.Steps.Add(new ApprovalStep { StepOrder = order++, Role = role, Label = label, Status = "Pending" });
+        {
+            // Snapshot the concrete approver so the applicant sees who each step is waiting on.
+            var approverId = await ResolveApproverEmployeeIdAsync(formType, documentId, role);
+            instance.Steps.Add(new ApprovalStep { StepOrder = order++, Role = role, Label = label, Status = "Pending", ApproverEmployeeId = approverId });
+        }
 
         _db.ApprovalInstances.Add(instance);
         await _db.SaveChangesAsync();
         return instance;
     }
 
-    public Task<ApprovalInstance?> GetAsync(string formType, int documentId) =>
-        _db.ApprovalInstances
+    /// <summary>Populate each step's transient approver/signer display names from their employee ids.</summary>
+    private async Task PopulateNamesAsync(ApprovalInstance? instance)
+    {
+        if (instance is null) return;
+        var ids = instance.Steps
+            .SelectMany(s => new[] { s.ApproverEmployeeId, s.SignedByEmployeeId })
+            .Where(id => id is not null).Select(id => id!.Value).Distinct().ToList();
+        if (ids.Count == 0) return;
+
+        var names = await _db.Employees.Where(e => ids.Contains(e.Id))
+            .ToDictionaryAsync(e => e.Id, e => e.Name);
+        foreach (var s in instance.Steps)
+        {
+            if (s.ApproverEmployeeId is int aid && names.TryGetValue(aid, out var an)) s.ApproverName = an;
+            if (s.SignedByEmployeeId is int sid && names.TryGetValue(sid, out var sn)) s.SignedByName = sn;
+        }
+    }
+
+    public async Task<ApprovalInstance?> GetAsync(string formType, int documentId)
+    {
+        var instance = await _db.ApprovalInstances
             .Include(i => i.Steps)
             .FirstOrDefaultAsync(i => i.FormType == formType && i.DocumentId == documentId);
+        await PopulateNamesAsync(instance);
+        return instance;
+    }
 
     /// <summary>
     /// Create approval instances for still-pending documents that were submitted
@@ -208,9 +234,44 @@ public class ApprovalService
             : _db.Departments.AnyAsync(d =>
                 (d.Name.Contains("會計") || d.Name.Contains("財務")) && d.ManagerId == employeeId);
 
+    private Task<int?> FinanceManagerIdAsync() =>
+        _db.Departments
+            .Where(d => d.Name.Contains("會計") || d.Name.Contains("財務"))
+            .OrderBy(d => d.Id)
+            .Select(d => d.ManagerId)
+            .FirstOrDefaultAsync();
+
     /// <summary>
-    /// Whether the given user (identified by their linked employee id + roles) is the
-    /// authorized approver of the instance's current step. Admin is a super-approver.
+    /// Resolve the concrete employee expected to sign a step of the given role, relative to
+    /// the document's applicant. "直屬主管" uses the applicant's ManagerId, falling back to the
+    /// department manager when unset; "部門主管" the department manager; "財務部" the finance
+    /// department manager.
+    /// </summary>
+    public async Task<int?> ResolveApproverEmployeeIdAsync(string formType, int documentId, string role)
+    {
+        if (role == "Finance") return await FinanceManagerIdAsync();
+
+        var applicantId = await ApplicantEmployeeIdAsync(formType, documentId);
+        if (applicantId is null) return null;
+        var applicant = await _db.Employees.FindAsync(applicantId.Value);
+        if (applicant is null) return null;
+
+        int? deptManagerId = applicant.DepartmentId is null
+            ? null
+            : (await _db.Departments.FindAsync(applicant.DepartmentId.Value))?.ManagerId;
+
+        return role switch
+        {
+            "DirectSupervisor" => applicant.ManagerId ?? deptManagerId,
+            "DepartmentManager" => deptManagerId,
+            _ => null,
+        };
+    }
+
+    /// <summary>
+    /// Whether the given user (identified by their linked employee id + roles) may sign the
+    /// instance's current step: they are the resolved approver, that approver's active delegate,
+    /// an Accountant (for Finance steps), or Admin (super-approver).
     /// </summary>
     public async Task<bool> CanDecideAsync(ApprovalInstance instance, int? employeeId, ISet<string> roles)
     {
@@ -220,21 +281,16 @@ public class ApprovalService
         var step = instance.Steps.FirstOrDefault(s => s.StepOrder == instance.CurrentStepOrder && s.Status == "Pending");
         if (step is null) return false;
 
-        if (step.Role == "Finance")
-            return roles.Contains("Accountant") || await IsFinanceManagerAsync(employeeId);
+        if (step.Role == "Finance" && roles.Contains("Accountant")) return true;
+        if (employeeId is null) return false;
 
-        if (step.Role is "DepartmentManager" or "DirectSupervisor")
-        {
-            if (employeeId is null) return false;
-            var applicantEmpId = await ApplicantEmployeeIdAsync(instance.FormType, instance.DocumentId);
-            if (applicantEmpId is null) return false;
-            var applicant = await _db.Employees.FindAsync(applicantEmpId.Value);
-            if (applicant?.DepartmentId is null) return false;
-            var dept = await _db.Departments.FindAsync(applicant.DepartmentId.Value);
-            return dept?.ManagerId == employeeId;
-        }
+        var approverId = await ResolveApproverEmployeeIdAsync(instance.FormType, instance.DocumentId, step.Role);
+        if (approverId is null) return false;
+        if (approverId == employeeId) return true;
 
-        return false; // unknown role → only Admin may act
+        // Delegate: the assigned approver may have handed their signing to this employee.
+        var approver = await _db.Employees.FindAsync(approverId.Value);
+        return approver?.DelegateEmployeeId == employeeId;
     }
 
     /// <summary>Load an instance and evaluate <see cref="CanDecideAsync"/> for the user.</summary>
@@ -364,7 +420,7 @@ public class ApprovalService
     }
 
     /// <summary>Approve or reject the instance's current step and advance the flow.</summary>
-    public async Task<ApprovalInstance?> DecideAsync(int instanceId, bool approve, int userId, string? comment)
+    public async Task<ApprovalInstance?> DecideAsync(int instanceId, bool approve, int userId, string? comment, int? decidedByEmployeeId = null)
     {
         var instance = await _db.ApprovalInstances
             .Include(i => i.Steps)
@@ -379,6 +435,7 @@ public class ApprovalService
             return instance;
 
         step.ApproverUserId = userId;
+        step.SignedByEmployeeId = decidedByEmployeeId;
         step.DecidedAt = DateTime.UtcNow;
         step.Comment = comment;
 
@@ -408,6 +465,7 @@ public class ApprovalService
 
         await SyncDocumentStatusAsync(instance);
         await _db.SaveChangesAsync();
+        await PopulateNamesAsync(instance);
         return instance;
     }
 

@@ -21,6 +21,13 @@ public class Employee
 
     public Department? Department { get; set; }
 
+    /// <summary>Direct supervisor (直屬主管). When null, "直屬主管" steps fall back to the department manager.</summary>
+    public int? ManagerId { get; set; }
+
+    /// <summary>Approval delegate (簽核代理人): while set, this person may sign in place of this
+    /// employee — used when a manager is away. Clear it when they return.</summary>
+    public int? DelegateEmployeeId { get; set; }
+
     [MaxLength(100)]
     public string JobTitle { get; set; } = string.Empty;
 

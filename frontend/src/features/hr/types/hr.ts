@@ -54,6 +54,8 @@ export interface Employee {
   emergencyContactPhone?: string;
   departmentId?: number;
   department?: Department;
+  managerId?: number;
+  delegateEmployeeId?: number;
   jobTitle: string;
   baseSalary: number;
   hireDate: string;
@@ -241,6 +243,10 @@ export interface ApprovalStep {
   approverUserId?: number;
   decidedAt?: string;
   comment?: string;
+  approverEmployeeId?: number;
+  approverName?: string;
+  signedByEmployeeId?: number;
+  signedByName?: string;
 }
 
 export interface ApprovalInstance {

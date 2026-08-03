@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ERP.Modules.HR.Models;
 
@@ -58,4 +59,18 @@ public class ApprovalStep
 
     [MaxLength(500)]
     public string? Comment { get; set; }
+
+    /// <summary>The employee expected to sign this step (resolved from the role at creation).</summary>
+    public int? ApproverEmployeeId { get; set; }
+
+    /// <summary>The employee who actually signed. Differs from the approver when a delegate signed (代簽).</summary>
+    public int? SignedByEmployeeId { get; set; }
+
+    /// <summary>Resolved display name of <see cref="ApproverEmployeeId"/> (not stored).</summary>
+    [NotMapped]
+    public string? ApproverName { get; set; }
+
+    /// <summary>Resolved display name of <see cref="SignedByEmployeeId"/> (not stored).</summary>
+    [NotMapped]
+    public string? SignedByName { get; set; }
 }
