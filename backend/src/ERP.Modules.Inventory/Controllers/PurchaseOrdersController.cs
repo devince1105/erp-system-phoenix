@@ -117,66 +117,10 @@ public class PurchaseOrdersController : ControllerBase
         if (order.Status != OrderStatus.Draft)
             return BadRequest("Only draft orders can be confirmed.");
 
-        // P1-4: Wrap purchase-in and payable voucher in one atomic transaction
-        using var scope = new TransactionScope(
-            TransactionScopeOption.Required,
-            new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
-            TransactionScopeAsyncFlowOption.Enabled);
-
-        try
-        {
-            order.Status = OrderStatus.Confirmed;
-
-            // Add inventory on purchase confirmation + record movements
-            var movements = new List<StockMovement>();
-
-            foreach (var item in order.Items)
-            {
-                var product = await _context.Products.FindAsync(item.ProductId);
-                if (product != null)
-                {
-                    var qtyBefore = product.StockQuantity;
-                    product.StockQuantity += item.Quantity;
-                    // Update cost price (latest purchase price)
-                    product.CostPrice = item.UnitPrice;
-
-                    // Record movement ledger (Append-Only)
-                    movements.Add(new StockMovement
-                    {
-                        ProductId      = product.Id,
-                        MovementType   = StockMovementType.PurchaseIn,
-                        Quantity       = item.Quantity,
-                        QuantityBefore = qtyBefore,
-                        QuantityAfter  = product.StockQuantity,
-                        ReferenceNo    = order.OrderNo,
-                        Remark         = $"採購單 {order.OrderNo} 入庫"
-                    });
-                }
-            }
-
-            // 1. Save inventory changes + movement records
-            _context.StockMovements.AddRange(movements);
-            await _context.SaveChangesAsync();
-
-            // 2. Create accounting voucher: Dr 存貨 / Cr 應付帳款
-            var voucherOk = await _accounting.CreatePurchaseVoucherAsync(
-                order.OrderNo, order.OrderDate, order.TotalAmount);
-
-            if (!voucherOk)
-                throw new InvalidOperationException("導入財務傳票失敗，已自動回滞入庫導筆。");
-
-            // 3. Commit atomically
-            scope.Complete();
-
-            return Ok(order);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, "確認採購單時發生未預期錯誤，已回滞入庫變動。");
-        }
+        // Confirming is a commitment only. Stock + payable voucher are posted later,
+        // when goods are received (進貨單), so a placed order doesn't yet move inventory.
+        order.Status = OrderStatus.Confirmed;
+        await _context.SaveChangesAsync();
+        return Ok(order);
     }
 }

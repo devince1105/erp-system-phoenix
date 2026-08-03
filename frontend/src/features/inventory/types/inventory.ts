@@ -45,6 +45,7 @@ export interface PurchaseOrder {
   status: OrderStatus;
   totalAmount: number;
   memo?: string;
+  receivedAt?: string;
   createdAt: string;
   items: PurchaseOrderItem[];
 }
@@ -68,6 +69,7 @@ export interface SalesOrder {
   status: OrderStatus;
   totalAmount: number;
   memo?: string;
+  deliveredAt?: string;
   createdAt: string;
   items: SalesOrderItem[];
 }

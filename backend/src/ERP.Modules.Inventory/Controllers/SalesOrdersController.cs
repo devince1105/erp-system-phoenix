@@ -121,75 +121,10 @@ public class SalesOrdersController : ControllerBase
         if (order.Status != OrderStatus.Draft)
             return BadRequest("Only draft orders can be confirmed.");
 
-        // P1-4: Use TransactionScope to ensure ACID atomicity across
-        // InventoryDbContext (stock deduction) and AccountingDbContext (voucher).
-        // Both point to the same SQL Server, so no MSDTC is needed.
-        using var scope = new TransactionScope(
-            TransactionScopeOption.Required,
-            new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
-            TransactionScopeAsyncFlowOption.Enabled);
-
-        try
-        {
-            order.Status = OrderStatus.Confirmed;
-
-            // Deduct inventory and calculate total cost
-            decimal totalCost = 0;
-            var movements = new List<StockMovement>();
-
-            foreach (var item in order.Items)
-            {
-                var product = item.Product;
-                if (product != null)
-                {
-                    if (product.StockQuantity < item.Quantity)
-                    {
-                        return BadRequest($"商品 [{product.Name}] 庫存不足！現庫存: {product.StockQuantity}，需求數量: {item.Quantity}。");
-                    }
-
-                    var qtyBefore = product.StockQuantity;
-                    product.StockQuantity -= item.Quantity;
-                    totalCost += item.Quantity * product.CostPrice;
-
-                    // Record movement ledger (Append-Only)
-                    movements.Add(new StockMovement
-                    {
-                        ProductId      = product.Id,
-                        MovementType   = StockMovementType.SalesOut,
-                        Quantity       = -item.Quantity,
-                        QuantityBefore = qtyBefore,
-                        QuantityAfter  = product.StockQuantity,
-                        ReferenceNo    = order.OrderNo,
-                        Remark         = $"銷貨單 {order.OrderNo} 出庫"
-                    });
-                }
-            }
-
-            // 1. Save inventory changes + movement records
-            _context.StockMovements.AddRange(movements);
-            await _context.SaveChangesAsync();
-
-            // 2. Create accounting voucher (same SQL Server = same ambient transaction)
-            var voucherOk = await _accounting.CreateSalesVoucherAsync(
-                order.OrderNo, order.OrderDate, order.TotalAmount, totalCost);
-
-            if (!voucherOk)
-                throw new InvalidOperationException("導入財務傳票失敗，已自動回滞庫存扣減。");
-
-            // 3. Commit both operations atomically
-            scope.Complete();
-
-            return Ok(order);
-        }
-        catch (InvalidOperationException ex)
-        {
-            // scope.Dispose() without Complete() = automatic rollback
-            return BadRequest(ex.Message);
-        }
-        catch (Exception)
-        {
-            // Unexpected error: rollback everything
-            return StatusCode(500, "確認销貨單時發生未預期錯誤，已回滞庫存變動。");
-        }
+        // Confirming is a commitment only. Stock deduction + receivable voucher are
+        // posted later, when goods are shipped (出貨單).
+        order.Status = OrderStatus.Confirmed;
+        await _context.SaveChangesAsync();
+        return Ok(order);
     }
 }

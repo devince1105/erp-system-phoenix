@@ -41,4 +41,8 @@ export const inventoryApi = {
   updatePurchaseOrder: (id: number, data: Partial<PurchaseOrder>) => fetchApi<void>(`/PurchaseOrders/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   deletePurchaseOrder: (id: number) => fetchApi<void>(`/PurchaseOrders/${id}`, { method: "DELETE" }),
   confirmPurchaseOrder: (id: number) => fetchApi<PurchaseOrder>(`/PurchaseOrders/${id}/confirm`, { method: "POST" }),
+
+  // Fulfillment: 進貨 (goods receipt) / 出貨 (delivery) — post stock + payable/receivable.
+  receiveFromOrder: (purchaseOrderId: number) => fetchApi<{ id: number; receiptNo: string }>(`/GoodsReceipts/from-order/${purchaseOrderId}`, { method: "POST" }),
+  shipFromOrder: (salesOrderId: number) => fetchApi<{ id: number; deliveryNo: string }>(`/DeliveryNotes/from-order/${salesOrderId}`, { method: "POST" }),
 };

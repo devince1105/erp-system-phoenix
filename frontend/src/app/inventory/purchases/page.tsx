@@ -24,8 +24,20 @@ export default function PurchasesPage() {
     fetchOrders();
   }, [fetchOrders]);
 
+  const handleReceive = async (id: number) => {
+    if (confirm("確定要進貨嗎？進貨後將增加庫存並產生應付帳款。")) {
+      try {
+        const r = await inventoryApi.receiveFromOrder(id);
+        alert(`已進貨,進貨單號 ${r.receiptNo};庫存已增加、應付帳款已入帳。`);
+        fetchOrders();
+      } catch {
+        alert('進貨失敗');
+      }
+    }
+  };
+
   const handleConfirm = async (id: number) => {
-    if (confirm("確定要確認入庫嗎？確認後將無法修改，並自動更新庫存。")) {
+    if (confirm("確定要確認這筆採購單嗎？確認為下單承諾;實際入庫請於確認後按「進貨」。")) {
       try {
         await inventoryApi.confirmPurchaseOrder(id);
         fetchOrders();
@@ -132,10 +144,17 @@ export default function PurchasesPage() {
                     <td className="px-6 py-4 font-bold text-slate-900 dark:text-slate-200">${order.totalAmount.toLocaleString()}</td>
                     <td className="px-6 py-4">
                       {order.status === 1 ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          已入庫 (Confirmed)
-                        </span>
+                        order.receivedAt ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            已進貨 (Received)
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            已確認 · 待進貨
+                          </span>
+                        )
                       ) : order.status === 0 ? (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800">
                           <Clock className="w-3.5 h-3.5" />
@@ -154,7 +173,7 @@ export default function PurchasesPage() {
                             onClick={() => handleConfirm(order.id)}
                             className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium text-sm transition-colors"
                           >
-                            確認入庫
+                            確認採購
                           </button>
                           <button
                             onClick={() => handleEdit(order.id)}
@@ -169,6 +188,13 @@ export default function PurchasesPage() {
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
+                      ) : order.status === 1 && !order.receivedAt ? (
+                        <button
+                          onClick={() => handleReceive(order.id)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-sm font-medium text-sm transition-colors"
+                        >
+                          進貨
+                        </button>
                       ) : (
                         <button className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium text-sm transition-colors">
                           檢視明細

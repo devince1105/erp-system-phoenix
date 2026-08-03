@@ -29,6 +29,9 @@ public class SalesOrder
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    /// <summary>Set when goods are shipped (出貨). Until then the order is only a commitment.</summary>
+    public DateTime? DeliveredAt { get; set; }
+
     /// <summary>Payment due date (應收到期日). Used for receivables aging.</summary>
     public DateTime? DueDate { get; set; }
 

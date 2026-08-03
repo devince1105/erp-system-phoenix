@@ -152,6 +152,11 @@ using (var scope = app.Services.CreateScope())
     var inventoryDb = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
     inventoryDb.Database.Migrate();
 
+    // Backfill goods-receipts / delivery-notes for pre-existing confirmed orders
+    // after the order → receipt/delivery split (idempotent).
+    ERP.Modules.Inventory.Infrastructure.Database.InventoryChainSeeder
+        .BackfillAsync(inventoryDb).GetAwaiter().GetResult();
+
     // Migrate HR Module Database
     var hrDb = scope.ServiceProvider.GetRequiredService<HRDbContext>();
     hrDb.Database.Migrate();

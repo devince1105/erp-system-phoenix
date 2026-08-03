@@ -36,6 +36,9 @@ public class PurchaseOrder
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    /// <summary>Set when goods are received (進貨). Until then the order is only a commitment.</summary>
+    public DateTime? ReceivedAt { get; set; }
+
     /// <summary>Payment due date (應付到期日). Used for payables aging.</summary>
     public DateTime? DueDate { get; set; }
 

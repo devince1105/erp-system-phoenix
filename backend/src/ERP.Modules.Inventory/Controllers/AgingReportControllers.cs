@@ -63,8 +63,9 @@ public class ReceivablesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<AgingReportDto>> Get()
     {
+        // A receivable exists once goods are shipped (出貨), not merely ordered.
         var orders = await _db.SalesOrders.Include(o => o.Customer)
-            .Where(o => o.Status == OrderStatus.Confirmed)
+            .Where(o => o.DeliveredAt != null)
             .ToListAsync();
         var rows = orders.Select(o => (o.Id, o.OrderNo, o.OrderDate, o.DueDate, o.Customer!.Name, o.TotalAmount, o.SettledAmount));
         return Aging.Build(rows, DateTime.UtcNow);
@@ -100,8 +101,9 @@ public class PayablesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<AgingReportDto>> Get()
     {
+        // A payable exists once goods are received (進貨), not merely ordered.
         var orders = await _db.PurchaseOrders.Include(o => o.Supplier)
-            .Where(o => o.Status == OrderStatus.Confirmed)
+            .Where(o => o.ReceivedAt != null)
             .ToListAsync();
         var rows = orders.Select(o => (o.Id, o.OrderNo, o.OrderDate, o.DueDate, o.Supplier!.Name, o.TotalAmount, o.SettledAmount));
         return Aging.Build(rows, DateTime.UtcNow);
