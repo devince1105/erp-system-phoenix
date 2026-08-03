@@ -344,6 +344,19 @@
 
 - **階段 26 — 簽核流程設定持久化**(`ad17735`):新增 `WorkflowStepDefinition` 實體 + migration;`ApprovalService.CreateAsync` 改由 DB 解析各表單流程(`ResolveFlowAsync`,無資料時 fallback 預設),啟動時冪等 seed 預設值。新增 `GET/PUT /hr/workflows`(僅 Admin);`/settings/workflows` 由假資料改為真編輯器(關卡增刪、換角色、改名、重排、儲存;角色限 直屬主管/部門主管/財務部)。驗證:把 請假 改成 3 關 → 新提交假單即展開 3 關;不支援角色回 400;非 admin 403。**P0 四項全部完成。**
 
+## 階段 27 — 簽核關卡帶出實際簽核人 + 代理簽核〔2026-08-03〕
+
+**需求(使用者提出)**:簽核單每一關要顯示**實際負責人的名字**(不能只有「直屬主管」);且該主管出國/請假時可由**其他主管代簽**。同時點出:`直屬主管` 與 `部門主管` 目前都解析成同一人(部門主管),因員工無「直屬主管」欄位。
+
+**後端**(`fe9b09e`):
+- `Employee` 加 `ManagerId`(直屬主管)、`DelegateEmployeeId`(簽核代理人);`ApprovalStep` 加 `ApproverEmployeeId`(預期簽核人快照)、`SignedByEmployeeId`(實際簽核人)+ 兩個 `[NotMapped]` 顯示名。migration `AddApproverResolutionAndDelegation`。
+- `ResolveApproverEmployeeIdAsync`:直屬主管→員工 `ManagerId`(未設則 fallback 部門主管)、部門主管→部門 ManagerId、財務部→會計/財務部主管。`CreateAsync` 建單時快照每關實際簽核人;`GetAsync`/`DecideAsync` 回填顯示名。
+- `CanDecideAsync` 除了本人,新增**代理人**可簽;`DecideAsync` 記錄實際簽核人,與預期不同即為代簽。`PUT /employees/{id}/supervision`(Admin/HR),並在一般員工編輯時保留這兩欄。
+
+**前端**(`fe9b09e`):`ApprovalFlow` 每關標籤下顯示實際簽核人姓名、代簽標「X 代簽」;compact 版「待『部門主管(陳淑芬)』簽核」。新頁 `/hr/approval-org`(簽核組織:設定直屬主管 + 簽核代理人,Admin/HR)。
+
+**端到端驗證**:新假單關卡帶出「陳淑芬」;sales 未授權簽核 403 → 設定 emp2 代理人=emp1 後,sales 代簽成功,紀錄「洪志明 代 陳淑芬 簽」(代簽)。tsc/eslint 0。
+
 **下一階段 P1**:進銷存 ↔ 會計金流閉環(採購鏈→應付、銷售鏈→應收→逾期帳齡),可沿用既有「單據關聯 + 簽核引擎」模式。
 
 ## 尚待處理 / 建議（後續）
