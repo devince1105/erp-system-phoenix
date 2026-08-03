@@ -17,6 +17,8 @@ import {
   HrParameterSetting,
   PayrollBreakdown,
   EmployeeSalary,
+  WorkflowOptions,
+  WorkflowStepConfig,
 } from '../types/hr';
 
 export const hrApi = {
@@ -269,6 +271,15 @@ export const hrApi = {
   getApprovalReport: async (): Promise<ApprovalReport> => {
     const { data } = await axiosClient.get<ApprovalReport>('/hr/approvals/report');
     return data;
+  },
+
+  // Approval workflow configuration (簽核流程設定) — Admin only.
+  getWorkflows: async (): Promise<WorkflowOptions> => {
+    const { data } = await axiosClient.get<WorkflowOptions>('/hr/workflows');
+    return data;
+  },
+  saveWorkflow: async (formType: string, steps: WorkflowStepConfig[]): Promise<void> => {
+    await axiosClient.put(`/hr/workflows/${formType}`, { steps });
   },
 
   // Upload a receipt image/PDF; returns the stored file URL.

@@ -122,6 +122,25 @@ export interface PayrollRecord {
   updatedAt?: string;
 }
 
+export interface WorkflowStepConfig {
+  stepOrder: number;
+  role: string;
+  label: string;
+}
+export interface WorkflowConfig {
+  formType: string;
+  formLabel: string;
+  steps: WorkflowStepConfig[];
+}
+export interface RoleOption {
+  role: string;
+  label: string;
+}
+export interface WorkflowOptions {
+  workflows: WorkflowConfig[];
+  availableRoles: RoleOption[];
+}
+
 export interface EmployeeSalary {
   id: number;
   name: string;

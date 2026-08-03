@@ -22,6 +22,24 @@ public static class WorkflowDefinitions
 
     public static (string Role, string Label)[] For(string formType) =>
         ForForm.TryGetValue(formType, out var steps) ? steps : Array.Empty<(string, string)>();
+
+    /// <summary>Form types that have a configurable workflow, with their display labels.</summary>
+    public static readonly IReadOnlyList<(string FormType, string Label)> FormTypes = new[]
+    {
+        ("Leave", "請假申請單"),
+        ("Overtime", "加班申請單"),
+        ("BusinessTrip", "出差申請單"),
+        ("ExpenseClaim", "差旅/費用報銷單"),
+        ("Purchase", "採購申請單"),
+    };
+
+    /// <summary>Approver roles the resolver understands — the only ones safe to configure.</summary>
+    public static readonly IReadOnlyList<(string Role, string Label)> Roles = new[]
+    {
+        ("DirectSupervisor", "直屬主管"),
+        ("DepartmentManager", "部門主管"),
+        ("Finance", "財務部"),
+    };
 }
 
 // ----- Approval reporting DTOs (簽核報表) ------------------------------------
@@ -31,6 +49,12 @@ public record FormTypeStatDto(string FormType, string Label, int Total, int Pend
 public record StageStatDto(string Label, int Decided, double? AvgDecideHours, int PendingNow);
 public record StuckItemDto(int InstanceId, string FormType, string FormLabel, int DocumentId, string CurrentLabel, int StepOrder, int TotalSteps, double AgeHours);
 public record ApprovalReportDto(ApprovalSummaryDto Summary, List<FormTypeStatDto> ByFormType, List<StageStatDto> ByStage, List<StuckItemDto> Stuck);
+
+// ----- Workflow configuration DTOs (簽核流程設定) ---------------------------
+public record WorkflowStepDto(int StepOrder, string Role, string Label);
+public record WorkflowDto(string FormType, string FormLabel, List<WorkflowStepDto> Steps);
+public record RoleOptionDto(string Role, string Label);
+public record WorkflowOptionsDto(List<WorkflowDto> Workflows, List<RoleOptionDto> AvailableRoles);
 
 /// <summary>
 /// Creates and advances approval instances (簽核實例). Keeps the underlying
@@ -42,10 +66,77 @@ public class ApprovalService
 
     public ApprovalService(HRDbContext db) => _db = db;
 
+    /// <summary>
+    /// The configured flow for a form type: the persisted steps if any exist,
+    /// otherwise the hardcoded defaults (which the seeder also uses).
+    /// </summary>
+    private async Task<(string Role, string Label)[]> ResolveFlowAsync(string formType)
+    {
+        var persisted = await _db.WorkflowStepDefinitions
+            .Where(w => w.FormType == formType)
+            .OrderBy(w => w.StepOrder)
+            .Select(w => new { w.Role, w.Label })
+            .ToListAsync();
+
+        return persisted.Count > 0
+            ? persisted.Select(p => (p.Role, p.Label)).ToArray()
+            : WorkflowDefinitions.For(formType);
+    }
+
+    // ----- Workflow configuration (簽核流程設定) ------------------------------
+
+    /// <summary>Seed persisted workflow steps from the defaults for any form type that has none.</summary>
+    public async Task SeedWorkflowsAsync()
+    {
+        foreach (var (formType, _) in WorkflowDefinitions.FormTypes)
+        {
+            if (await _db.WorkflowStepDefinitions.AnyAsync(w => w.FormType == formType)) continue;
+            var order = 1;
+            foreach (var (role, label) in WorkflowDefinitions.For(formType))
+                _db.WorkflowStepDefinitions.Add(new WorkflowStepDefinition { FormType = formType, StepOrder = order++, Role = role, Label = label });
+        }
+        await _db.SaveChangesAsync();
+    }
+
+    /// <summary>All configurable form types with their current steps + the selectable roles.</summary>
+    public async Task<WorkflowOptionsDto> GetWorkflowsAsync()
+    {
+        var all = await _db.WorkflowStepDefinitions.OrderBy(w => w.StepOrder).ToListAsync();
+        var workflows = WorkflowDefinitions.FormTypes.Select(ft =>
+        {
+            var steps = all.Where(w => w.FormType == ft.FormType).OrderBy(w => w.StepOrder).ToList();
+            var dtos = steps.Count > 0
+                ? steps.Select(s => new WorkflowStepDto(s.StepOrder, s.Role, s.Label)).ToList()
+                : WorkflowDefinitions.For(ft.FormType).Select((s, i) => new WorkflowStepDto(i + 1, s.Role, s.Label)).ToList();
+            return new WorkflowDto(ft.FormType, ft.Label, dtos);
+        }).ToList();
+        var roles = WorkflowDefinitions.Roles.Select(r => new RoleOptionDto(r.Role, r.Label)).ToList();
+        return new WorkflowOptionsDto(workflows, roles);
+    }
+
+    /// <summary>Replace the steps of one form type. Returns false if the form type is unknown.</summary>
+    public async Task<bool> SaveWorkflowAsync(string formType, IEnumerable<WorkflowStepDto> steps)
+    {
+        if (!WorkflowDefinitions.FormTypes.Any(f => f.FormType == formType)) return false;
+
+        var existing = await _db.WorkflowStepDefinitions.Where(w => w.FormType == formType).ToListAsync();
+        _db.WorkflowStepDefinitions.RemoveRange(existing);
+
+        var order = 1;
+        foreach (var s in steps)
+            _db.WorkflowStepDefinitions.Add(new WorkflowStepDefinition
+            {
+                FormType = formType, StepOrder = order++, Role = s.Role, Label = s.Label, UpdatedAt = DateTime.UtcNow
+            });
+
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
     /// <summary>Create the instance and its steps for a submitted document.</summary>
     public async Task<ApprovalInstance> CreateAsync(string formType, int documentId)
     {
-        var def = WorkflowDefinitions.For(formType);
+        var def = await ResolveFlowAsync(formType);
         var instance = new ApprovalInstance
         {
             FormType = formType,

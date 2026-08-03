@@ -156,6 +156,10 @@ using (var scope = app.Services.CreateScope())
     var hrDb = scope.ServiceProvider.GetRequiredService<HRDbContext>();
     hrDb.Database.Migrate();
 
+    // Seed default approval workflows for any form type that has none (idempotent).
+    scope.ServiceProvider.GetRequiredService<ERP.Modules.HR.Services.ApprovalService>()
+        .SeedWorkflowsAsync().GetAwaiter().GetResult();
+
     // Migrate CRM Module Database
     var crmDb = scope.ServiceProvider.GetRequiredService<CRMDbContext>();
     crmDb.Database.Migrate();

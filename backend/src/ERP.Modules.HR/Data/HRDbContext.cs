@@ -21,6 +21,7 @@ public class HRDbContext : DbContext
     public DbSet<PayrollRecord> Payrolls => Set<PayrollRecord>();
     public DbSet<BusinessTrip> BusinessTrips => Set<BusinessTrip>();
     public DbSet<PurchaseRequest> PurchaseRequests => Set<PurchaseRequest>();
+    public DbSet<WorkflowStepDefinition> WorkflowStepDefinitions => Set<WorkflowStepDefinition>();
     public DbSet<ApprovalInstance> ApprovalInstances => Set<ApprovalInstance>();
     public DbSet<ApprovalStep> ApprovalSteps => Set<ApprovalStep>();
     public DbSet<LeaveBalance> LeaveBalances => Set<LeaveBalance>();
