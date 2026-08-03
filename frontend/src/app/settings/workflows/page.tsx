@@ -148,12 +148,20 @@ export default function WorkflowsPage() {
                     <div key={idx} className="flex items-center gap-3 p-3 border border-slate-200 dark:border-slate-800 rounded-sm bg-slate-50/50 dark:bg-slate-800/20">
                       <span className="w-7 h-7 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center shrink-0">{idx + 1}</span>
                       <select value={step.role} onChange={(e) => setRole(idx, e.target.value)}
-                        className="px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-sm text-sm dark:text-slate-200 w-36 shrink-0">
-                        {roles.map((r) => <option key={r.role} value={r.role}>{r.label}</option>)}
+                        className="px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-sm text-sm dark:text-slate-200 w-44 shrink-0">
+                        {roles.map((r) => <option key={r.role} value={r.role}>{r.label}{r.approverName ? `（${r.approverName}）` : ""}</option>)}
                       </select>
                       <input type="text" value={step.label} onChange={(e) => setLabel(idx, e.target.value)}
-                        placeholder="顯示名稱（例如：財務部（加簽））"
+                        placeholder="顯示名稱（例如：資訊部主管）"
                         className="flex-1 px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-sm text-sm dark:text-slate-200" />
+                      {(() => {
+                        const opt = roles.find((r) => r.role === step.role);
+                        return (
+                          <span className="text-xs text-slate-500 shrink-0 w-24 truncate" title={opt?.approverName ?? "依申請人所屬"}>
+                            {opt?.approverName ? `→ ${opt.approverName}` : "依申請人"}
+                          </span>
+                        );
+                      })()}
                       <div className="flex items-center gap-0.5 shrink-0">
                         <button onClick={() => move(idx, -1)} disabled={idx === 0} className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-30" title="上移"><ArrowUp className="w-4 h-4" /></button>
                         <button onClick={() => move(idx, 1)} disabled={idx === active.steps.length - 1} className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-30" title="下移"><ArrowDown className="w-4 h-4" /></button>

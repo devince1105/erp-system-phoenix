@@ -30,9 +30,9 @@ public class WorkflowsController : ControllerBase
     {
         var steps = request.Steps ?? new List<WorkflowStepDto>();
 
-        var validRoles = WorkflowDefinitions.Roles.Select(r => r.Role).ToHashSet();
-        if (steps.Any(s => !validRoles.Contains(s.Role)))
-            return BadRequest(new { message = "含不支援的簽核角色。僅可使用 直屬主管 / 部門主管 / 財務部。" });
+        var roleError = await _approvals.ValidateRolesAsync(steps.Select(s => s.Role));
+        if (roleError is not null)
+            return BadRequest(new { message = roleError });
         if (steps.Any(s => string.IsNullOrWhiteSpace(s.Label)))
             return BadRequest(new { message = "每個關卡都需要顯示名稱。" });
 

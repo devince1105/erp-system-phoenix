@@ -53,7 +53,7 @@ public record ApprovalReportDto(ApprovalSummaryDto Summary, List<FormTypeStatDto
 // ----- Workflow configuration DTOs (簽核流程設定) ---------------------------
 public record WorkflowStepDto(int StepOrder, string Role, string Label);
 public record WorkflowDto(string FormType, string FormLabel, List<WorkflowStepDto> Steps);
-public record RoleOptionDto(string Role, string Label);
+public record RoleOptionDto(string Role, string Label, string? ApproverName = null);
 public record WorkflowOptionsDto(List<WorkflowDto> Workflows, List<RoleOptionDto> AvailableRoles);
 
 /// <summary>
@@ -110,8 +110,43 @@ public class ApprovalService
                 : WorkflowDefinitions.For(ft.FormType).Select((s, i) => new WorkflowStepDto(i + 1, s.Role, s.Label)).ToList();
             return new WorkflowDto(ft.FormType, ft.Label, dtos);
         }).ToList();
-        var roles = WorkflowDefinitions.Roles.Select(r => new RoleOptionDto(r.Role, r.Label)).ToList();
+
+        var roles = await BuildRoleOptionsAsync();
         return new WorkflowOptionsDto(workflows, roles);
+    }
+
+    /// <summary>
+    /// Selectable approvers for a workflow step: the relative roles (resolved per applicant)
+    /// plus one entry per department (its manager, resolved to a concrete name).
+    /// </summary>
+    public async Task<List<RoleOptionDto>> BuildRoleOptionsAsync()
+    {
+        var depts = await _db.Departments.OrderBy(d => d.Id).ToListAsync();
+        var managerIds = depts.Where(d => d.ManagerId != null).Select(d => d.ManagerId!.Value).Distinct().ToList();
+        var names = await _db.Employees.Where(e => managerIds.Contains(e.Id)).ToDictionaryAsync(e => e.Id, e => e.Name);
+        string? MgrName(int? id) => id is int m && names.TryGetValue(m, out var n) ? n : null;
+
+        var options = new List<RoleOptionDto>
+        {
+            new("DirectSupervisor", "直屬主管", null),
+            new("DepartmentManager", "部門主管（申請人所屬）", null),
+        };
+        options.AddRange(depts.Select(d => new RoleOptionDto($"Department:{d.Id}", $"{d.Name}主管", MgrName(d.ManagerId))));
+        return options;
+    }
+
+    /// <summary>Validate that every role is a relative role or an existing department. Returns an error message or null.</summary>
+    public async Task<string?> ValidateRolesAsync(IEnumerable<string> roles)
+    {
+        var relative = new HashSet<string> { "DirectSupervisor", "DepartmentManager", "Finance" };
+        var deptIds = await _db.Departments.Select(d => d.Id).ToListAsync();
+        foreach (var r in roles)
+        {
+            if (relative.Contains(r)) continue;
+            if (r.StartsWith("Department:") && int.TryParse(r["Department:".Length..], out var id) && deptIds.Contains(id)) continue;
+            return $"不支援的簽核角色：{r}";
+        }
+        return null;
     }
 
     /// <summary>Replace the steps of one form type. Returns false if the form type is unknown.</summary>
@@ -249,6 +284,10 @@ public class ApprovalService
     /// </summary>
     public async Task<int?> ResolveApproverEmployeeIdAsync(string formType, int documentId, string role)
     {
+        // A specific department's manager (e.g. 資訊部主管) — resolves to one concrete person.
+        if (role.StartsWith("Department:") && int.TryParse(role["Department:".Length..], out var deptId))
+            return (await _db.Departments.FindAsync(deptId))?.ManagerId;
+
         if (role == "Finance") return await FinanceManagerIdAsync();
 
         var applicantId = await ApplicantEmployeeIdAsync(formType, documentId);

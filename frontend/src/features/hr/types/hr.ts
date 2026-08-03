@@ -137,6 +137,7 @@ export interface WorkflowConfig {
 export interface RoleOption {
   role: string;
   label: string;
+  approverName?: string; // concrete manager name when the role resolves to one person
 }
 export interface WorkflowOptions {
   workflows: WorkflowConfig[];
