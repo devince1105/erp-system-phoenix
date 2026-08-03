@@ -48,6 +48,7 @@ export interface Voucher {
   status: VoucherStatus;
   totalAmount: number;
   memo?: string;
+  attachmentUrl?: string;
   createdAt: string;
   details: VoucherDetail[];
 }
@@ -56,6 +57,7 @@ export interface CreateVoucherPayload {
   voucherDate: string;
   type: VoucherType;
   memo?: string;
+  attachmentUrl?: string;
   details: {
     accountTitleId: number;
     isDebit: boolean;

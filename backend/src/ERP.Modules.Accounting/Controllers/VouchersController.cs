@@ -11,6 +11,7 @@ public class CreateVoucherDto
     public DateTime VoucherDate { get; set; } = DateTime.Today;
     public VoucherType Type { get; set; } = VoucherType.General;
     public string? Memo { get; set; }
+    public string? AttachmentUrl { get; set; }
     public List<CreateVoucherDetailDto> Details { get; set; } = new();
 }
 
@@ -111,6 +112,7 @@ public class VouchersController : ControllerBase
             VoucherNo = voucherNo,
             VoucherDate = dto.VoucherDate,
             Type = dto.Type,
+            AttachmentUrl = dto.AttachmentUrl,
             Status = VoucherStatus.Draft,
             TotalAmount = totalDebit,
             Memo = dto.Memo,
@@ -181,6 +183,7 @@ public class VouchersController : ControllerBase
         voucher.VoucherDate = dto.VoucherDate;
         voucher.Type = dto.Type;
         voucher.Memo = dto.Memo;
+        voucher.AttachmentUrl = dto.AttachmentUrl;
         voucher.TotalAmount = totalDebit;
 
         // 清除舊明細，寫入新明細

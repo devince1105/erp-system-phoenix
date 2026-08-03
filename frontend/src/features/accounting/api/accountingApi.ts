@@ -99,6 +99,15 @@ export const accountingApi = {
     const res = await axiosClient.get<Voucher>(`/vouchers/${id}`);
     return res.data;
   },
+  // Upload a supporting-document image/PDF (憑證); returns the stored file URL.
+  uploadAttachment: async (file: File): Promise<string> => {
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await axiosClient.post<{ url: string }>('/attachments/upload', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data.url;
+  },
   createVoucher: async (data: CreateVoucherDto) => {
     const res = await axiosClient.post<Voucher>('/vouchers', data);
     return res.data;

@@ -38,6 +38,10 @@ public class Voucher
     [MaxLength(255)]
     public string? Memo { get; set; }
 
+    /// <summary>URL of the supporting document image/PDF (憑證), stored via IReceiptStorage.</summary>
+    [MaxLength(500)]
+    public string? AttachmentUrl { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // ── Approval Audit Trail ─────────────────────────────────────────────────

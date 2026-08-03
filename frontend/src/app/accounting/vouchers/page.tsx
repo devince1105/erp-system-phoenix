@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { accountingApi } from '@/features/accounting/api/accountingApi';
 import { Voucher } from '@/features/accounting/types/accounting';
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
-import { Plus, Search, Filter, FileText, CheckCircle2, Edit, Trash2, Download, Printer } from 'lucide-react';
+import { Plus, Search, Filter, FileText, CheckCircle2, Edit, Trash2, Download, Printer, Paperclip } from 'lucide-react';
 import { exportToExcel, exportToPDF } from '@/utils/exportUtils';
 import { ReportPrintView } from '@/features/accounting/components/ReportPrintView';
 import { getApiErrorMessage } from "@/utils/apiError";
@@ -155,7 +155,14 @@ export default function VouchersPage() {
                       {new Date(voucher.voucherDate).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-400 max-w-[200px] truncate" title={voucher.memo}>
-                      {voucher.memo || '-'}
+                      <span className="inline-flex items-center gap-1.5">
+                        {voucher.attachmentUrl && (
+                          <a href={voucher.attachmentUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} title="檢視憑證" className="text-slate-400 hover:text-blue-600 shrink-0">
+                            <Paperclip className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+                        <span className="truncate">{voucher.memo || '-'}</span>
+                      </span>
                     </td>
                     <td className="px-6 py-4 text-right font-medium text-slate-900 dark:text-slate-200">
                       ${voucher.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}

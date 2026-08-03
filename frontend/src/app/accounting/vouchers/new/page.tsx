@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { accountingApi, AccountTitle, CreateVoucherDto } from '@/features/accounting/api/accountingApi';
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
-import { ArrowLeft, Save, Plus, Trash2, Calculator, AlertCircle, FilePlus } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Calculator, AlertCircle, FilePlus, Upload, FileText, X } from 'lucide-react';
 import { getApiErrorMessage } from "@/utils/apiError";
 
 interface DetailRow {
@@ -26,6 +26,8 @@ export default function CreateVoucherPage() {
   const [voucherDate, setVoucherDate] = useState(new Date().toISOString().split('T')[0]);
   const [type, setType] = useState(0); // 0=General
   const [memo, setMemo] = useState('');
+  const [attachmentUrl, setAttachmentUrl] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
   
   const [details, setDetails] = useState<DetailRow[]>([
     { id: crypto.randomUUID(), accountTitleId: 0, isDebit: true, amount: '', summary: '' },
@@ -72,6 +74,21 @@ export default function CreateVoucherPage() {
     }));
   };
 
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      const url = await accountingApi.uploadAttachment(file);
+      setAttachmentUrl(url);
+    } catch (err) {
+      console.error(err);
+      setError('憑證上傳失敗，請確認檔案格式（jpg/png/webp/gif/pdf，5MB 內）。');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleSubmit = async () => {
     setError('');
     
@@ -92,6 +109,7 @@ export default function CreateVoucherPage() {
         voucherDate,
         type,
         memo,
+        attachmentUrl: attachmentUrl || undefined,
         details: details.map(d => ({
           accountTitleId: d.accountTitleId,
           isDebit: d.isDebit,
@@ -185,6 +203,33 @@ export default function CreateVoucherPage() {
               placeholder="例如：辦公用品採購"
               className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:text-slate-200 transition-all"
             />
+          </div>
+          <div className="space-y-1.5 md:col-span-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">憑證 / 發票 (選填)</label>
+            <div className="flex items-center gap-3">
+              <label className={`inline-flex items-center gap-2 px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-sm text-sm cursor-pointer bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 ${isUploading ? 'opacity-60 pointer-events-none' : ''}`}>
+                <Upload className="w-4 h-4" />
+                {isUploading ? '上傳中...' : attachmentUrl ? '重新選擇' : '上傳圖片 / 發票'}
+                <input type="file" accept="image/*,application/pdf" className="hidden" onChange={handleUpload} disabled={isUploading} />
+              </label>
+              {attachmentUrl && (
+                <>
+                  <a href={attachmentUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
+                    {/\.(jpe?g|png|webp|gif)$/i.test(attachmentUrl) ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={attachmentUrl} alt="憑證預覽" className="h-10 w-10 object-cover rounded border border-slate-200 dark:border-slate-700" />
+                    ) : (
+                      <FileText className="w-5 h-5" />
+                    )}
+                    已上傳，點擊檢視
+                  </a>
+                  <button type="button" onClick={() => setAttachmentUrl('')} className="p-1 text-slate-400 hover:text-red-500" title="移除憑證">
+                    <X className="w-4 h-4" />
+                  </button>
+                </>
+              )}
+            </div>
+            <p className="text-xs text-slate-400">支援 jpg / png / webp / gif / pdf，5MB 內。</p>
           </div>
         </div>
 
