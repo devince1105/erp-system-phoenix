@@ -402,6 +402,15 @@
 
 **P1 進度**:應收應付帳齡 ✅、收付款拋傳票 ✅、採購鏈 ✅、銷售鏈 ✅。**尚可強化**:進貨單/出貨單獨立清單頁、部分進出貨、與 CRM 商機串接、常用分錄範本。
 
+## 階段 32 — 常用分錄範本(P1 收尾,4/4)〔2026-08-03〕
+
+- `JournalTemplate` + `JournalTemplateLine` 實體 + migration `AddJournalTemplates`;`JournalTemplatesController`(讀:任何登入者;Admin/會計 CRUD),驗證至少兩行且含借貸雙方。
+- `JournalTemplateSeeder` 依科目代碼種入常見範本(支付租金/水電/文具、現金存/提),冪等。
+- 前端:傳票新增頁加「套用常用分錄」下拉,選範本即帶入借貸科目/摘要(金額後填);`/accounting/journal-templates` 管理頁(建立/編輯行/刪除),角色限 Admin/會計。
+- **驗證**:5 範本種入;會計建立 201、缺借貸 400、sales 403。tsc/eslint 0。
+
+**P1 金流閉環 4/4 全部完成**:應收應付帳齡、收付款拋傳票、採購鏈、銷售鏈、常用分錄。roadmap 已同步。
+
 ## 尚待處理 / 建議（後續）
 
 - ~~**CORS 過寬**（`AllowAnyOrigin`）~~ ✅ 已處理（階段 10，`6350917`）：改為 `Cors:AllowedOrigins` 白名單,預設本機開發來源,policy 更名 "AppCors"。正式環境請於設定填入真實網域。
