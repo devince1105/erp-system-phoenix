@@ -40,6 +40,7 @@ export default function AgingPage() {
       if (tab === 'ar') await accountingApi.settleReceivable(orderId, settleAmt);
       else await accountingApi.settlePayable(orderId, settleAmt);
       setSettleId(null); setSettleAmt(0); fetchData();
+      alert(`已登記${settleLabel},並拋轉一張會計傳票(草稿),可於「傳票管理」覆核。`);
     } catch (err) { console.error(err); alert('沖銷失敗'); }
     finally { setIsSaving(false); }
   };
@@ -157,7 +158,7 @@ export default function AgingPage() {
               </div>
             )}
           </div>
-          <p className="text-xs text-slate-400">「{settleLabel}」會登記已{isAr ? '收' : '付'}金額並更新未沖銷餘額。收付款分錄自動拋轉會計傳票為後續強化項目。</p>
+          <p className="text-xs text-slate-400">「{settleLabel}」會更新未沖銷餘額,並自動拋轉一張會計傳票({isAr ? '借 現金 / 貸 應收帳款' : '借 應付帳款 / 貸 現金'}),可於「傳票管理」覆核後過帳。</p>
         </>
       )}
     </div>

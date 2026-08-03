@@ -185,7 +185,47 @@ public class AccountingIntegrationService : IAccountingIntegrationService
         }
     }
 
+    public async Task<bool> CreateSettlementVoucherAsync(bool isReceipt, string orderNo, DateTime date, decimal amount)
+    {
+        try
+        {
+            if (amount <= 0) return false;
+            var cashId = await AccountIdByCodeAsync("1101"); // 現金及約當現金
+            var arId = await AccountIdByCodeAsync("1103");   // 應收帳款
+            var apId = await AccountIdByCodeAsync("2101");   // 應付帳款
+            var counterId = isReceipt ? arId : apId;
+            if (cashId is null || counterId is null) return false;
+
+            var voucher = await BuildVoucherAsync(date, isReceipt ? $"收款 {orderNo} 自動拋轉" : $"付款 {orderNo} 自動拋轉");
+
+            if (isReceipt)
+            {
+                // Dr 現金 / Cr 應收帳款
+                voucher.Details.Add(new VoucherDetail { SeqNo = 1, AccountTitleId = cashId.Value, IsDebit = true, Amount = amount, Summary = $"收款 - {orderNo}" });
+                voucher.Details.Add(new VoucherDetail { SeqNo = 2, AccountTitleId = counterId.Value, IsDebit = false, Amount = amount, Summary = $"沖銷應收帳款 - {orderNo}" });
+            }
+            else
+            {
+                // Dr 應付帳款 / Cr 現金
+                voucher.Details.Add(new VoucherDetail { SeqNo = 1, AccountTitleId = counterId.Value, IsDebit = true, Amount = amount, Summary = $"沖銷應付帳款 - {orderNo}" });
+                voucher.Details.Add(new VoucherDetail { SeqNo = 2, AccountTitleId = cashId.Value, IsDebit = false, Amount = amount, Summary = $"付款 - {orderNo}" });
+            }
+
+            voucher.TotalAmount = amount;
+            _context.Vouchers.Add(voucher);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
     // ── Private Helpers ──────────────────────────────────────────────────────
+
+    private Task<int?> AccountIdByCodeAsync(string code) =>
+        _context.AccountTitles.Where(a => a.Code == code).Select(a => (int?)a.Id).FirstOrDefaultAsync();
 
     /// <summary>
     /// Builds a new Voucher with an auto-generated VoucherNo.

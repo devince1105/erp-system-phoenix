@@ -1,5 +1,6 @@
 using ERP.Modules.Inventory.Domain.Entities;
 using ERP.Modules.Inventory.Infrastructure.Database;
+using ERP.Shared.Interfaces.Accounting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -56,7 +57,8 @@ internal static class Aging
 public class ReceivablesController : ControllerBase
 {
     private readonly InventoryDbContext _db;
-    public ReceivablesController(InventoryDbContext db) => _db = db;
+    private readonly IAccountingIntegrationService _accounting;
+    public ReceivablesController(InventoryDbContext db, IAccountingIntegrationService accounting) { _db = db; _accounting = accounting; }
 
     [HttpGet]
     public async Task<ActionResult<AgingReportDto>> Get()
@@ -75,9 +77,13 @@ public class ReceivablesController : ControllerBase
         if (dto.Amount <= 0) return BadRequest(new { message = "收款金額須大於 0。" });
         var order = await _db.SalesOrders.FindAsync(id);
         if (order == null) return NotFound();
-        order.SettledAmount = Math.Min(order.TotalAmount, order.SettledAmount + dto.Amount);
+        var applied = Math.Min(order.TotalAmount - order.SettledAmount, dto.Amount);
+        order.SettledAmount += applied;
         await _db.SaveChangesAsync();
-        return Ok(new { order.Id, order.SettledAmount, Outstanding = order.TotalAmount - order.SettledAmount });
+
+        // Post the receipt to accounting: Dr 現金 / Cr 應收帳款.
+        var voucherCreated = await _accounting.CreateSettlementVoucherAsync(isReceipt: true, order.OrderNo, DateTime.UtcNow, applied);
+        return Ok(new { order.Id, order.SettledAmount, Outstanding = order.TotalAmount - order.SettledAmount, voucherCreated });
     }
 }
 
@@ -88,7 +94,8 @@ public class ReceivablesController : ControllerBase
 public class PayablesController : ControllerBase
 {
     private readonly InventoryDbContext _db;
-    public PayablesController(InventoryDbContext db) => _db = db;
+    private readonly IAccountingIntegrationService _accounting;
+    public PayablesController(InventoryDbContext db, IAccountingIntegrationService accounting) { _db = db; _accounting = accounting; }
 
     [HttpGet]
     public async Task<ActionResult<AgingReportDto>> Get()
@@ -107,8 +114,12 @@ public class PayablesController : ControllerBase
         if (dto.Amount <= 0) return BadRequest(new { message = "付款金額須大於 0。" });
         var order = await _db.PurchaseOrders.FindAsync(id);
         if (order == null) return NotFound();
-        order.SettledAmount = Math.Min(order.TotalAmount, order.SettledAmount + dto.Amount);
+        var applied = Math.Min(order.TotalAmount - order.SettledAmount, dto.Amount);
+        order.SettledAmount += applied;
         await _db.SaveChangesAsync();
-        return Ok(new { order.Id, order.SettledAmount, Outstanding = order.TotalAmount - order.SettledAmount });
+
+        // Post the payment to accounting: Dr 應付帳款 / Cr 現金.
+        var voucherCreated = await _accounting.CreateSettlementVoucherAsync(isReceipt: false, order.OrderNo, DateTime.UtcNow, applied);
+        return Ok(new { order.Id, order.SettledAmount, Outstanding = order.TotalAmount - order.SettledAmount, voucherCreated });
     }
 }

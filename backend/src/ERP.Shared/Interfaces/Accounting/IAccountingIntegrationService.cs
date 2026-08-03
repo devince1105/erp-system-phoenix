@@ -30,4 +30,10 @@ public interface IAccountingIntegrationService
     /// <param name="totalBonus">Total bonus amount</param>
     /// <param name="totalDeductions">Total deduction amount</param>
     Task<bool> CreatePayrollVoucherAsync(int year, int month, decimal totalNetSalary, decimal totalBonus, decimal totalDeductions);
+
+    /// <summary>
+    /// Creates a draft journal voucher for a receipt/payment against an order.
+    /// Receipt (收款): Dr 現金 / Cr 應收帳款. Payment (付款): Dr 應付帳款 / Cr 現金.
+    /// </summary>
+    Task<bool> CreateSettlementVoucherAsync(bool isReceipt, string orderNo, DateTime date, decimal amount);
 }
