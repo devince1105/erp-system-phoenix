@@ -22,6 +22,15 @@ public class WorkflowsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<WorkflowOptionsDto>> Get() => await _approvals.GetWorkflowsAsync();
 
+    /// <summary>Steps of a single form type (built-in or a custom template "Tpl{id}") + selectable roles.</summary>
+    [HttpGet("{formType}")]
+    public async Task<IActionResult> GetOne(string formType)
+    {
+        var workflow = await _approvals.GetWorkflowAsync(formType);
+        if (workflow is null) return NotFound();
+        return Ok(new { workflow, availableRoles = await _approvals.BuildRoleOptionsAsync() });
+    }
+
     public record SaveWorkflowRequest(List<WorkflowStepDto> Steps);
 
     /// <summary>Replace the steps for one form type.</summary>

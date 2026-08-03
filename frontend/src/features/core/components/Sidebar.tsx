@@ -29,7 +29,8 @@ import {
   CalendarCheck,
   CalendarDays,
   Clock3,
-  ShoppingCart
+  ShoppingCart,
+  Sparkles
 } from "lucide-react";
 
 export const Sidebar = () => {
@@ -78,6 +79,7 @@ export const Sidebar = () => {
     { name: "差旅報支 (Travel Expenses)", href: "/hr/expenses", icon: Receipt },
     { name: "採購申請 (Purchase Requests)", href: "/hr/purchase-requests", icon: ShoppingCart },
     { name: "費用報銷 (Office Expenses)", href: "/hr/office-expenses", icon: Wallet },
+    { name: "萬用申請 (Requests)", href: "/hr/requests", icon: Sparkles },
     { name: "假勤簽核 (Leave & Overtime)", href: "/hr/approvals", icon: CalendarCheck },
     { name: "簽核報表 (Approval Report)", href: "/hr/approval-report", icon: BarChart3, roles: ["Admin", "HR", "Manager"] },
     { name: "簽核組織 (Supervisors)", href: "/hr/approval-org", icon: Users, roles: ["Admin", "HR"] },

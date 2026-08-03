@@ -19,6 +19,10 @@ import {
   EmployeeSalary,
   WorkflowOptions,
   WorkflowStepConfig,
+  WorkflowConfig,
+  RoleOption,
+  ApprovalFormTemplate,
+  GenericApprovalRequest,
 } from '../types/hr';
 
 export const hrApi = {
@@ -284,6 +288,43 @@ export const hrApi = {
   },
   saveWorkflow: async (formType: string, steps: WorkflowStepConfig[]): Promise<void> => {
     await axiosClient.put(`/hr/workflows/${formType}`, { steps });
+  },
+  getWorkflow: async (formType: string): Promise<{ workflow: WorkflowConfig; availableRoles: RoleOption[] }> => {
+    const { data } = await axiosClient.get(`/hr/workflows/${formType}`);
+    return data;
+  },
+
+  // Universal approval-form templates (萬用申請表單範本)
+  getApprovalTemplates: async (): Promise<ApprovalFormTemplate[]> => {
+    const { data } = await axiosClient.get<ApprovalFormTemplate[]>('/hr/approvalFormTemplates');
+    return data;
+  },
+  getActiveApprovalTemplates: async (): Promise<ApprovalFormTemplate[]> => {
+    const { data } = await axiosClient.get<ApprovalFormTemplate[]>('/hr/approvalFormTemplates/active');
+    return data;
+  },
+  createApprovalTemplate: async (t: Partial<ApprovalFormTemplate>): Promise<ApprovalFormTemplate> => {
+    const { data } = await axiosClient.post<ApprovalFormTemplate>('/hr/approvalFormTemplates', t);
+    return data;
+  },
+  updateApprovalTemplate: async (id: number, t: Partial<ApprovalFormTemplate>): Promise<void> => {
+    await axiosClient.put(`/hr/approvalFormTemplates/${id}`, t);
+  },
+  deleteApprovalTemplate: async (id: number): Promise<void> => {
+    await axiosClient.delete(`/hr/approvalFormTemplates/${id}`);
+  },
+
+  // Universal approval requests (萬用申請單)
+  getGenericRequests: async (): Promise<GenericApprovalRequest[]> => {
+    const { data } = await axiosClient.get<GenericApprovalRequest[]>('/hr/genericApprovalRequests');
+    return data;
+  },
+  createGenericRequest: async (r: Partial<GenericApprovalRequest>): Promise<GenericApprovalRequest> => {
+    const { data } = await axiosClient.post<GenericApprovalRequest>('/hr/genericApprovalRequests', r);
+    return data;
+  },
+  deleteGenericRequest: async (id: number): Promise<void> => {
+    await axiosClient.delete(`/hr/genericApprovalRequests/${id}`);
   },
 
   // Upload a receipt image/PDF; returns the stored file URL.

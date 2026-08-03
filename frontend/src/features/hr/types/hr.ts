@@ -124,6 +124,32 @@ export interface PayrollRecord {
   updatedAt?: string;
 }
 
+export interface ApprovalFormTemplate {
+  id: number;
+  name: string;
+  description?: string;
+  requireQuantity: boolean;
+  requireAmount: boolean;
+  isActive: boolean;
+  formType: string;
+  createdAt?: string;
+}
+
+export interface GenericApprovalRequest {
+  id: number;
+  templateId: number;
+  template?: ApprovalFormTemplate;
+  employeeId: number;
+  employee?: Employee;
+  title: string;
+  quantity?: number;
+  amount?: number;
+  reason?: string;
+  attachmentUrl?: string;
+  status: string;
+  createdAt?: string;
+}
+
 export interface WorkflowStepConfig {
   stepOrder: number;
   role: string;

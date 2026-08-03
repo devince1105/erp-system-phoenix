@@ -149,10 +149,32 @@ public class ApprovalService
         return null;
     }
 
+    private async Task<bool> IsKnownFormTypeAsync(string formType) =>
+        WorkflowDefinitions.FormTypes.Any(f => f.FormType == formType)
+        || (formType.StartsWith("Tpl") && int.TryParse(formType[3..], out var tid)
+            && await _db.ApprovalFormTemplates.AnyAsync(t => t.Id == tid));
+
+    /// <summary>Steps configured for a single form type (built-in default fallback, else persisted; templates have no default).</summary>
+    public async Task<WorkflowDto?> GetWorkflowAsync(string formType)
+    {
+        if (!await IsKnownFormTypeAsync(formType)) return null;
+        var steps = await _db.WorkflowStepDefinitions
+            .Where(w => w.FormType == formType).OrderBy(w => w.StepOrder)
+            .Select(w => new WorkflowStepDto(w.StepOrder, w.Role, w.Label)).ToListAsync();
+        if (steps.Count == 0 && WorkflowDefinitions.FormTypes.Any(f => f.FormType == formType))
+            steps = WorkflowDefinitions.For(formType).Select((s, i) => new WorkflowStepDto(i + 1, s.Role, s.Label)).ToList();
+
+        var builtIn = WorkflowDefinitions.FormTypes.FirstOrDefault(f => f.FormType == formType);
+        string? label = builtIn.FormType is null ? null : builtIn.Label;
+        if (label is null && formType.StartsWith("Tpl") && int.TryParse(formType[3..], out var tid))
+            label = (await _db.ApprovalFormTemplates.FindAsync(tid))?.Name;
+        return new WorkflowDto(formType, label ?? formType, steps);
+    }
+
     /// <summary>Replace the steps of one form type. Returns false if the form type is unknown.</summary>
     public async Task<bool> SaveWorkflowAsync(string formType, IEnumerable<WorkflowStepDto> steps)
     {
-        if (!WorkflowDefinitions.FormTypes.Any(f => f.FormType == formType)) return false;
+        if (!await IsKnownFormTypeAsync(formType)) return false;
 
         var existing = await _db.WorkflowStepDefinitions.Where(w => w.FormType == formType).ToListAsync();
         _db.WorkflowStepDefinitions.RemoveRange(existing);
@@ -260,6 +282,7 @@ public class ApprovalService
         "BusinessTrip" => (await _db.BusinessTrips.FindAsync(documentId))?.EmployeeId,
         "ExpenseClaim" => (await _db.ExpenseClaims.FindAsync(documentId))?.EmployeeId,
         "Purchase" => (await _db.PurchaseRequests.FindAsync(documentId))?.EmployeeId,
+        _ when formType.StartsWith("Tpl") => (await _db.GenericApprovalRequests.FindAsync(documentId))?.EmployeeId,
         _ => null,
     };
 
@@ -374,6 +397,10 @@ public class ApprovalService
         var now = DateTime.UtcNow;
         var instances = await _db.ApprovalInstances.Include(i => i.Steps).AsNoTracking().ToListAsync();
 
+        // Resolve labels, including custom template form types ("Tpl{id}") → template name.
+        var tplNames = await _db.ApprovalFormTemplates.ToDictionaryAsync(t => $"Tpl{t.Id}", t => t.Name);
+        string Label(string ft) => tplNames.TryGetValue(ft, out var n) ? n : FormLabel(ft);
+
         int total = instances.Count;
         int pending = instances.Count(i => i.Status == "Pending");
         int approved = instances.Count(i => i.Status == "Approved");
@@ -398,7 +425,7 @@ public class ApprovalService
                 int rj = g.Count(i => i.Status == "Rejected");
                 int dc = ap + rj;
                 var cyc = g.Where(i => i.CompletedAt != null).Select(i => (i.CompletedAt!.Value - i.CreatedAt).TotalHours).ToList();
-                return new FormTypeStatDto(g.Key, FormLabel(g.Key), g.Count(),
+                return new FormTypeStatDto(g.Key, Label(g.Key), g.Count(),
                     g.Count(i => i.Status == "Pending"), ap, rj,
                     dc == 0 ? 0 : Math.Round(ap * 100.0 / dc, 1),
                     cyc.Count == 0 ? null : Math.Round(cyc.Average(), 1));
@@ -447,7 +474,7 @@ public class ApprovalService
                 var idx = ordered.FindIndex(s => s.StepOrder == i.CurrentStepOrder);
                 var cur = idx >= 0 ? ordered[idx] : ordered.LastOrDefault();
                 DateTime since = idx <= 0 ? i.CreatedAt : (ordered[idx - 1].DecidedAt ?? i.CreatedAt);
-                return new StuckItemDto(i.Id, i.FormType, FormLabel(i.FormType), i.DocumentId,
+                return new StuckItemDto(i.Id, i.FormType, Label(i.FormType), i.DocumentId,
                     cur?.Label ?? "-", cur?.StepOrder ?? i.CurrentStepOrder, ordered.Count,
                     Math.Round((now - since).TotalHours, 1));
             })
@@ -534,6 +561,10 @@ public class ApprovalService
             case "Purchase":
                 var purchase = await _db.PurchaseRequests.FindAsync(instance.DocumentId);
                 if (purchase is not null) { purchase.Status = instance.Status; purchase.UpdatedAt = DateTime.UtcNow; if (instance.Status == "Approved") purchase.ApprovedAt = DateTime.UtcNow; }
+                break;
+            case var ft when ft.StartsWith("Tpl"):
+                var generic = await _db.GenericApprovalRequests.FindAsync(instance.DocumentId);
+                if (generic is not null) { generic.Status = instance.Status; generic.UpdatedAt = DateTime.UtcNow; if (instance.Status == "Approved") generic.ApprovedAt = DateTime.UtcNow; }
                 break;
         }
     }
