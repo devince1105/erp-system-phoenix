@@ -150,6 +150,8 @@ using (var scope = app.Services.CreateScope())
 
     // Seed common journal templates (常用分錄範本) if none exist (idempotent).
     ERP.Modules.Accounting.Data.JournalTemplateSeeder.SeedAsync(accountingDb).GetAwaiter().GetResult();
+    // Ensure depreciation accounts (折舊費用 / 累計折舊) exist.
+    ERP.Modules.Accounting.Data.DepreciationAccountSeeder.SeedAsync(accountingDb).GetAwaiter().GetResult();
     
     // Migrate Inventory Module Database
     var inventoryDb = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();

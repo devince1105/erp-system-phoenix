@@ -53,6 +53,22 @@ export interface Voucher {
   details: VoucherDetail[];
 }
 
+export interface FixedAsset {
+  id: number;
+  assetNo: string;
+  name: string;
+  category: string;
+  acquisitionDate: string;
+  acquisitionCost: number;
+  salvageValue: number;
+  usefulLifeMonths: number;
+  accumulatedDepreciation: number;
+  lastDepreciatedPeriod: number;
+  status: string;
+  monthlyDepreciation: number;
+  bookValue: number;
+}
+
 export interface JournalTemplateLine {
   id?: number;
   accountTitleId: number;
