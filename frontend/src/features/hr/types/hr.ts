@@ -131,6 +131,22 @@ export interface EmployeeSalary {
   hourlyRate: number;
 }
 
+export interface ApprovalReport {
+  summary: {
+    total: number; pending: number; approved: number; rejected: number;
+    approvalRate: number; avgCycleHours: number | null;
+  };
+  byFormType: {
+    formType: string; label: string; total: number; pending: number; approved: number;
+    rejected: number; approvalRate: number; avgCycleHours: number | null;
+  }[];
+  byStage: { label: string; decided: number; avgDecideHours: number | null; pendingNow: number }[];
+  stuck: {
+    instanceId: number; formType: string; formLabel: string; documentId: number;
+    currentLabel: string; stepOrder: number; totalSteps: number; ageHours: number;
+  }[];
+}
+
 export interface PayrollLineItem {
   kind: string;        // "Addition" | "Deduction"
   category: string;    // 加班, 事假(無薪), 病假(半薪), 特休(全薪)...

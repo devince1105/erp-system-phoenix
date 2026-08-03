@@ -24,6 +24,14 @@ public static class WorkflowDefinitions
         ForForm.TryGetValue(formType, out var steps) ? steps : Array.Empty<(string, string)>();
 }
 
+// ----- Approval reporting DTOs (簽核報表) ------------------------------------
+
+public record ApprovalSummaryDto(int Total, int Pending, int Approved, int Rejected, double ApprovalRate, double? AvgCycleHours);
+public record FormTypeStatDto(string FormType, string Label, int Total, int Pending, int Approved, int Rejected, double ApprovalRate, double? AvgCycleHours);
+public record StageStatDto(string Label, int Decided, double? AvgDecideHours, int PendingNow);
+public record StuckItemDto(int InstanceId, string FormType, string FormLabel, int DocumentId, string CurrentLabel, int StepOrder, int TotalSteps, double AgeHours);
+public record ApprovalReportDto(ApprovalSummaryDto Summary, List<FormTypeStatDto> ByFormType, List<StageStatDto> ByStage, List<StuckItemDto> Stuck);
+
 /// <summary>
 /// Creates and advances approval instances (簽核實例). Keeps the underlying
 /// document's Status in sync with the instance outcome.
@@ -160,6 +168,108 @@ public class ApprovalService
             if (await CanDecideAsync(instance, employeeId, roles))
                 mine.Add(instance);
         return mine;
+    }
+
+    // ----- Reporting (簽核報表) -----------------------------------------------
+
+    private static readonly IReadOnlyDictionary<string, string> FormLabels = new Dictionary<string, string>
+    {
+        ["BusinessTrip"] = "出差申請",
+        ["ExpenseClaim"] = "費用/差旅報銷",
+        ["Leave"] = "請假",
+        ["Overtime"] = "加班",
+        ["Purchase"] = "採購申請",
+    };
+    private static string FormLabel(string formType) => FormLabels.TryGetValue(formType, out var l) ? l : formType;
+
+    /// <summary>Aggregate approval analytics: throughput, per-stage timing, and the current bottlenecks.</summary>
+    public async Task<ApprovalReportDto> GetReportAsync()
+    {
+        var now = DateTime.UtcNow;
+        var instances = await _db.ApprovalInstances.Include(i => i.Steps).AsNoTracking().ToListAsync();
+
+        int total = instances.Count;
+        int pending = instances.Count(i => i.Status == "Pending");
+        int approved = instances.Count(i => i.Status == "Approved");
+        int rejected = instances.Count(i => i.Status == "Rejected");
+        int decided = approved + rejected;
+        double approvalRate = decided == 0 ? 0 : Math.Round(approved * 100.0 / decided, 1);
+
+        var cycles = instances
+            .Where(i => i.CompletedAt != null)
+            .Select(i => (i.CompletedAt!.Value - i.CreatedAt).TotalHours)
+            .ToList();
+        double? avgCycle = cycles.Count == 0 ? null : Math.Round(cycles.Average(), 1);
+
+        var summary = new ApprovalSummaryDto(total, pending, approved, rejected, approvalRate, avgCycle);
+
+        // Per form type
+        var byFormType = instances
+            .GroupBy(i => i.FormType)
+            .Select(g =>
+            {
+                int ap = g.Count(i => i.Status == "Approved");
+                int rj = g.Count(i => i.Status == "Rejected");
+                int dc = ap + rj;
+                var cyc = g.Where(i => i.CompletedAt != null).Select(i => (i.CompletedAt!.Value - i.CreatedAt).TotalHours).ToList();
+                return new FormTypeStatDto(g.Key, FormLabel(g.Key), g.Count(),
+                    g.Count(i => i.Status == "Pending"), ap, rj,
+                    dc == 0 ? 0 : Math.Round(ap * 100.0 / dc, 1),
+                    cyc.Count == 0 ? null : Math.Round(cyc.Average(), 1));
+            })
+            .OrderByDescending(f => f.Total)
+            .ToList();
+
+        // Per stage (label): time-to-decide = DecidedAt - when the step became active
+        var decideDurations = new Dictionary<string, List<double>>();
+        var pendingByLabel = new Dictionary<string, int>();
+        foreach (var inst in instances)
+        {
+            var ordered = inst.Steps.OrderBy(s => s.StepOrder).ToList();
+            for (int k = 0; k < ordered.Count; k++)
+            {
+                var step = ordered[k];
+                DateTime stepStart = k == 0 ? inst.CreatedAt : (ordered[k - 1].DecidedAt ?? inst.CreatedAt);
+                if (step.DecidedAt != null)
+                {
+                    var hrs = (step.DecidedAt.Value - stepStart).TotalHours;
+                    if (!decideDurations.TryGetValue(step.Label, out var list)) decideDurations[step.Label] = list = new();
+                    list.Add(hrs < 0 ? 0 : hrs);
+                }
+                else if (inst.Status == "Pending" && step.StepOrder == inst.CurrentStepOrder)
+                {
+                    pendingByLabel[step.Label] = pendingByLabel.GetValueOrDefault(step.Label) + 1;
+                }
+            }
+        }
+        var stageLabels = decideDurations.Keys.Union(pendingByLabel.Keys);
+        var byStage = stageLabels
+            .Select(label => new StageStatDto(
+                label,
+                decideDurations.TryGetValue(label, out var d) ? d.Count : 0,
+                decideDurations.TryGetValue(label, out var d2) && d2.Count > 0 ? Math.Round(d2.Average(), 1) : null,
+                pendingByLabel.GetValueOrDefault(label)))
+            .OrderByDescending(s => s.PendingNow).ThenByDescending(s => s.Decided)
+            .ToList();
+
+        // Bottlenecks: pending instances by how long they've sat at the current step
+        var stuck = instances
+            .Where(i => i.Status == "Pending")
+            .Select(i =>
+            {
+                var ordered = i.Steps.OrderBy(s => s.StepOrder).ToList();
+                var idx = ordered.FindIndex(s => s.StepOrder == i.CurrentStepOrder);
+                var cur = idx >= 0 ? ordered[idx] : ordered.LastOrDefault();
+                DateTime since = idx <= 0 ? i.CreatedAt : (ordered[idx - 1].DecidedAt ?? i.CreatedAt);
+                return new StuckItemDto(i.Id, i.FormType, FormLabel(i.FormType), i.DocumentId,
+                    cur?.Label ?? "-", cur?.StepOrder ?? i.CurrentStepOrder, ordered.Count,
+                    Math.Round((now - since).TotalHours, 1));
+            })
+            .OrderByDescending(s => s.AgeHours)
+            .Take(15)
+            .ToList();
+
+        return new ApprovalReportDto(summary, byFormType, byStage, stuck);
     }
 
     /// <summary>Approve or reject the instance's current step and advance the flow.</summary>

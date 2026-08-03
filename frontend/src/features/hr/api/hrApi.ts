@@ -13,6 +13,7 @@ import {
   BusinessTrip,
   PurchaseRequest,
   ApprovalInstance,
+  ApprovalReport,
   HrParameterSetting,
   PayrollBreakdown,
   EmployeeSalary,
@@ -262,6 +263,11 @@ export const hrApi = {
   // Pending approval instances the current user is authorized to decide (Admin sees all).
   getMyApprovals: async (): Promise<ApprovalInstance[]> => {
     const { data } = await axiosClient.get<ApprovalInstance[]>('/hr/approvals/mine');
+    return data;
+  },
+  // Approval analytics (簽核報表) — Admin/HR/Manager only.
+  getApprovalReport: async (): Promise<ApprovalReport> => {
+    const { data } = await axiosClient.get<ApprovalReport>('/hr/approvals/report');
     return data;
   },
 

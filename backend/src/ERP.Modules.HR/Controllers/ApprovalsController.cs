@@ -24,6 +24,14 @@ public class ApprovalsController : ControllerBase
         return instance is null ? NotFound() : instance;
     }
 
+    /// <summary>Approval analytics (簽核報表): throughput, per-stage timing, bottlenecks.</summary>
+    [HttpGet("report")]
+    [Authorize(Roles = "Admin,HR,Manager")]
+    public async Task<ActionResult<ApprovalReportDto>> Report()
+    {
+        return await _approvals.GetReportAsync();
+    }
+
     /// <summary>Pending approval instances the current user may decide (Admin sees all).</summary>
     [HttpGet("mine")]
     public async Task<ActionResult<IEnumerable<ApprovalInstance>>> Mine()
