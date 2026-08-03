@@ -411,6 +411,15 @@
 
 **P1 金流閉環 4/4 全部完成**:應收應付帳齡、收付款拋傳票、採購鏈、銷售鏈、常用分錄。roadmap 已同步。
 
+## 階段 33 — P2 起步:固定資產管理 + 折舊〔2026-08-03〕
+
+- `FixedAsset` 實體(取得成本/殘值/耐用月數/累計折舊/上次提列期間/狀態)+ migration `AddFixedAssets`;計算屬性:月折舊(直線法)、帳面淨值。
+- `FixedAssetsController`:CRUD(Admin/會計)+ `POST /depreciate/{year}/{month}` —— 對每個使用中、未折舊完畢、該期未提列的資產提列一個月(上限至可折舊基礎),冪等,並拋轉一張彙總傳票(借 折舊費用/貸 累計折舊)。
+- `DepreciationAccountSeeder` 確保 折舊費用(6501)、累計折舊(1501)科目存在。
+- 前端 `/accounting/fixed-assets`:資產卡列表 + 成本/淨值摘要、新增/編輯、「本期提列折舊」。角色限 Admin/會計。
+
+**驗證**:資產月折舊 1666.67;提列 2026-08 → 累計 1666.67、帳面 58333.33、傳票借貸平衡;重跑同月為 no-op。tsc/eslint 0。roadmap P2 更新(1/4)。
+
 ## 尚待處理 / 建議（後續）
 
 - ~~**CORS 過寬**（`AllowAnyOrigin`）~~ ✅ 已處理（階段 10，`6350917`）：改為 `Cors:AllowedOrigins` 白名單,預設本機開發來源,policy 更名 "AppCors"。正式環境請於設定填入真實網域。
