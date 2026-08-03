@@ -372,6 +372,16 @@
 
 **端到端驗證(API)**:建「電腦物品領用申請單」→ 設流程 直屬主管→資訊部主管 → 員工送「滑鼠 x1」→ 簽核實例解析為 **陳淑芬 → 謝美玲**。tsc/eslint 0。
 
+## 階段 29 — P1 起步:應收/應付帳齡 + 沖銷〔2026-08-03〕
+
+**P1 金流閉環第一塊**(使用者選定起點)。`SalesOrder`/`PurchaseOrder` 加 `DueDate` + `SettledAmount`(migration `AddOrderSettlement`);未沖銷 = 總額 − 已沖銷。
+- `ReceivablesController` / `PayablesController`(Admin/Accountant):GET 由「已確認且有未沖銷餘額」的訂單/採購單算帳齡,分 未到期/1-30/31-60/61-90/90+(無到期日以單據日+30);`POST /{id}/settle` 登記收/付款。
+- 前端 `/accounting/reports/aging`:應收/應付分頁、帳齡桶摘要卡、逐列 inline 收款/付款。角色限 Admin/會計(側欄與會計選單套用 `canSee` 過濾)。
+
+**驗證**:應收未沖銷 11.67M / 逾期 9.09M(分桶);收款後未沖銷下降;應付 9.6M;sales 403。tsc/eslint 0。
+
+**尚可強化**:收/付款自動拋轉會計傳票(現金/應收應付);到期日目前用預設(單據日+30),可在訂單上設定。**P1 後續**:進貨單→應付、出貨單→應收 的單據鏈。
+
 ## 尚待處理 / 建議（後續）
 
 - ~~**CORS 過寬**（`AllowAnyOrigin`）~~ ✅ 已處理（階段 10，`6350917`）：改為 `Cors:AllowedOrigins` 白名單,預設本機開發來源,policy 更名 "AppCors"。正式環境請於設定填入真實網域。
