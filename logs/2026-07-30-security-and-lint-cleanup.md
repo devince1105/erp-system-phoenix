@@ -359,6 +359,19 @@
 
 **下一階段 P1**:進銷存 ↔ 會計金流閉環(採購鏈→應付、銷售鏈→應收→逾期帳齡),可沿用既有「單據關聯 + 簽核引擎」模式。
 
+## 階段 28 — 萬用申請:可自訂申請單 + 部門簽核人〔2026-08-03〕
+
+**需求(使用者提出)**:`/settings/workflows` 應能**新增自訂申請單**(例:電腦物品領用),不是為單一表單客製而是**萬用**;關卡簽核人不能只有 3 個,要能選任一部門(研發/資訊…)主管;且要帶出實際主管姓名。
+
+**Phase A — 靈活簽核人**(`5954eaa`):關卡角色新增 `Department:{id}`(某部門主管);`ResolveApproverEmployeeIdAsync`/`CanDecideAsync` 解析、`ValidateRolesAsync` 放行;`GetWorkflowsAsync` 回傳全部門選項 + 實際主管姓名。設定頁下拉列出 7 個部門主管(帶姓名),每關顯示「→ 謝美玲」。
+
+**Phase B — 萬用申請範本**(`d0db797`):
+- `ApprovalFormTemplate`(名稱/說明/數量·金額欄位開關/啟用)+ `GenericApprovalRequest`(主旨/數量/金額/事由/附件)。範本關卡以 `FormType="Tpl{id}"` 存於既有 workflow 步驟表 → **整套引擎(路由、收件匣、報表、代簽、帶出簽核人)零改動即通用**,只加一支 generic 分支(取申請人、回寫狀態、報表標籤)。migration `AddApprovalFormTemplates`。
+- 控制器:範本 CRUD(Admin)+ active 清單;萬用申請單 submit/list/get/delete;`GET /hr/workflows/{formType}` 供範本關卡編輯。
+- 前端:`/settings/workflows` 重build —— 內建單據 + 自訂申請單同頁,「**新增自訂表單**」modal、逐範本關卡編輯 + 啟停/刪除;新頁 `/hr/requests`(萬用申請:選範本→填→跑流程),含 stepper、檢視、簽核、附件上傳。Sidebar 加「萬用申請」。
+
+**端到端驗證(API)**:建「電腦物品領用申請單」→ 設流程 直屬主管→資訊部主管 → 員工送「滑鼠 x1」→ 簽核實例解析為 **陳淑芬 → 謝美玲**。tsc/eslint 0。
+
 ## 尚待處理 / 建議（後續）
 
 - ~~**CORS 過寬**（`AllowAnyOrigin`）~~ ✅ 已處理（階段 10，`6350917`）：改為 `Cors:AllowedOrigins` 白名單,預設本機開發來源,policy 更名 "AppCors"。正式環境請於設定填入真實網域。
