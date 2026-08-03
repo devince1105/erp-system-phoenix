@@ -51,6 +51,16 @@ export interface CashFlowReport {
   cashMovementCheck: number;
 }
 
+export interface AgingItem {
+  orderId: number; orderNo: string; orderDate: string; dueDate: string; partnerName: string;
+  total: number; settled: number; outstanding: number; daysOverdue: number; bucket: string;
+}
+export interface AgingSummary {
+  totalOutstanding: number; overdue: number;
+  notDue: number; d1_30: number; d31_60: number; d61_90: number; d90Plus: number;
+}
+export interface AgingReport { summary: AgingSummary; items: AgingItem[]; }
+
 // --- API Service ---
 
 export const accountingApi = {
@@ -134,6 +144,11 @@ export const accountingApi = {
     const res = await axiosClient.get<CashFlowReport>(`/reports/cash-flow?startDate=${startDate}&endDate=${endDate}`);
     return res.data;
   },
+  // A/R & A/P aging (應收/應付帳齡) — Admin/Accountant only.
+  getReceivablesAging: async () => (await axiosClient.get<AgingReport>('/receivables')).data,
+  getPayablesAging: async () => (await axiosClient.get<AgingReport>('/payables')).data,
+  settleReceivable: async (orderId: number, amount: number) => { await axiosClient.post(`/receivables/${orderId}/settle`, { amount }); },
+  settlePayable: async (orderId: number, amount: number) => { await axiosClient.post(`/payables/${orderId}/settle`, { amount }); },
   getBalanceSheet: async (asOfDate: string) => {
     const res = await axiosClient.get<BalanceSheetReport>(`/reports/balance-sheet?asOfDate=${asOfDate}`);
     return res.data;

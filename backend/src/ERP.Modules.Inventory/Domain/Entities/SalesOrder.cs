@@ -28,7 +28,14 @@ public class SalesOrder
     public string? Memo { get; set; }
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    
+
+    /// <summary>Payment due date (應收到期日). Used for receivables aging.</summary>
+    public DateTime? DueDate { get; set; }
+
+    /// <summary>Amount received against this order so far (已收款). Outstanding = TotalAmount − SettledAmount.</summary>
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal SettledAmount { get; set; }
+
     public ICollection<SalesOrderItem> Items { get; set; } = new List<SalesOrderItem>();
 }
 

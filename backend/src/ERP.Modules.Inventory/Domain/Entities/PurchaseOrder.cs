@@ -35,7 +35,14 @@ public class PurchaseOrder
     public string? Memo { get; set; }
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    
+
+    /// <summary>Payment due date (應付到期日). Used for payables aging.</summary>
+    public DateTime? DueDate { get; set; }
+
+    /// <summary>Amount paid against this order so far (已付款). Outstanding = TotalAmount − SettledAmount.</summary>
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal SettledAmount { get; set; }
+
     public ICollection<PurchaseOrderItem> Items { get; set; } = new List<PurchaseOrderItem>();
 }
 

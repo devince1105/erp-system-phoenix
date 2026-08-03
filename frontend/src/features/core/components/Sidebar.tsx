@@ -57,6 +57,7 @@ export const Sidebar = () => {
     { name: "損益表 (P&L)", href: "/accounting/reports/profit-and-loss", icon: BarChart3 },
     { name: "資產負債表 (Balance Sheet)", href: "/accounting/reports/balance-sheet", icon: BarChart3 },
     { name: "現金流量表 (Cash Flow)", href: "/accounting/reports/cash-flow", icon: BarChart3 },
+    { name: "應收應付帳齡 (Aging)", href: "/accounting/reports/aging", icon: BarChart3, roles: ["Admin", "Accountant"] },
   ];
 
   const inventoryItems = [
@@ -165,7 +166,7 @@ export const Sidebar = () => {
 
           {(isAccountingOpen || isCollapsed) && (
             <div className={`space-y-0.5 ${!isCollapsed ? "mt-1 mb-2 ml-4 border-l-2 border-gray-200 dark:border-slate-800" : ""}`}>
-              {accountingItems.map((item) => {
+              {accountingItems.filter(canSee).map((item) => {
                 const isActive = pathname === item.href || (item.href !== "/accounting" && pathname.startsWith(item.href));
                 return (
                   <Link
