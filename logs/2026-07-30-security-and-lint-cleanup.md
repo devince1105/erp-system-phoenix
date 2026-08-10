@@ -436,6 +436,16 @@
 
 **建議下一步**:使用者用 admin/hr/accountant/sales 登入做瀏覽器實跑驗收;P2 剩 多倉庫(高,會改庫存邏輯,建議驗收後再動)、自訂報表(高,往後排)。
 
+## 階段 36 — 職級薪資帶 + 本薪防呆〔2026-08-03〕
+
+- `JobGrade`(代碼/名稱/薪資上下限/排序)+ `Employee.JobGradeId` + migration `AddJobGrades`;`JobGradeSeeder` 種入 L1~C1 預設帶。
+- `JobGradesController` CRUD(Admin/HR);`EmployeeSalaryDto` 帶職級與上下限。
+- **防呆**:`UpdateBaseSalary` 若金額超出所屬職級薪資帶 → **400**;`PUT /employees/{id}/grade` 改派職級並把本薪夾至帶內。一般員工編輯保留 `JobGradeId`。
+- 前端:`/hr/salaries` 加「職級·薪資帶」欄(可改派)、編輯本薪時標示超帶並顯示後端擋單訊息;`/settings/organization` 職級表由假資料改為真 CRUD(可改上下限)。
+- **驗證**:寫破表 999999 → 400「超出職級 L2 薪資帶 40,000–60,000」;帶內 55000 → 204;低於下限 → 400。(`479ccc4`)
+
+**資料設定(協助使用者)**:30 位員工全部自動歸級(薪水落點最低職級);再把 3 位落在 L3 的部門主管(洪志明/許家豪/郭建宏,75~76k)升 M1(薪水不變,因 75-76k 落在 M1 70-90k 帶內)→ 7 位主管皆 ≥ M1(陳淑芬 94k 為 M2)。
+
 ## 尚待處理 / 建議（後續）
 
 - ~~**CORS 過寬**（`AllowAnyOrigin`）~~ ✅ 已處理（階段 10，`6350917`）：改為 `Cors:AllowedOrigins` 白名單,預設本機開發來源,policy 更名 "AppCors"。正式環境請於設定填入真實網域。
