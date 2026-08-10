@@ -1,6 +1,7 @@
 using ERP.Modules.HR.Data;
 using ERP.Modules.HR.Models;
 using ERP.Modules.HR.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +9,7 @@ namespace ERP.Modules.HR.Controllers;
 
 [ApiController]
 [Route("api/hr/[controller]")]
+[Authorize]
 public class OvertimesController : ControllerBase
 {
     private readonly HRDbContext _context;

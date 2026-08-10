@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ERP.Modules.HR.Data;
@@ -9,6 +10,7 @@ namespace ERP.Modules.HR.Controllers
 {
     [ApiController]
     [Route("api/hr/[controller]")]
+    [Authorize]
     public class CalendarEventsController : ControllerBase
     {
         private readonly HRDbContext _context;

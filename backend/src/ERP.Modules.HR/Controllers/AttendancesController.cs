@@ -1,5 +1,6 @@
 using ERP.Modules.HR.Data;
 using ERP.Modules.HR.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,6 +8,7 @@ namespace ERP.Modules.HR.Controllers;
 
 [ApiController]
 [Route("api/hr/[controller]")]
+[Authorize]
 public class AttendancesController : ControllerBase
 {
     private readonly HRDbContext _context;
