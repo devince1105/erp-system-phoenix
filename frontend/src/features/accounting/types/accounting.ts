@@ -53,6 +53,21 @@ export interface Voucher {
   details: VoucherDetail[];
 }
 
+export interface Note {
+  id: number;
+  noteNo: string;
+  direction: string; // Receivable / Payable
+  instrument: string; // 支票 / 本票 / 匯票
+  partnerName: string;
+  bankName?: string;
+  amount: number;
+  issueDate: string;
+  dueDate: string;
+  status: string; // Pending / Cleared / Bounced
+  clearedDate?: string;
+  memo?: string;
+}
+
 export interface FixedAsset {
   id: number;
   assetNo: string;

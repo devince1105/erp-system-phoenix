@@ -7,10 +7,11 @@ import {
   Voucher,
   JournalTemplate,
   FixedAsset,
+  Note,
   CreateVoucherPayload as CreateVoucherDto
 } from '../types/accounting';
 
-export type { AccountTitle, BankAccount, VoucherDetail, Voucher, JournalTemplate, FixedAsset, CreateVoucherDto };
+export type { AccountTitle, BankAccount, VoucherDetail, Voucher, JournalTemplate, FixedAsset, Note, CreateVoucherDto };
 
 export interface ReportItem {
   code?: string;
@@ -165,6 +166,13 @@ export const accountingApi = {
   deleteFixedAsset: async (id: number) => { await axiosClient.delete(`/fixedassets/${id}`); },
   depreciateAssets: async (year: number, month: number) =>
     (await axiosClient.post<{ assetsDepreciated: number; totalDepreciation: number; voucherCreated: boolean }>(`/fixedassets/depreciate/${year}/${month}`)).data,
+
+  // Notes / bills (票據管理)
+  getNotes: async () => (await axiosClient.get<Note[]>('/notes')).data,
+  createNote: async (n: Partial<Note>) => (await axiosClient.post<Note>('/notes', n)).data,
+  clearNote: async (id: number) => (await axiosClient.post<{ voucherCreated: boolean }>(`/notes/${id}/clear`)).data,
+  bounceNote: async (id: number) => { await axiosClient.post(`/notes/${id}/bounce`); },
+  deleteNote: async (id: number) => { await axiosClient.delete(`/notes/${id}`); },
   getBalanceSheet: async (asOfDate: string) => {
     const res = await axiosClient.get<BalanceSheetReport>(`/reports/balance-sheet?asOfDate=${asOfDate}`);
     return res.data;

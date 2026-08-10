@@ -18,6 +18,7 @@ public class AccountingDbContext : DbContext
     public DbSet<JournalTemplate> JournalTemplates => Set<JournalTemplate>();
     public DbSet<JournalTemplateLine> JournalTemplateLines => Set<JournalTemplateLine>();
     public DbSet<FixedAsset> FixedAssets => Set<FixedAsset>();
+    public DbSet<Note> Notes => Set<Note>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
