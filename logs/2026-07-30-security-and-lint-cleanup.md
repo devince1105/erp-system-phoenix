@@ -429,6 +429,13 @@
 **驗證**:收票兌現→傳票 借 銀行/貸 應收 平衡;付票→借 應付/貸 銀行;sales 403。tsc/eslint 0。**P2 進度 2/4**(固定資產、票據);剩 多倉庫、自訂報表。
 (註:roadmap artifact 暫存檔被清,待重建同步 P2 2/4。)
 
+## 階段 35 — 收斂驗收:授權漏洞修補〔2026-08-03〕
+
+盤點全部 39 個控制器的 `[Authorize]`,發現 4 個 HR 端點未保護:`Leaves`、`Overtimes`、`Attendances`、`CalendarEvents`(未登入即可存取;`AuthController` 公開為正常)。四者補上 `[Authorize]`。前端 `next build` 全頁通過。
+**驗證**:四端點未帶 token → 401、帶 token → 200(`dda0c83`)。
+
+**建議下一步**:使用者用 admin/hr/accountant/sales 登入做瀏覽器實跑驗收;P2 剩 多倉庫(高,會改庫存邏輯,建議驗收後再動)、自訂報表(高,往後排)。
+
 ## 尚待處理 / 建議（後續）
 
 - ~~**CORS 過寬**（`AllowAnyOrigin`）~~ ✅ 已處理（階段 10，`6350917`）：改為 `Cors:AllowedOrigins` 白名單,預設本機開發來源,policy 更名 "AppCors"。正式環境請於設定填入真實網域。
