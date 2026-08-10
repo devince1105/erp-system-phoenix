@@ -76,19 +76,23 @@ public class EmployeesController : ControllerBase
     {
         var employees = await _context.Employees
             .Include(e => e.Department)
+            .Include(e => e.JobGrade)
             .OrderBy(e => e.DepartmentId).ThenBy(e => e.Id)
             .ToListAsync();
 
         return Ok(employees.Select(e => new EmployeeSalaryDto(
             e.Id, e.Name, e.Department?.Name, e.JobTitle,
-            e.BaseSalary, Math.Round(PayrollCalculator.HourlyRate(e.BaseSalary), 2))));
+            e.BaseSalary, Math.Round(PayrollCalculator.HourlyRate(e.BaseSalary), 2),
+            e.JobGradeId, e.JobGrade?.Code, e.JobGrade?.Title, e.JobGrade?.MinSalary, e.JobGrade?.MaxSalary)));
     }
 
     public record EmployeeSalaryDto(
         int Id, string Name, string? DepartmentName, string JobTitle,
-        decimal BaseSalary, decimal HourlyRate);
+        decimal BaseSalary, decimal HourlyRate,
+        int? JobGradeId, string? JobGradeCode, string? JobGradeTitle, decimal? MinSalary, decimal? MaxSalary);
 
     public record UpdateBaseSalaryDto(decimal BaseSalary);
+    public record UpdateGradeDto(int? JobGradeId);
 
     public record UpdateSupervisionDto(int? ManagerId, int? DelegateEmployeeId);
 
@@ -112,15 +116,19 @@ public class EmployeesController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>Set an employee's monthly base salary (drives payroll). HR/Accounting/Admin only.</summary>
+    /// <summary>Set an employee's monthly base salary (drives payroll). HR/Accounting/Admin only.
+    /// The salary must fall within the band of the employee's assigned 職級 — 防呆: out-of-band is rejected.</summary>
     [HttpPut("{id}/base-salary")]
     [Authorize(Roles = "Admin,HR,Accountant")]
     public async Task<IActionResult> UpdateBaseSalary(int id, [FromBody] UpdateBaseSalaryDto dto)
     {
-        if (dto.BaseSalary < 0) return BadRequest("本薪不可為負數。");
+        if (dto.BaseSalary < 0) return BadRequest(new { message = "本薪不可為負數。" });
 
-        var employee = await _context.Employees.FindAsync(id);
+        var employee = await _context.Employees.Include(e => e.JobGrade).FirstOrDefaultAsync(e => e.Id == id);
         if (employee == null) return NotFound();
+
+        if (employee.JobGrade is { } g && (dto.BaseSalary < g.MinSalary || dto.BaseSalary > g.MaxSalary))
+            return BadRequest(new { message = $"本薪超出職級 {g.Code}（{g.Title}）的薪資帶 {g.MinSalary:N0}–{g.MaxSalary:N0}，請調整金額或改派職級。" });
 
         employee.BaseSalary = dto.BaseSalary;
         employee.UpdatedAt = DateTime.UtcNow;
@@ -128,6 +136,32 @@ public class EmployeesController : ControllerBase
         _cache.Remove(CacheKey);
 
         return NoContent();
+    }
+
+    /// <summary>Assign an employee's 職級. If the current base salary is outside the new band, snap it to the nearest bound.</summary>
+    [HttpPut("{id}/grade")]
+    [Authorize(Roles = "Admin,HR")]
+    public async Task<IActionResult> UpdateGrade(int id, [FromBody] UpdateGradeDto dto)
+    {
+        var employee = await _context.Employees.FindAsync(id);
+        if (employee == null) return NotFound();
+
+        JobGrade? grade = null;
+        if (dto.JobGradeId is int gid)
+        {
+            grade = await _context.JobGrades.FindAsync(gid);
+            if (grade == null) return BadRequest(new { message = "找不到指定的職級。" });
+        }
+
+        employee.JobGradeId = dto.JobGradeId;
+        // Keep salary within the new band so the record stays valid.
+        if (grade != null)
+            employee.BaseSalary = Math.Clamp(employee.BaseSalary, grade.MinSalary, grade.MaxSalary);
+        employee.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        _cache.Remove(CacheKey);
+
+        return Ok(new { employee.Id, employee.JobGradeId, employee.BaseSalary });
     }
 
     [HttpPost]
@@ -165,12 +199,14 @@ public class EmployeesController : ControllerBase
         var currentBaseSalary = existingEmployee.BaseSalary;
         var currentManagerId = existingEmployee.ManagerId;
         var currentDelegateId = existingEmployee.DelegateEmployeeId;
+        var currentGradeId = existingEmployee.JobGradeId;
 
         // Update basic properties
         _context.Entry(existingEmployee).CurrentValues.SetValues(employee);
         existingEmployee.BaseSalary = currentBaseSalary;
         existingEmployee.ManagerId = currentManagerId;
         existingEmployee.DelegateEmployeeId = currentDelegateId;
+        existingEmployee.JobGradeId = currentGradeId;
         existingEmployee.UpdatedAt = DateTime.UtcNow;
 
         // Update Educations

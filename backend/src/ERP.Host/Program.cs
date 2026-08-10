@@ -169,6 +169,8 @@ using (var scope = app.Services.CreateScope())
     // Seed default approval workflows for any form type that has none (idempotent).
     scope.ServiceProvider.GetRequiredService<ERP.Modules.HR.Services.ApprovalService>()
         .SeedWorkflowsAsync().GetAwaiter().GetResult();
+    // Seed the job-grade table (salary bands) if empty (idempotent).
+    ERP.Modules.HR.Data.JobGradeSeeder.SeedAsync(hrDb).GetAwaiter().GetResult();
 
     // Migrate CRM Module Database
     var crmDb = scope.ServiceProvider.GetRequiredService<CRMDbContext>();

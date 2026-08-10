@@ -2,43 +2,39 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { hrApi } from "@/features/hr/api/hrApi";
-import { EmployeeSalary } from "@/features/hr/types/hr";
+import { EmployeeSalary, JobGrade } from "@/features/hr/types/hr";
 import { useAuth } from "@/features/core/contexts/AuthContext";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
-import { Wallet, Lock, Save, Pencil, X, ShieldAlert } from "lucide-react";
+import { Wallet, Lock, Save, Pencil, X, ShieldAlert, AlertTriangle } from "lucide-react";
 
 const PRIVILEGED = ["Admin", "HR", "Accountant"];
 
 export default function SalariesPage() {
   const { user } = useAuth();
   const canView = !!user?.roles?.some((r) => PRIVILEGED.includes(r));
+  const canGrade = !!user?.roles?.some((r) => ["Admin", "HR"].includes(r));
 
   const [salaries, setSalaries] = useState<EmployeeSalary[]>([]);
+  const [grades, setGrades] = useState<JobGrade[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState<number>(0);
   const [isSaving, setIsSaving] = useState(false);
 
   const fetchData = useCallback(() => {
-    hrApi.getEmployeeSalaries()
-      .then((data) => setSalaries(data))
+    Promise.all([hrApi.getEmployeeSalaries(), hrApi.getJobGrades()])
+      .then(([sal, gr]) => { setSalaries(sal); setGrades(gr); })
       .catch((err) => console.error("Failed to load salaries", err))
       .finally(() => setIsLoading(false));
   }, []);
 
-  useEffect(() => {
-    // Non-privileged users see the access-denied card (which ignores isLoading),
-    // so only the privileged path needs to load data.
-    if (canView) fetchData();
-  }, [canView, fetchData]);
+  useEffect(() => { if (canView) fetchData(); }, [canView, fetchData]);
 
   const formatCurrency = (n: number) =>
     new Intl.NumberFormat("zh-TW", { style: "currency", currency: "TWD", minimumFractionDigits: 0 }).format(n);
+  const band = (s: EmployeeSalary) => (s.minSalary != null && s.maxSalary != null ? `${s.minSalary.toLocaleString()}–${s.maxSalary.toLocaleString()}` : null);
 
-  const startEdit = (s: EmployeeSalary) => {
-    setEditingId(s.id);
-    setEditValue(s.baseSalary);
-  };
+  const startEdit = (s: EmployeeSalary) => { setEditingId(s.id); setEditValue(s.baseSalary); };
 
   const save = async (id: number) => {
     if (editValue < 0) return alert("本薪不可為負數");
@@ -48,15 +44,21 @@ export default function SalariesPage() {
       setEditingId(null);
       fetchData();
     } catch (err) {
-      const e = err as { response?: { status?: number } };
+      const e = err as { response?: { status?: number; data?: { message?: string } } };
       console.error(err);
-      alert(e.response?.status === 403 ? "您無權變更薪資。" : "儲存失敗");
-    } finally {
-      setIsSaving(false);
-    }
+      // 400 = out of the grade's salary band (防呆); 403 = no permission.
+      alert(e.response?.data?.message ?? (e.response?.status === 403 ? "您無權變更薪資。" : "儲存失敗"));
+    } finally { setIsSaving(false); }
+  };
+
+  const changeGrade = async (s: EmployeeSalary, gradeId: number | null) => {
+    try { await hrApi.updateEmployeeGrade(s.id, gradeId); fetchData(); }
+    catch (err) { const e = err as { response?: { data?: { message?: string } } }; alert(e.response?.data?.message ?? "改派職級失敗"); }
   };
 
   const totalMonthly = salaries.reduce((s, e) => s + e.baseSalary, 0);
+  const editGrade = editingId != null ? salaries.find((s) => s.id === editingId) : undefined;
+  const outOfBand = !!editGrade && editGrade.minSalary != null && editGrade.maxSalary != null && (editValue < editGrade.minSalary || editValue > editGrade.maxSalary);
 
   if (!canView) {
     return (
@@ -75,28 +77,18 @@ export default function SalariesPage() {
     <div className="max-w-5xl mx-auto space-y-6">
       <Breadcrumbs items={[{ label: "首頁", href: "/" }, { label: "人力資源系統 (HRM)", href: "/hr" }, { label: "員工薪資" }]} />
 
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Wallet className="h-6 w-6 text-indigo-600" />
-            員工薪資設定 (Salaries)
-            <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
-              <Lock className="w-3 h-3" /> 機密
-            </span>
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">設定每位員工的月本薪；時薪 = 本薪 ÷ 240 小時，作為加班/請假計薪基準。僅限 Admin / 人資 / 會計。</p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <Wallet className="h-6 w-6 text-indigo-600" />
+          員工薪資設定 (Salaries)
+          <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400"><Lock className="w-3 h-3" /> 機密</span>
+        </h1>
+        <p className="text-sm text-slate-500 mt-1">本薪須落在該員工<strong className="text-slate-700 dark:text-slate-300">職級的薪資帶</strong>內(超出會被擋);時薪 = 本薪 ÷ 240。職級表可於「系統設定 → 組織與職級」維護。</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm p-4">
-          <p className="text-xs text-slate-500">員工數</p>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{salaries.length}</p>
-        </div>
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm p-4">
-          <p className="text-xs text-slate-500">月本薪合計</p>
-          <p className="text-2xl font-bold text-indigo-600 mt-1 font-mono">{formatCurrency(totalMonthly)}</p>
-        </div>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm p-4"><p className="text-xs text-slate-500">員工數</p><p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{salaries.length}</p></div>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm p-4"><p className="text-xs text-slate-500">月本薪合計</p><p className="text-2xl font-bold text-indigo-600 mt-1 font-mono">{formatCurrency(totalMonthly)}</p></div>
       </div>
 
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm shadow-sm overflow-hidden">
@@ -111,7 +103,7 @@ export default function SalariesPage() {
                 <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   <th className="px-6 py-3">員工</th>
                   <th className="px-6 py-3">部門</th>
-                  <th className="px-6 py-3">職稱</th>
+                  <th className="px-6 py-3">職級 · 薪資帶</th>
                   <th className="px-6 py-3 text-right">月本薪</th>
                   <th className="px-6 py-3 text-right">時薪 (÷240)</th>
                   <th className="px-6 py-3 text-right">操作</th>
@@ -121,23 +113,35 @@ export default function SalariesPage() {
                 {salaries.map((s) => {
                   const isEditing = editingId === s.id;
                   const previewHourly = isEditing ? editValue / 240 : s.hourlyRate;
+                  const b = band(s);
                   return (
                     <tr key={s.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-white">{s.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">{s.departmentName ?? "-"}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">{s.jobTitle || "-"}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {canGrade ? (
+                          <select value={s.jobGradeId ?? ""} onChange={(e) => changeGrade(s, e.target.value ? Number(e.target.value) : null)}
+                            className="px-2 py-1 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-sm text-xs dark:text-slate-200">
+                            <option value="">未定級</option>
+                            {grades.map((g) => <option key={g.id} value={g.id}>{g.code} {g.title}</option>)}
+                          </select>
+                        ) : (
+                          <span className="text-slate-700 dark:text-slate-300">{s.jobGradeCode ? `${s.jobGradeCode} ${s.jobGradeTitle}` : "未定級"}</span>
+                        )}
+                        {b && <div className="text-[11px] text-slate-400 mt-0.5 font-mono">{b}</div>}
+                      </td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
                         {isEditing ? (
-                          <input type="number" min="0" step="1000" value={editValue}
-                            onChange={(e) => setEditValue(Number(e.target.value))}
-                            className="w-32 px-2 py-1 text-right border border-indigo-300 dark:border-indigo-700 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white dark:bg-slate-950 dark:text-slate-200 font-mono" />
+                          <div className="inline-flex flex-col items-end gap-0.5">
+                            <input type="number" min="0" step="1000" value={editValue} onChange={(e) => setEditValue(Number(e.target.value))}
+                              className={`w-32 px-2 py-1 text-right border rounded focus:outline-none focus:ring-1 bg-white dark:bg-slate-950 dark:text-slate-200 font-mono ${outOfBand ? "border-red-400 focus:ring-red-500" : "border-indigo-300 dark:border-indigo-700 focus:ring-indigo-500"}`} />
+                            {outOfBand && <span className="text-[10px] text-red-500 inline-flex items-center gap-0.5"><AlertTriangle className="w-3 h-3" />超出薪資帶 {b}</span>}
+                          </div>
                         ) : (
                           <span className="font-mono text-slate-800 dark:text-slate-200">{formatCurrency(s.baseSalary)}</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-right whitespace-nowrap font-mono text-slate-500">
-                        {formatCurrency(Math.round(previewHourly * 100) / 100)}/h
-                      </td>
+                      <td className="px-6 py-4 text-right whitespace-nowrap font-mono text-slate-500">{formatCurrency(Math.round(previewHourly * 100) / 100)}/h</td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
                         {isEditing ? (
                           <div className="inline-flex items-center gap-1">
@@ -145,9 +149,7 @@ export default function SalariesPage() {
                             <button onClick={() => setEditingId(null)} className="p-1.5 text-slate-400 hover:text-slate-600" title="取消"><X className="w-4 h-4" /></button>
                           </div>
                         ) : (
-                          <button onClick={() => startEdit(s)} className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
-                            <Pencil className="w-3.5 h-3.5" /> 調整
-                          </button>
+                          <button onClick={() => startEdit(s)} className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20"><Pencil className="w-3.5 h-3.5" /> 調整</button>
                         )}
                       </td>
                     </tr>
@@ -159,7 +161,7 @@ export default function SalariesPage() {
         )}
       </div>
 
-      <p className="text-xs text-slate-400">調整本薪後，下次執行「薪資結算」即以新本薪計算；已產生的薪資單需重新結算才會套用。</p>
+      <p className="text-xs text-slate-400">改派職級時,若原本薪超出新職級薪資帶,系統會自動夾至帶內。調整本薪後,下次執行「薪資結算」即以新本薪計算。</p>
     </div>
   );
 }

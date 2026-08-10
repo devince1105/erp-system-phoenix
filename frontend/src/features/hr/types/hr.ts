@@ -170,6 +170,16 @@ export interface WorkflowOptions {
   availableRoles: RoleOption[];
 }
 
+export interface JobGrade {
+  id: number;
+  code: string;
+  title: string;
+  minSalary: number;
+  maxSalary: number;
+  sortOrder: number;
+  isActive: boolean;
+}
+
 export interface EmployeeSalary {
   id: number;
   name: string;
@@ -177,6 +187,11 @@ export interface EmployeeSalary {
   jobTitle: string;
   baseSalary: number;
   hourlyRate: number;
+  jobGradeId?: number;
+  jobGradeCode?: string;
+  jobGradeTitle?: string;
+  minSalary?: number;
+  maxSalary?: number;
 }
 
 export interface ApprovalReport {

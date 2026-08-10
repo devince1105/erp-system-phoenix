@@ -31,6 +31,10 @@ public class Employee
     [MaxLength(100)]
     public string JobTitle { get; set; } = string.Empty;
 
+    /// <summary>職級 — its salary band constrains BaseSalary. Null = ungraded (no band check).</summary>
+    public int? JobGradeId { get; set; }
+    public JobGrade? JobGrade { get; set; }
+
     public decimal BaseSalary { get; set; } = 30000;
 
     public DateTime HireDate { get; set; }

@@ -17,6 +17,7 @@ import {
   HrParameterSetting,
   PayrollBreakdown,
   EmployeeSalary,
+  JobGrade,
   WorkflowOptions,
   WorkflowStepConfig,
   WorkflowConfig,
@@ -85,6 +86,25 @@ export const hrApi = {
   // Direct supervisor (直屬主管) + approval delegate (簽核代理人) — Admin/HR only.
   updateSupervision: async (id: number, managerId: number | null, delegateEmployeeId: number | null): Promise<void> => {
     await axiosClient.put(`/hr/employees/${id}/supervision`, { managerId, delegateEmployeeId });
+  },
+  updateEmployeeGrade: async (id: number, jobGradeId: number | null): Promise<void> => {
+    await axiosClient.put(`/hr/employees/${id}/grade`, { jobGradeId });
+  },
+
+  // Job grades / salary bands (職級表)
+  getJobGrades: async (): Promise<JobGrade[]> => {
+    const { data } = await axiosClient.get<JobGrade[]>('/hr/jobgrades');
+    return data;
+  },
+  createJobGrade: async (g: Partial<JobGrade>): Promise<JobGrade> => {
+    const { data } = await axiosClient.post<JobGrade>('/hr/jobgrades', g);
+    return data;
+  },
+  updateJobGrade: async (id: number, g: Partial<JobGrade>): Promise<void> => {
+    await axiosClient.put(`/hr/jobgrades/${id}`, g);
+  },
+  deleteJobGrade: async (id: number): Promise<void> => {
+    await axiosClient.delete(`/hr/jobgrades/${id}`);
   },
 
   // Attendances
