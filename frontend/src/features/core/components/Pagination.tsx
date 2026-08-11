@@ -99,9 +99,10 @@ export const Pagination: React.FC<PaginationProps> = ({
           }}
           className="px-2 py-1 border border-slate-300 dark:border-slate-800 rounded-sm bg-white dark:bg-slate-900 text-xs focus:outline-none focus:border-blue-500"
         >
-          <option value={5}>5 筆/頁</option>
           <option value={10}>10 筆/頁</option>
           <option value={20}>20 筆/頁</option>
+          <option value={50}>50 筆/頁</option>
+          <option value={100}>100 筆/頁</option>
         </select>
       </div>
 

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { accountingApi } from '@/features/accounting/api/accountingApi';
 import { Voucher } from '@/features/accounting/types/accounting';
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
+import { Pagination } from '@/features/core/components/Pagination';
 import { Plus, Search, Filter, FileText, CheckCircle2, Edit, Trash2, Download, Printer, Paperclip } from 'lucide-react';
 import { exportToExcel, exportToPDF } from '@/utils/exportUtils';
 import { ReportPrintView } from '@/features/accounting/components/ReportPrintView';
@@ -13,6 +14,8 @@ import { getApiErrorMessage } from "@/utils/apiError";
 export default function VouchersPage() {
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchVouchers = useCallback(() => {
     accountingApi.getVouchers()
@@ -146,7 +149,7 @@ export default function VouchersPage() {
                   </td>
                 </tr>
               ) : (
-                vouchers.map((voucher) => (
+                vouchers.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((voucher) => (
                   <tr key={voucher.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
                     <td className="px-6 py-4 font-medium text-slate-900 dark:text-slate-200">
                       {voucher.voucherNo}
@@ -194,6 +197,9 @@ export default function VouchersPage() {
             </tbody>
           </table>
         </div>
+        {vouchers.length > 0 && !isLoading && (
+          <Pagination currentPage={currentPage} pageSize={pageSize} totalItems={vouchers.length} onPageChange={setCurrentPage} onPageSizeChange={setPageSize} />
+        )}
       </div>
     </div>
 

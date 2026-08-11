@@ -5,6 +5,7 @@ import { hrApi } from "@/features/hr/api/hrApi";
 import { Employee } from "@/features/hr/types/hr";
 import { useAuth } from "@/features/core/contexts/AuthContext";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
+import { Pagination } from "@/features/core/components/Pagination";
 import { Users, ShieldAlert, Save, UserCheck, Plane } from "lucide-react";
 
 const PRIVILEGED = ["Admin", "HR"];
@@ -19,6 +20,8 @@ export default function ApprovalOrgPage() {
   const [managerId, setManagerId] = useState<number | "">("");
   const [delegateId, setDelegateId] = useState<number | "">("");
   const [isSaving, setIsSaving] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchData = useCallback(() => {
     hrApi.getEmployees()
@@ -103,7 +106,7 @@ export default function ApprovalOrgPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {employees.map((e) => {
+                {employees.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((e) => {
                   const isEditing = editingId === e.id;
                   const others = employees.filter((o) => o.id !== e.id);
                   return (
@@ -150,6 +153,9 @@ export default function ApprovalOrgPage() {
               </tbody>
             </table>
           </div>
+        )}
+        {employees.length > 0 && !isLoading && (
+          <Pagination currentPage={currentPage} pageSize={pageSize} totalItems={employees.length} onPageChange={setCurrentPage} onPageSizeChange={setPageSize} />
         )}
       </div>
       <p className="text-xs text-slate-400">「直屬主管」未設定時,簽核流程的「直屬主管」關卡會自動用部門主管。代理人設定後,主管出差/請假期間該代理人即可代簽,簽核紀錄會標示「代簽」。</p>

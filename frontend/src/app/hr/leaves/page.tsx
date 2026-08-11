@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { LeaveRequest, Employee, ApprovalInstance } from "@/features/hr/types/hr";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
+import { Pagination } from "@/features/core/components/Pagination";
 import { ApprovalFlow } from "@/features/hr/components/ApprovalFlow";
 import { CalendarDays, Plus, X, Trash2, Eye, Check, Undo2 } from "lucide-react";
 
@@ -36,6 +37,8 @@ export default function LeavesPage() {
   const [detailApproval, setDetailApproval] = useState<ApprovalInstance | null>(null);
   const [decideComment, setDecideComment] = useState("");
   const [isDeciding, setIsDeciding] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchData = useCallback(() => {
     Promise.all([hrApi.getLeaves(), hrApi.getEmployees()])
@@ -181,7 +184,7 @@ export default function LeavesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {leaves.map((l) => (
+                {leaves.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((l) => (
                   <tr key={l.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-white">{employeeName(l.employeeId)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -208,6 +211,9 @@ export default function LeavesPage() {
               </tbody>
             </table>
           </div>
+        )}
+        {leaves.length > 0 && !isLoading && (
+          <Pagination currentPage={currentPage} pageSize={pageSize} totalItems={leaves.length} onPageChange={setCurrentPage} onPageSizeChange={setPageSize} />
         )}
       </div>
 

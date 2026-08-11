@@ -5,6 +5,7 @@ import { hrApi } from "@/features/hr/api/hrApi";
 import { EmployeeSalary, JobGrade } from "@/features/hr/types/hr";
 import { useAuth } from "@/features/core/contexts/AuthContext";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
+import { Pagination } from "@/features/core/components/Pagination";
 import { Wallet, Lock, Save, Pencil, X, ShieldAlert, AlertTriangle } from "lucide-react";
 
 const PRIVILEGED = ["Admin", "HR", "Accountant"];
@@ -20,6 +21,8 @@ export default function SalariesPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState<number>(0);
   const [isSaving, setIsSaving] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchData = useCallback(() => {
     Promise.all([hrApi.getEmployeeSalaries(), hrApi.getJobGrades()])
@@ -57,6 +60,7 @@ export default function SalariesPage() {
   };
 
   const totalMonthly = salaries.reduce((s, e) => s + e.baseSalary, 0);
+  const paginated = salaries.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   const editGrade = editingId != null ? salaries.find((s) => s.id === editingId) : undefined;
   const outOfBand = !!editGrade && editGrade.minSalary != null && editGrade.maxSalary != null && (editValue < editGrade.minSalary || editValue > editGrade.maxSalary);
 
@@ -110,7 +114,7 @@ export default function SalariesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {salaries.map((s) => {
+                {paginated.map((s) => {
                   const isEditing = editingId === s.id;
                   const previewHourly = isEditing ? editValue / 240 : s.hourlyRate;
                   const b = band(s);
@@ -163,6 +167,9 @@ export default function SalariesPage() {
               </tbody>
             </table>
           </div>
+        )}
+        {salaries.length > 0 && !isLoading && (
+          <Pagination currentPage={currentPage} pageSize={pageSize} totalItems={salaries.length} onPageChange={setCurrentPage} onPageSizeChange={setPageSize} />
         )}
       </div>
 

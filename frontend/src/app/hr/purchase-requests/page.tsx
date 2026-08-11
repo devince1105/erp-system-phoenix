@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { PurchaseRequest, Employee, ApprovalInstance } from "@/features/hr/types/hr";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
+import { Pagination } from "@/features/core/components/Pagination";
 import { ApprovalFlow } from "@/features/hr/components/ApprovalFlow";
 import { ShoppingCart, Plus, X, Trash2, Eye, Check, Undo2 } from "lucide-react";
 
@@ -31,6 +32,8 @@ export default function PurchaseRequestsPage() {
   const [detailApproval, setDetailApproval] = useState<ApprovalInstance | null>(null);
   const [decideComment, setDecideComment] = useState("");
   const [isDeciding, setIsDeciding] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchData = useCallback(() => {
     Promise.all([hrApi.getPurchaseRequests(), hrApi.getEmployees()])
@@ -180,7 +183,7 @@ export default function PurchaseRequestsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {requests.map((r) => (
+                {requests.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((r) => (
                   <tr key={r.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-white">{employeeName(r.employeeId)}</td>
                     <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300 max-w-xs truncate" title={r.itemName}>{r.itemName}</td>
@@ -205,6 +208,9 @@ export default function PurchaseRequestsPage() {
               </tbody>
             </table>
           </div>
+        )}
+        {requests.length > 0 && !isLoading && (
+          <Pagination currentPage={currentPage} pageSize={pageSize} totalItems={requests.length} onPageChange={setCurrentPage} onPageSizeChange={setPageSize} />
         )}
       </div>
 

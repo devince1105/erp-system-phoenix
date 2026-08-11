@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { accountingApi, Note } from '@/features/accounting/api/accountingApi';
 import { useAuth } from '@/features/core/contexts/AuthContext';
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
+import { Pagination } from '@/features/core/components/Pagination';
 import { ScrollText, Plus, X, Trash2, CheckCircle2, AlertTriangle, ShieldAlert, Ban } from 'lucide-react';
 
 const PRIVILEGED = ['Admin', 'Accountant'];
@@ -26,6 +27,8 @@ export default function NotesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [modal, setModal] = useState<ReturnType<typeof emptyForm> | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchData = useCallback(() => {
     accountingApi.getNotes().then(setNotes).catch(console.error).finally(() => setIsLoading(false));
@@ -90,7 +93,7 @@ export default function NotesPage() {
 
       <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800">
         {(['Receivable', 'Payable'] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)}
+          <button key={t} onClick={() => { setTab(t); setCurrentPage(1); }}
             className={`px-4 py-2 text-sm font-medium -mb-px border-b-2 ${tab === t ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}>
             {t === 'Receivable' ? '應收票據 (收票)' : '應付票據 (付票)'}
           </button>
@@ -118,7 +121,7 @@ export default function NotesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {rows.map((n) => {
+                {rows.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((n) => {
                   const d = daysUntil(n.dueDate);
                   const dueBadge = n.status !== 'Pending' ? null : d < 0
                     ? <span className="text-xs text-red-600 dark:text-red-400 inline-flex items-center gap-0.5"><AlertTriangle className="w-3 h-3" />逾期 {-d} 天</span>
@@ -149,6 +152,9 @@ export default function NotesPage() {
               </tbody>
             </table>
           </div>
+        )}
+        {rows.length > 0 && !isLoading && (
+          <Pagination currentPage={currentPage} pageSize={pageSize} totalItems={rows.length} onPageChange={setCurrentPage} onPageSizeChange={setPageSize} />
         )}
       </div>
 

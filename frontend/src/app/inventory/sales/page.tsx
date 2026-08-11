@@ -6,10 +6,13 @@ import { SalesOrder } from '@/features/inventory/types/inventory';
 import { TrendingUp, Plus, CheckCircle2, Clock, Pencil, Trash2 } from 'lucide-react';
 import { SalesOrderModal } from '@/features/inventory/components/SalesOrderModal';
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
+import { Pagination } from '@/features/core/components/Pagination';
 
 export default function SalesPage() {
   const [orders, setOrders] = useState<SalesOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<SalesOrder | undefined>(undefined);
 
@@ -136,7 +139,7 @@ export default function SalesPage() {
                   </td>
                 </tr>
               ) : (
-                orders.map((order) => (
+                orders.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((order) => (
                   <tr key={order.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/25 transition-colors">
                     <td className="px-6 py-4 font-mono font-medium text-slate-900 dark:text-slate-200">{order.orderNo}</td>
                     <td className="px-6 py-4">{new Date(order.orderDate).toLocaleDateString()}</td>
@@ -207,6 +210,9 @@ export default function SalesPage() {
             </tbody>
           </table>
         </div>
+        {orders.length > 0 && !isLoading && (
+          <Pagination currentPage={currentPage} pageSize={pageSize} totalItems={orders.length} onPageChange={setCurrentPage} onPageSizeChange={setPageSize} />
+        )}
       </div>
 
       <SalesOrderModal

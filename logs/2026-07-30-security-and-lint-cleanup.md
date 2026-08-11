@@ -446,6 +446,19 @@
 
 **資料設定(協助使用者)**:30 位員工全部自動歸級(薪水落點最低職級);再把 3 位落在 L3 的部門主管(洪志明/許家豪/郭建宏,75~76k)升 M1(薪水不變,因 75-76k 落在 M1 70-90k 帶內)→ 7 位主管皆 ≥ M1(陳淑芬 94k 為 M2)。
 
+## 階段 37 — 薪資超帶紅字警示 + 分頁共用組件全面套用〔2026-08-11〕
+
+- **紅字警示**:`/hr/salaries` 列表的「月本薪」若不符所屬職級·薪資帶,以紅色字 + `AlertTriangle` 標示(`title` 顯示應落區間)。編輯與檢視兩種模式皆判斷。
+- **Pagination 共用組件強化**:`features/core/components/Pagination.tsx` 右側下拉選單筆數選項改為 **10 / 20 / 50 / 100 筆/頁**(切換筆數時自動回第 1 頁)。
+- **全面套用**:把後台所有尚未使用共用 Pagination 的 RowList 頁補上,並將既有「自製」分頁(products / partners,原本固定 10 筆、無筆數選單)遷移到共用組件:
+  - HR:salaries、leaves、overtimes、business-trips、purchase-requests、requests、office-expenses、expenses、approval-org、employees、departments、approvals。
+  - 會計:notes、vouchers、accounts。
+  - 庫存:purchases、sales、products、partners。
+  - 固定資產:fixed-assets。
+- 帶搜尋/分頁籤的頁面(accounts 搜尋、employees 部門/搜尋、partners 客/供切換、notes 收/付、approvals 假/加班)於條件切換時 `setCurrentPage(1)` 歸零,避免停在空白頁。
+- **略過**(非 RowList):報表(cash-flow / balance-sheet / profit-and-loss / aging / approval-report)、傳票表單(vouchers/new、vouchers/[id]/edit)、會計 dashboard、settings/organization 小型設定表。
+- **驗證**:tsc 0 / eslint 0(含 `react-hooks/set-state-in-effect`;分頁歸零改寫在事件處理器,未用 effect)。
+
 ## 尚待處理 / 建議（後續）
 
 - ~~**CORS 過寬**（`AllowAnyOrigin`）~~ ✅ 已處理（階段 10，`6350917`）：改為 `Cors:AllowedOrigins` 白名單,預設本機開發來源,policy 更名 "AppCors"。正式環境請於設定填入真實網域。

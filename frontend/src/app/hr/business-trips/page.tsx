@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { BusinessTrip, Employee, ApprovalInstance } from "@/features/hr/types/hr";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
+import { Pagination } from "@/features/core/components/Pagination";
 import { ApprovalFlow } from "@/features/hr/components/ApprovalFlow";
 import { Plane, Plus, X, Trash2, MapPin, CalendarDays, Eye, Check, Undo2 } from "lucide-react";
 
@@ -31,6 +32,8 @@ export default function BusinessTripsPage() {
   const [detailApproval, setDetailApproval] = useState<ApprovalInstance | null>(null);
   const [decideComment, setDecideComment] = useState("");
   const [isDeciding, setIsDeciding] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchData = useCallback(() => {
     Promise.all([hrApi.getBusinessTrips(), hrApi.getEmployees()])
@@ -182,7 +185,7 @@ export default function BusinessTripsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {trips.map((t) => (
+                {trips.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((t) => (
                   <tr key={t.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-white">{employeeName(t.employeeId)}</td>
                     <td className="px-6 py-4 text-sm">
@@ -218,6 +221,9 @@ export default function BusinessTripsPage() {
               </tbody>
             </table>
           </div>
+        )}
+        {trips.length > 0 && !isLoading && (
+          <Pagination currentPage={currentPage} pageSize={pageSize} totalItems={trips.length} onPageChange={setCurrentPage} onPageSizeChange={setPageSize} />
         )}
       </div>
 

@@ -3,6 +3,7 @@
 import React, { useCallback, useState, useEffect } from "react";
 import { CalendarCheck, CalendarDays, Clock3, Eye, Check, Undo2, X } from "lucide-react";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
+import { Pagination } from "@/features/core/components/Pagination";
 import { ApprovalFlow } from "@/features/hr/components/ApprovalFlow";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { LeaveRequest, OvertimeRequest, ApprovalInstance } from "@/features/hr/types/hr";
@@ -25,6 +26,8 @@ export default function LeaveOvertimeApprovalsPage() {
   const [detailApproval, setDetailApproval] = useState<ApprovalInstance | null>(null);
   const [decideComment, setDecideComment] = useState("");
   const [isDeciding, setIsDeciding] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchData = useCallback(() => {
     Promise.all([hrApi.getLeaves(), hrApi.getOvertimes(), hrApi.getMyApprovals()])
@@ -109,7 +112,7 @@ export default function LeaveOvertimeApprovalsPage() {
 
       <div className="flex items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-2">
         <button
-          onClick={() => setActiveTab("leaves")}
+          onClick={() => { setActiveTab("leaves"); setCurrentPage(1); }}
           className={`px-4 py-2 font-medium text-sm rounded-t-md transition-colors ${
             activeTab === "leaves"
               ? "text-blue-600 border-b-2 border-blue-600"
@@ -119,7 +122,7 @@ export default function LeaveOvertimeApprovalsPage() {
           待批假單 ({leaves.length})
         </button>
         <button
-          onClick={() => setActiveTab("overtimes")}
+          onClick={() => { setActiveTab("overtimes"); setCurrentPage(1); }}
           className={`px-4 py-2 font-medium text-sm rounded-t-md transition-colors ${
             activeTab === "overtimes"
               ? "text-blue-600 border-b-2 border-blue-600"
@@ -149,7 +152,7 @@ export default function LeaveOvertimeApprovalsPage() {
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                 {leaves.length === 0 ? (
                   <tr><td colSpan={6} className="p-8 text-center text-slate-500">目前沒有待您簽核的假單</td></tr>
-                ) : leaves.map(({ req: lv, approval }) => (
+                ) : leaves.slice((currentPage - 1) * pageSize, currentPage * pageSize).map(({ req: lv, approval }) => (
                   <tr key={lv.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                     <td className="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">{lv.employee?.name ?? `員工 #${lv.employeeId}`}</td>
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{leaveLabel(lv.leaveType)}</td>
@@ -184,7 +187,7 @@ export default function LeaveOvertimeApprovalsPage() {
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                 {overtimes.length === 0 ? (
                   <tr><td colSpan={6} className="p-8 text-center text-slate-500">目前沒有待您簽核的加班單</td></tr>
-                ) : overtimes.map(({ req: ov, approval }) => (
+                ) : overtimes.slice((currentPage - 1) * pageSize, currentPage * pageSize).map(({ req: ov, approval }) => (
                   <tr key={ov.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                     <td className="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">{ov.employee?.name ?? `員工 #${ov.employeeId}`}</td>
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
@@ -203,6 +206,15 @@ export default function LeaveOvertimeApprovalsPage() {
               </tbody>
             </table>
           </div>
+        )}
+        {!loading && (activeTab === "leaves" ? leaves.length : overtimes.length) > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            pageSize={pageSize}
+            totalItems={activeTab === "leaves" ? leaves.length : overtimes.length}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+          />
         )}
       </div>
 

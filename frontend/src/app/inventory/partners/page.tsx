@@ -7,6 +7,7 @@ import { Partner } from '@/features/inventory/types/inventory';
 import { PartnerModal } from '@/features/inventory/components/PartnerModal';
 import { Users, Plus, Building2, User, Trash2, Edit2 } from 'lucide-react';
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
+import { Pagination } from '@/features/core/components/Pagination';
 import { mutate } from 'swr';
 
 export default function PartnersPage() {
@@ -19,7 +20,7 @@ export default function PartnersPage() {
   const [editingPartner, setEditingPartner] = useState<Partner | undefined>(undefined);
   
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
 
   const filteredPartners = partners.filter(p => {
     if (activeTab === 'customer') return p.type === 1;
@@ -27,7 +28,6 @@ export default function PartnersPage() {
     return true;
   });
 
-  const totalPages = Math.ceil(filteredPartners.length / pageSize);
   const paginatedPartners = filteredPartners.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const handleSave = async (data: Partial<Partner>) => {
@@ -202,44 +202,8 @@ export default function PartnersPage() {
           </div>
         )}
 
-        {/* Pagination UI */}
-        {!isLoading && totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between">
-            <span className="text-sm text-slate-500">
-              顯示第 {(currentPage - 1) * pageSize + 1} 到 {Math.min(currentPage * pageSize, filteredPartners.length)} 筆，共 {filteredPartners.length} 筆
-            </span>
-            <div className="flex gap-1">
-              <button 
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                className="px-3 py-1 text-sm border border-slate-200 dark:border-slate-700 rounded-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800"
-              >
-                上一頁
-              </button>
-              
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                <button
-                  key={pageNum}
-                  onClick={() => setCurrentPage(pageNum)}
-                  className={`px-3 py-1 text-sm border rounded-sm transition-colors ${
-                    currentPage === pageNum
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  {pageNum}
-                </button>
-              ))}
-
-              <button 
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                className="px-3 py-1 text-sm border border-slate-200 dark:border-slate-700 rounded-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800"
-              >
-                下一頁
-              </button>
-            </div>
-          </div>
+        {!isLoading && filteredPartners.length > 0 && (
+          <Pagination currentPage={currentPage} pageSize={pageSize} totalItems={filteredPartners.length} onPageChange={setCurrentPage} onPageSizeChange={setPageSize} />
         )}
       </div>
 

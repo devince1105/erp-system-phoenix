@@ -3,6 +3,7 @@
 import React, { useCallback, useState, useEffect } from "react";
 import { FolderTree, Plus, Pencil, Trash2, Building2 } from "lucide-react";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
+import { Pagination } from "@/features/core/components/Pagination";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { Department, Employee } from "@/features/hr/types/hr";
 import { DepartmentModal } from "@/features/hr/components/DepartmentModal";
@@ -11,6 +12,8 @@ export default function DepartmentsPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
@@ -108,7 +111,7 @@ export default function DepartmentsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
-                {departments.map((dept) => (
+                {departments.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((dept) => (
                   <tr key={dept.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="px-6 py-4 font-medium text-slate-900 dark:text-slate-200">
                       {dept.name}
@@ -137,6 +140,9 @@ export default function DepartmentsPage() {
               </tbody>
             </table>
           </div>
+        )}
+        {departments.length > 0 && !loading && (
+          <Pagination currentPage={currentPage} pageSize={pageSize} totalItems={departments.length} onPageChange={setCurrentPage} onPageSizeChange={setPageSize} />
         )}
       </div>
 

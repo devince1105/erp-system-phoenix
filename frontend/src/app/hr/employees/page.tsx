@@ -4,6 +4,7 @@ import React, { useCallback, useState, useEffect } from "react";
 import { Users, Plus, Pencil, Trash2, Search, Download, Printer } from "lucide-react";
 import dynamic from "next/dynamic";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
+import { Pagination } from "@/features/core/components/Pagination";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { Employee, Department } from "@/features/hr/types/hr";
 import { exportToExcel, exportToPDF } from "@/utils/exportUtils";
@@ -19,6 +20,8 @@ export default function EmployeesPage() {
   
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -113,6 +116,10 @@ export default function EmployeesPage() {
     exportToPDF("員工名冊");
   };
 
+  const filteredEmployees = employees
+    .filter(emp => activeDepartmentId === "all" || emp.departmentId === activeDepartmentId)
+    .filter(emp => debouncedSearchQuery === "" || emp.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()));
+
   return (
     <>
     <div className="max-w-6xl mx-auto space-y-6 print:hidden">
@@ -136,7 +143,7 @@ export default function EmployeesPage() {
               type="text"
               placeholder="搜尋員工姓名..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
               className="pl-9 pr-4 py-2 border border-slate-300 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-900 text-sm focus:outline-none focus:border-blue-500 shadow-sm w-48 sm:w-64 transition-colors"
             />
           </div>
@@ -162,7 +169,7 @@ export default function EmployeesPage() {
       {!loading && departments.length > 0 && (
         <div className="flex items-center gap-2 overflow-x-auto pb-2 -mb-2 scrollbar-hide">
           <button
-            onClick={() => setActiveDepartmentId("all")}
+            onClick={() => { setActiveDepartmentId("all"); setCurrentPage(1); }}
             className={`px-4 py-1 mb-1 text-sm font-medium rounded-md whitespace-nowrap transition-colors border-1 border-solid border-blue-500/50 ${
               activeDepartmentId === "all"
                 ? "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400"
@@ -176,7 +183,7 @@ export default function EmployeesPage() {
             return (
               <button
                 key={dept.id}
-                onClick={() => setActiveDepartmentId(dept.id)}
+                onClick={() => { setActiveDepartmentId(dept.id); setCurrentPage(1); }}
                 className={`px-4 py-1 mb-1 text-sm font-medium rounded-md whitespace-nowrap transition-colors border-1 border-solid border-blue-500/50 ${
                   activeDepartmentId === dept.id
                     ? "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400"
@@ -215,9 +222,8 @@ export default function EmployeesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
-                {employees
-                  .filter(emp => activeDepartmentId === "all" || emp.departmentId === activeDepartmentId)
-                  .filter(emp => debouncedSearchQuery === "" || emp.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()))
+                {filteredEmployees
+                  .slice((currentPage - 1) * pageSize, currentPage * pageSize)
                   .map((emp) => (
                   <tr key={emp.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="px-6 py-4 font-medium text-slate-900 dark:text-slate-200">
@@ -256,6 +262,9 @@ export default function EmployeesPage() {
               </tbody>
             </table>
           </div>
+        )}
+        {filteredEmployees.length > 0 && !loading && (
+          <Pagination currentPage={currentPage} pageSize={pageSize} totalItems={filteredEmployees.length} onPageChange={setCurrentPage} onPageSizeChange={setPageSize} />
         )}
       </div>
 

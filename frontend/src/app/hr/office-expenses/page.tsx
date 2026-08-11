@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { ExpenseClaim, Employee, ApprovalInstance, PurchaseRequest } from "@/features/hr/types/hr";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
+import { Pagination } from "@/features/core/components/Pagination";
 import { ApprovalFlow } from "@/features/hr/components/ApprovalFlow";
 import { Wallet, Plus, Utensils, Cake, Package, X, Check, Trash2, Upload, FileText, Undo2, Eye, ReceiptText, ShoppingCart } from "lucide-react";
 
@@ -42,6 +43,8 @@ export default function OfficeExpensesPage() {
   const [detailApproval, setDetailApproval] = useState<ApprovalInstance | null>(null);
   const [decideComment, setDecideComment] = useState("");
   const [isDeciding, setIsDeciding] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchData = useCallback(() => {
     Promise.all([hrApi.getExpenseClaims(), hrApi.getEmployees(), hrApi.getPurchaseRequests()])
@@ -209,7 +212,7 @@ export default function OfficeExpensesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {claims.map((c) => {
+                {claims.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((c) => {
                   const cat = CATEGORIES.find((x) => x.key === c.category);
                   const Icon = cat?.icon ?? Wallet;
                   return (
@@ -250,6 +253,9 @@ export default function OfficeExpensesPage() {
               </tbody>
             </table>
           </div>
+        )}
+        {claims.length > 0 && !isLoading && (
+          <Pagination currentPage={currentPage} pageSize={pageSize} totalItems={claims.length} onPageChange={setCurrentPage} onPageSizeChange={setPageSize} />
         )}
       </div>
 

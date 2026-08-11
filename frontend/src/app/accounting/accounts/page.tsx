@@ -5,11 +5,14 @@ import { accountingApi, AccountTitle } from '@/features/accounting/api/accountin
 import { ListTree, Plus, Search, Filter, Edit2, Trash2 } from 'lucide-react';
 import { AccountTitleModal } from '@/features/accounting/components/AccountTitleModal';
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
+import { Pagination } from '@/features/core/components/Pagination';
 
 export default function AccountTitlesPage() {
   const [accounts, setAccounts] = useState<AccountTitle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTitle, setEditingTitle] = useState<AccountTitle | undefined>(undefined);
@@ -94,7 +97,7 @@ export default function AccountTitlesPage() {
           <input 
             type="text" 
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
             placeholder="搜尋科目代碼或名稱..." 
             className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:text-slate-200 transition-all"
           />
@@ -136,7 +139,7 @@ export default function AccountTitlesPage() {
                   </td>
                 </tr>
               ) : (
-                filteredAccounts.map(acc => (
+                filteredAccounts.slice((currentPage - 1) * pageSize, currentPage * pageSize).map(acc => (
                   <tr key={acc.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
                     <td className="px-6 py-4 font-mono font-medium text-slate-900 dark:text-slate-200">
                       {acc.code}
@@ -183,8 +186,11 @@ export default function AccountTitlesPage() {
             </tbody>
           </table>
         </div>
+        {filteredAccounts.length > 0 && !isLoading && (
+          <Pagination currentPage={currentPage} pageSize={pageSize} totalItems={filteredAccounts.length} onPageChange={setCurrentPage} onPageSizeChange={setPageSize} />
+        )}
       </div>
-      
+
       <AccountTitleModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

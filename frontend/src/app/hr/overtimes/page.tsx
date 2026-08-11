@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { hrApi } from "@/features/hr/api/hrApi";
 import { OvertimeRequest, Employee, ApprovalInstance } from "@/features/hr/types/hr";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
+import { Pagination } from "@/features/core/components/Pagination";
 import { ApprovalFlow } from "@/features/hr/components/ApprovalFlow";
 import { Clock3, Plus, X, Trash2, Eye, Check, Undo2 } from "lucide-react";
 
@@ -27,6 +28,8 @@ export default function OvertimesPage() {
   const [detailApproval, setDetailApproval] = useState<ApprovalInstance | null>(null);
   const [decideComment, setDecideComment] = useState("");
   const [isDeciding, setIsDeciding] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchData = useCallback(() => {
     Promise.all([hrApi.getOvertimes(), hrApi.getEmployees()])
@@ -174,7 +177,7 @@ export default function OvertimesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {overtimes.map((o) => (
+                {overtimes.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((o) => (
                   <tr key={o.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-white">{employeeName(o.employeeId)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">{new Date(o.date).toLocaleDateString()}</td>
@@ -198,6 +201,9 @@ export default function OvertimesPage() {
               </tbody>
             </table>
           </div>
+        )}
+        {overtimes.length > 0 && !isLoading && (
+          <Pagination currentPage={currentPage} pageSize={pageSize} totalItems={overtimes.length} onPageChange={setCurrentPage} onPageSizeChange={setPageSize} />
         )}
       </div>
 

@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { accountingApi, FixedAsset } from '@/features/accounting/api/accountingApi';
 import { useAuth } from '@/features/core/contexts/AuthContext';
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
+import { Pagination } from '@/features/core/components/Pagination';
 import { Building2, Plus, Trash2, Pencil, X, CalendarClock, ShieldAlert } from 'lucide-react';
 
 const PRIVILEGED = ['Admin', 'Accountant'];
@@ -29,6 +30,8 @@ export default function FixedAssetsPage() {
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [isRunning, setIsRunning] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchData = useCallback(() => {
     accountingApi.getFixedAssets().then(setAssets).catch(console.error).finally(() => setIsLoading(false));
@@ -142,7 +145,7 @@ export default function FixedAssetsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {assets.map((a) => (
+                {assets.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((a) => (
                   <tr key={a.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20">
                     <td className="px-5 py-3"><span className="font-mono text-xs text-slate-400">{a.assetNo}</span><div className="font-medium text-slate-900 dark:text-white">{a.name}</div></td>
                     <td className="px-5 py-3 text-slate-600 dark:text-slate-400">{a.category}</td>
@@ -162,6 +165,9 @@ export default function FixedAssetsPage() {
               </tbody>
             </table>
           </div>
+        )}
+        {assets.length > 0 && !isLoading && (
+          <Pagination currentPage={currentPage} pageSize={pageSize} totalItems={assets.length} onPageChange={setCurrentPage} onPageSizeChange={setPageSize} />
         )}
       </div>
 
