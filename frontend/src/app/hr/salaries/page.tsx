@@ -114,6 +114,7 @@ export default function SalariesPage() {
                   const isEditing = editingId === s.id;
                   const previewHourly = isEditing ? editValue / 240 : s.hourlyRate;
                   const b = band(s);
+                  const salaryOutOfBand = s.minSalary != null && s.maxSalary != null && (s.baseSalary < s.minSalary || s.baseSalary > s.maxSalary);
                   return (
                     <tr key={s.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-white">{s.name}</td>
@@ -137,6 +138,10 @@ export default function SalariesPage() {
                               className={`w-32 px-2 py-1 text-right border rounded focus:outline-none focus:ring-1 bg-white dark:bg-slate-950 dark:text-slate-200 font-mono ${outOfBand ? "border-red-400 focus:ring-red-500" : "border-indigo-300 dark:border-indigo-700 focus:ring-indigo-500"}`} />
                             {outOfBand && <span className="text-[10px] text-red-500 inline-flex items-center gap-0.5"><AlertTriangle className="w-3 h-3" />超出薪資帶 {b}</span>}
                           </div>
+                        ) : salaryOutOfBand ? (
+                          <span className="inline-flex items-center justify-end gap-1 font-mono font-semibold text-red-600 dark:text-red-400" title={`超出職級 ${s.jobGradeCode} 薪資帶 ${b}`}>
+                            <AlertTriangle className="w-3.5 h-3.5" />{formatCurrency(s.baseSalary)}
+                          </span>
                         ) : (
                           <span className="font-mono text-slate-800 dark:text-slate-200">{formatCurrency(s.baseSalary)}</span>
                         )}
