@@ -8,9 +8,10 @@ interface DepartmentModalProps {
   onSave: (department: Partial<Department>) => Promise<void>;
   initialData?: Department | null;
   employees: Employee[]; // for selecting a manager
+  readOnly?: boolean;
 }
 
-export const DepartmentModal: React.FC<DepartmentModalProps> = ({ isOpen, onClose, onSave, initialData, employees }) => {
+export const DepartmentModal: React.FC<DepartmentModalProps> = ({ isOpen, onClose, onSave, initialData, employees, readOnly = false }) => {
   const [formData, setFormData] = useState<Partial<Department>>({
     name: "",
     managerId: undefined
@@ -57,7 +58,7 @@ export const DepartmentModal: React.FC<DepartmentModalProps> = ({ isOpen, onClos
       <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-lg shadow-xl overflow-hidden border border-slate-200 dark:border-slate-800">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800">
           <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
-            {initialData ? "編輯部門" : "新增部門"}
+            {readOnly ? "檢視部門" : initialData ? "編輯部門" : "新增部門"}
           </h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
             <X className="h-5 w-5" />
@@ -65,6 +66,7 @@ export const DepartmentModal: React.FC<DepartmentModalProps> = ({ isOpen, onClos
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <fieldset disabled={readOnly} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">部門名稱 (Name) *</label>
             <input
@@ -89,6 +91,7 @@ export const DepartmentModal: React.FC<DepartmentModalProps> = ({ isOpen, onClos
               ))}
             </select>
           </div>
+          </fieldset>
 
           <div className="flex justify-end gap-3 mt-8">
             <button
@@ -96,8 +99,9 @@ export const DepartmentModal: React.FC<DepartmentModalProps> = ({ isOpen, onClos
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-sm transition-colors"
             >
-              取消
+              {readOnly ? "關閉" : "取消"}
             </button>
+            {!readOnly && (
             <button
               type="submit"
               disabled={isSubmitting}
@@ -105,6 +109,7 @@ export const DepartmentModal: React.FC<DepartmentModalProps> = ({ isOpen, onClos
             >
               {isSubmitting ? "儲存中..." : "儲存"}
             </button>
+            )}
           </div>
         </form>
       </div>

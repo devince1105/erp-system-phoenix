@@ -459,6 +459,15 @@
 - **略過**(非 RowList):報表(cash-flow / balance-sheet / profit-and-loss / aging / approval-report)、傳票表單(vouchers/new、vouchers/[id]/edit)、會計 dashboard、settings/organization 小型設定表。
 - **驗證**:tsc 0 / eslint 0(含 `react-hooks/set-state-in-effect`;分頁歸零改寫在事件處理器,未用 effect)。
 
+## 階段 38 — 主檔頁新增「檢視」(唯讀 Modal)〔2026-08-13〕
+
+- 使用者回報:主檔類 RowList 只有 編輯 / 刪除,缺 檢視(view)。
+- **作法**:各實體既有的編輯 Modal 加 `readOnly` prop——用 `<fieldset disabled>` 一次禁用全部欄位(Tailwind preflight 已重置 fieldset 樣式),唯讀時標題改「檢視」、隱藏儲存鈕、取消鈕改「關閉」;頁面在操作欄最前面加 Eye 檢視鈕 + `viewMode` state,新增/編輯時把 `viewMode` 設回 false。
+- **套用頁面(7)**:employees、departments、accounts、products、partners、crm/customers、fixed-assets(fixed-assets 為內嵌 Modal,改用 `modalReadOnly` state)。
+- **EmployeeModal**:分頁籤在 form 之外,唯讀時仍可切換,方便逐頁瀏覽(工作/個人/學歷/經歷/異動),僅欄位與新增/刪除子項鈕禁用。
+- **略過**:leave-balances(只有配額+刪除、無編輯 Modal,欄位已全列於列上,檢視無額外資訊)、settings/organization(小型設定表)。單據/簽核類頁面(leaves、vouchers、purchases…)本來就有檢視,不動。
+- **驗證**:tsc 0 / eslint 0。
+
 ## 尚待處理 / 建議（後續）
 
 - ~~**CORS 過寬**（`AllowAnyOrigin`）~~ ✅ 已處理（階段 10，`6350917`）：改為 `Cors:AllowedOrigins` 白名單,預設本機開發來源,policy 更名 "AppCors"。正式環境請於設定填入真實網域。

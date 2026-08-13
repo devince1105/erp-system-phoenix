@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useState, useEffect } from "react";
-import { FolderTree, Plus, Pencil, Trash2, Building2 } from "lucide-react";
+import { FolderTree, Plus, Pencil, Trash2, Building2, Eye } from "lucide-react";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
 import { Pagination } from "@/features/core/components/Pagination";
 import { hrApi } from "@/features/hr/api/hrApi";
@@ -16,6 +16,7 @@ export default function DepartmentsPage() {
   const [pageSize, setPageSize] = useState(10);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
 
   const fetchData = useCallback(() => {
@@ -37,11 +38,19 @@ export default function DepartmentsPage() {
 
   const handleCreate = () => {
     setEditingDepartment(null);
+    setViewMode(false);
+    setIsModalOpen(true);
+  };
+
+  const handleView = (department: Department) => {
+    setEditingDepartment(department);
+    setViewMode(true);
     setIsModalOpen(true);
   };
 
   const handleEdit = (department: Department) => {
     setEditingDepartment(department);
+    setViewMode(false);
     setIsModalOpen(true);
   };
 
@@ -121,6 +130,13 @@ export default function DepartmentsPage() {
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
                       <button
+                        onClick={() => handleView(dept)}
+                        className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                        title="檢視"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      <button
                         onClick={() => handleEdit(dept)}
                         className="p-1 text-slate-400 hover:text-blue-600 transition-colors"
                         title="編輯"
@@ -152,6 +168,7 @@ export default function DepartmentsPage() {
         onSave={handleSave}
         initialData={editingDepartment}
         employees={employees}
+        readOnly={viewMode}
       />
     </div>
   );

@@ -8,9 +8,10 @@ interface AccountTitleModalProps {
   onClose: () => void;
   onSave: (data: Partial<AccountTitle>) => Promise<void>;
   initialData?: AccountTitle;
+  readOnly?: boolean;
 }
 
-export function AccountTitleModal({ isOpen, onClose, onSave, initialData }: AccountTitleModalProps) {
+export function AccountTitleModal({ isOpen, onClose, onSave, initialData, readOnly = false }: AccountTitleModalProps) {
   const [formData, setFormData] = useState<Partial<AccountTitle>>({
     code: '',
     name: '',
@@ -63,7 +64,7 @@ export function AccountTitleModal({ isOpen, onClose, onSave, initialData }: Acco
         
         <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-            {initialData ? '編輯會計科目' : '新增會計科目'}
+            {readOnly ? '檢視會計科目' : initialData ? '編輯會計科目' : '新增會計科目'}
           </h2>
           <button 
             onClick={onClose}
@@ -81,7 +82,7 @@ export function AccountTitleModal({ isOpen, onClose, onSave, initialData }: Acco
         )}
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          
+          <fieldset disabled={readOnly} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -143,16 +144,18 @@ export function AccountTitleModal({ isOpen, onClose, onSave, initialData }: Acco
               啟用此會計科目
             </label>
           </div>
+          </fieldset>
 
           <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
-            <button 
+            <button
               type="button"
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors"
             >
-              取消
+              {readOnly ? '關閉' : '取消'}
             </button>
-            <button 
+            {!readOnly && (
+            <button
               type="submit"
               disabled={isSubmitting}
               className="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 text-white text-sm font-medium rounded-md shadow-sm transition-colors"
@@ -160,6 +163,7 @@ export function AccountTitleModal({ isOpen, onClose, onSave, initialData }: Acco
               <Save className="w-4 h-4" />
               {isSubmitting ? '儲存中...' : '確認儲存'}
             </button>
+            )}
           </div>
         </form>
       </div>

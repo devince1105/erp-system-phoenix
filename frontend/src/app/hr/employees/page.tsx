@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useState, useEffect } from "react";
-import { Users, Plus, Pencil, Trash2, Search, Download, Printer } from "lucide-react";
+import { Users, Plus, Pencil, Trash2, Search, Download, Printer, Eye } from "lucide-react";
 import dynamic from "next/dynamic";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
 import { Pagination } from "@/features/core/components/Pagination";
@@ -31,6 +31,7 @@ export default function EmployeesPage() {
   }, [searchQuery]);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
 
   const fetchData = useCallback(() => {
@@ -52,11 +53,19 @@ export default function EmployeesPage() {
 
   const handleCreate = () => {
     setEditingEmployee(null);
+    setViewMode(false);
+    setIsModalOpen(true);
+  };
+
+  const handleView = (employee: Employee) => {
+    setEditingEmployee(employee);
+    setViewMode(true);
     setIsModalOpen(true);
   };
 
   const handleEdit = (employee: Employee) => {
     setEditingEmployee(employee);
+    setViewMode(false);
     setIsModalOpen(true);
   };
 
@@ -243,6 +252,13 @@ export default function EmployeesPage() {
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
                       <button
+                        onClick={() => handleView(emp)}
+                        className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                        title="檢視"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      <button
                         onClick={() => handleEdit(emp)}
                         className="p-1 text-slate-400 hover:text-blue-600 transition-colors"
                         title="編輯"
@@ -274,6 +290,7 @@ export default function EmployeesPage() {
         onSave={handleSave}
         initialData={editingEmployee}
         departments={departments}
+        readOnly={viewMode}
       />
     </div>
 

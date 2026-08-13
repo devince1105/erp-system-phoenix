@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { accountingApi, AccountTitle } from '@/features/accounting/api/accountingApi';
-import { ListTree, Plus, Search, Filter, Edit2, Trash2 } from 'lucide-react';
+import { ListTree, Plus, Search, Filter, Edit2, Trash2, Eye } from 'lucide-react';
 import { AccountTitleModal } from '@/features/accounting/components/AccountTitleModal';
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
 import { Pagination } from '@/features/core/components/Pagination';
@@ -15,6 +15,7 @@ export default function AccountTitlesPage() {
   const [pageSize, setPageSize] = useState(10);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState(false);
   const [editingTitle, setEditingTitle] = useState<AccountTitle | undefined>(undefined);
 
   const fetchAccounts = useCallback(() => {
@@ -82,7 +83,7 @@ export default function AccountTitlesPage() {
           <p className="text-sm text-slate-500 mt-1">管理與設定總帳的會計科目表。</p>
         </div>
         <button 
-          onClick={() => { setEditingTitle(undefined); setIsModalOpen(true); }}
+          onClick={() => { setEditingTitle(undefined); setViewMode(false); setIsModalOpen(true); }}
           className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-sm shadow-sm shadow-blue-600/20 transition-all focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
         >
           <Plus className="w-4 h-4" />
@@ -164,8 +165,15 @@ export default function AccountTitlesPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button 
-                          onClick={() => { setEditingTitle(acc); setIsModalOpen(true); }}
+                        <button
+                          onClick={() => { setEditingTitle(acc); setViewMode(true); setIsModalOpen(true); }}
+                          className="p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 rounded-sm transition-colors"
+                          title="檢視"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => { setEditingTitle(acc); setViewMode(false); setIsModalOpen(true); }}
                           className="p-1.5 text-blue-600 hover:bg-blue-50 hover:text-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-sm transition-colors"
                           title="編輯"
                         >
@@ -196,6 +204,7 @@ export default function AccountTitlesPage() {
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
         initialData={editingTitle}
+        readOnly={viewMode}
       />
     </div>
   );

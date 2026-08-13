@@ -7,9 +7,10 @@ interface ProductModalProps {
   onClose: () => void;
   onSave: (data: Partial<Product>) => Promise<void>;
   initialData?: Product;
+  readOnly?: boolean;
 }
 
-export function ProductModal({ isOpen, onClose, onSave, initialData }: ProductModalProps) {
+export function ProductModal({ isOpen, onClose, onSave, initialData, readOnly = false }: ProductModalProps) {
   const [formData, setFormData] = useState<Partial<Product>>({
     name: '',
     sku: '',
@@ -80,7 +81,7 @@ export function ProductModal({ isOpen, onClose, onSave, initialData }: ProductMo
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-            {initialData ? '編輯商品' : '新增商品'}
+            {readOnly ? '檢視商品' : initialData ? '編輯商品' : '新增商品'}
           </h2>
           <button 
             onClick={onClose}
@@ -93,7 +94,7 @@ export function ProductModal({ isOpen, onClose, onSave, initialData }: ProductMo
         {/* Body */}
         <div className="p-6 overflow-y-auto flex-1">
           <form id="product-form" onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <fieldset disabled={readOnly} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">商品名稱 <span className="text-rose-500">*</span></label>
                 <input
@@ -181,7 +182,7 @@ export function ProductModal({ isOpen, onClose, onSave, initialData }: ProductMo
                   className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-            </div>
+            </fieldset>
           </form>
         </div>
 
@@ -192,8 +193,9 @@ export function ProductModal({ isOpen, onClose, onSave, initialData }: ProductMo
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           >
-            取消
+            {readOnly ? '關閉' : '取消'}
           </button>
+          {!readOnly && (
           <button
             type="submit"
             form="product-form"
@@ -203,6 +205,7 @@ export function ProductModal({ isOpen, onClose, onSave, initialData }: ProductMo
             <Save className="w-4 h-4" />
             {isSubmitting ? '儲存中...' : '確認儲存'}
           </button>
+          )}
         </div>
       </div>
     </div>

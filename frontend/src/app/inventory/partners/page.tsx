@@ -5,7 +5,7 @@ import useSWR from 'swr';
 import { inventoryApi } from '@/features/inventory/api/inventoryApi';
 import { Partner } from '@/features/inventory/types/inventory';
 import { PartnerModal } from '@/features/inventory/components/PartnerModal';
-import { Users, Plus, Building2, User, Trash2, Edit2 } from 'lucide-react';
+import { Users, Plus, Building2, User, Trash2, Edit2, Eye } from 'lucide-react';
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
 import { Pagination } from '@/features/core/components/Pagination';
 import { mutate } from 'swr';
@@ -17,6 +17,7 @@ export default function PartnersPage() {
   
   const [activeTab, setActiveTab] = useState<'all' | 'customer' | 'supplier'>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState(false);
   const [editingPartner, setEditingPartner] = useState<Partner | undefined>(undefined);
   
   const [currentPage, setCurrentPage] = useState(1);
@@ -68,7 +69,7 @@ export default function PartnersPage() {
           <p className="text-sm text-slate-500 mt-1">管理所有往來的客戶與供應商資料。</p>
         </div>
         <button 
-          onClick={() => { setEditingPartner(undefined); setIsModalOpen(true); }}
+          onClick={() => { setEditingPartner(undefined); setViewMode(false); setIsModalOpen(true); }}
           className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-sm shadow-sm shadow-blue-600/20 transition-all focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
         >
           <Plus className="w-4 h-4" />
@@ -179,8 +180,15 @@ export default function PartnersPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button 
-                          onClick={() => { setEditingPartner(partner); setIsModalOpen(true); }}
+                        <button
+                          onClick={() => { setEditingPartner(partner); setViewMode(true); setIsModalOpen(true); }}
+                          className="p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 rounded-sm transition-colors"
+                          title="檢視"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => { setEditingPartner(partner); setViewMode(false); setIsModalOpen(true); }}
                           className="p-1.5 text-blue-600 hover:bg-blue-50 hover:text-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-sm transition-colors"
                           title="編輯"
                         >
@@ -212,6 +220,7 @@ export default function PartnersPage() {
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
         initialData={editingPartner}
+        readOnly={viewMode}
       />
     </div>
   );

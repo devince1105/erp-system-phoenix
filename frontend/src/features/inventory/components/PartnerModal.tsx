@@ -7,9 +7,10 @@ interface PartnerModalProps {
   onClose: () => void;
   onSave: (data: Partial<Partner>) => Promise<void>;
   initialData?: Partner;
+  readOnly?: boolean;
 }
 
-export function PartnerModal({ isOpen, onClose, onSave, initialData }: PartnerModalProps) {
+export function PartnerModal({ isOpen, onClose, onSave, initialData, readOnly = false }: PartnerModalProps) {
   const [formData, setFormData] = useState<Partial<Partner>>({
     type: 1,
     name: '',
@@ -77,7 +78,7 @@ export function PartnerModal({ isOpen, onClose, onSave, initialData }: PartnerMo
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
           <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            {initialData ? '編輯客戶/廠商' : '新增客戶/廠商'}
+            {readOnly ? '檢視客戶/廠商' : initialData ? '編輯客戶/廠商' : '新增客戶/廠商'}
           </h2>
           <button 
             onClick={onClose}
@@ -90,7 +91,7 @@ export function PartnerModal({ isOpen, onClose, onSave, initialData }: PartnerMo
         {/* Body */}
         <div className="p-6 overflow-y-auto flex-1">
           <form id="partner-form" onSubmit={handleSubmit} className="space-y-4">
-            
+            <fieldset disabled={readOnly} className="space-y-4">
             <div className="space-y-1">
               <label className="text-sm font-medium text-slate-700 dark:text-slate-300">身分種類 <span className="text-rose-500">*</span></label>
               <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-sm gap-1">
@@ -184,7 +185,7 @@ export function PartnerModal({ isOpen, onClose, onSave, initialData }: PartnerMo
                 placeholder="例如: 台北市信義區松高路11號"
               />
             </div>
-            
+            </fieldset>
           </form>
         </div>
 
@@ -195,8 +196,9 @@ export function PartnerModal({ isOpen, onClose, onSave, initialData }: PartnerMo
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           >
-            取消
+            {readOnly ? '關閉' : '取消'}
           </button>
+          {!readOnly && (
           <button
             type="submit"
             form="partner-form"
@@ -206,6 +208,7 @@ export function PartnerModal({ isOpen, onClose, onSave, initialData }: PartnerMo
             <Save className="w-4 h-4" />
             {isSubmitting ? '儲存中...' : '確認儲存'}
           </button>
+          )}
         </div>
       </div>
     </div>

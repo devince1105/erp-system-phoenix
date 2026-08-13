@@ -5,7 +5,7 @@ import { accountingApi, FixedAsset } from '@/features/accounting/api/accountingA
 import { useAuth } from '@/features/core/contexts/AuthContext';
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
 import { Pagination } from '@/features/core/components/Pagination';
-import { Building2, Plus, Trash2, Pencil, X, CalendarClock, ShieldAlert } from 'lucide-react';
+import { Building2, Plus, Trash2, Pencil, X, CalendarClock, ShieldAlert, Eye } from 'lucide-react';
 
 const PRIVILEGED = ['Admin', 'Accountant'];
 const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
@@ -25,6 +25,7 @@ export default function FixedAssetsPage() {
   const [assets, setAssets] = useState<FixedAsset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [modal, setModal] = useState<ReturnType<typeof emptyForm> | null>(null);
+  const [modalReadOnly, setModalReadOnly] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -99,7 +100,7 @@ export default function FixedAssetsPage() {
           </h1>
           <p className="text-sm text-slate-500 mt-1">資產卡與直線法折舊;每月提列自動拋轉分錄(借 折舊費用 / 貸 累計折舊)。</p>
         </div>
-        <button onClick={() => setModal(emptyForm())} className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-sm">
+        <button onClick={() => { setModalReadOnly(false); setModal(emptyForm()); }} className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-sm">
           <Plus className="w-4 h-4" /> 新增資產
         </button>
       </div>
@@ -156,8 +157,9 @@ export default function FixedAssetsPage() {
                     <td className="px-5 py-3 text-center"><span className={`text-xs px-2 py-0.5 rounded ${a.status === 'InUse' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}`}>{statusLabel(a.status)}</span></td>
                     <td className="px-5 py-3 text-right">
                       <div className="inline-flex items-center gap-1">
-                        <button onClick={() => setModal({ id: a.id, name: a.name, category: a.category, acquisitionDate: a.acquisitionDate.split('T')[0], acquisitionCost: a.acquisitionCost, salvageValue: a.salvageValue, usefulLifeMonths: a.usefulLifeMonths })} className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"><Pencil className="w-4 h-4" /></button>
-                        <button onClick={() => del(a)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => { setModalReadOnly(true); setModal({ id: a.id, name: a.name, category: a.category, acquisitionDate: a.acquisitionDate.split('T')[0], acquisitionCost: a.acquisitionCost, salvageValue: a.salvageValue, usefulLifeMonths: a.usefulLifeMonths }); }} className="p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded" title="檢視"><Eye className="w-4 h-4" /></button>
+                        <button onClick={() => { setModalReadOnly(false); setModal({ id: a.id, name: a.name, category: a.category, acquisitionDate: a.acquisitionDate.split('T')[0], acquisitionCost: a.acquisitionCost, salvageValue: a.salvageValue, usefulLifeMonths: a.usefulLifeMonths }); }} className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded" title="編輯"><Pencil className="w-4 h-4" /></button>
+                        <button onClick={() => del(a)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded" title="刪除"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </td>
                   </tr>
@@ -175,10 +177,11 @@ export default function FixedAssetsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 rounded-sm shadow-xl w-full max-w-lg overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">{modal.id ? '編輯資產' : '新增固定資產'}</h2>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">{modalReadOnly ? '檢視資產' : modal.id ? '編輯資產' : '新增固定資產'}</h2>
               <button onClick={() => setModal(null)} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
             </div>
             <div className="p-6 space-y-4">
+              <fieldset disabled={modalReadOnly} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1"><label className="text-sm font-medium text-slate-700 dark:text-slate-300">資產名稱 <span className="text-red-500">*</span></label>
                   <input type="text" value={modal.name} onChange={(e) => setModal({ ...modal, name: e.target.value })} placeholder="例如:業務部筆電" className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-sm text-sm dark:text-slate-200" /></div>
@@ -199,9 +202,12 @@ export default function FixedAssetsPage() {
                   <input type="number" min="0" step="1000" value={modal.salvageValue} onChange={(e) => setModal({ ...modal, salvageValue: Number(e.target.value) })} className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-sm text-sm dark:text-slate-200 font-mono" /></div>
               </div>
               <p className="text-xs text-slate-400">直線法月折舊 = (取得成本 − 殘值) ÷ 耐用月數 ≈ {money(modal.usefulLifeMonths > 0 ? (modal.acquisitionCost - modal.salvageValue) / modal.usefulLifeMonths : 0)}/月</p>
+              </fieldset>
               <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
-                <button onClick={() => setModal(null)} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-sm">取消</button>
+                <button onClick={() => setModal(null)} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-sm">{modalReadOnly ? '關閉' : '取消'}</button>
+                {!modalReadOnly && (
                 <button onClick={save} disabled={isSaving} className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-medium rounded-sm">{isSaving ? '儲存中...' : '儲存'}</button>
+                )}
               </div>
             </div>
           </div>

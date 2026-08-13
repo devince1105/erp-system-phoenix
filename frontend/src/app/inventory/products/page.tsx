@@ -5,7 +5,7 @@ import useSWR from 'swr';
 import { inventoryApi } from '@/features/inventory/api/inventoryApi';
 import { Product } from '@/features/inventory/types/inventory';
 import { ProductModal } from '@/features/inventory/components/ProductModal';
-import { PackageSearch, Plus, Tag, Trash2, Edit2 } from 'lucide-react';
+import { PackageSearch, Plus, Tag, Trash2, Edit2, Eye } from 'lucide-react';
 import { Breadcrumbs } from '@/features/core/components/Breadcrumbs';
 import { Pagination } from '@/features/core/components/Pagination';
 import { mutate } from 'swr';
@@ -15,6 +15,7 @@ export default function ProductsPage() {
   const [pageSize, setPageSize] = useState(10);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
 
   const { data: products = [], isLoading } = useSWR('/api/Products', inventoryApi.getProducts, {
@@ -61,7 +62,7 @@ export default function ProductsPage() {
           <p className="text-sm text-slate-500 mt-1">管理進銷存系統中的所有商品與料件，並檢視即時庫存。</p>
         </div>
         <button 
-          onClick={() => { setEditingProduct(undefined); setIsModalOpen(true); }}
+          onClick={() => { setEditingProduct(undefined); setViewMode(false); setIsModalOpen(true); }}
           className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-sm shadow-sm shadow-blue-600/20 transition-all focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
         >
           <Plus className="w-4 h-4" />
@@ -136,8 +137,15 @@ export default function ProductsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button 
-                          onClick={() => { setEditingProduct(product); setIsModalOpen(true); }}
+                        <button
+                          onClick={() => { setEditingProduct(product); setViewMode(true); setIsModalOpen(true); }}
+                          className="p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 rounded-sm transition-colors"
+                          title="檢視"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => { setEditingProduct(product); setViewMode(false); setIsModalOpen(true); }}
                           className="p-1.5 text-blue-600 hover:bg-blue-50 hover:text-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-sm transition-colors"
                           title="編輯"
                         >
@@ -169,6 +177,7 @@ export default function ProductsPage() {
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
         initialData={editingProduct}
+        readOnly={viewMode}
       />
     </div>
   );

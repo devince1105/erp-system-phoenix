@@ -8,9 +8,10 @@ interface EmployeeModalProps {
   onSave: (employee: Partial<Employee>) => Promise<void>;
   initialData?: Employee | null;
   departments: Department[];
+  readOnly?: boolean;
 }
 
-export const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, onSave, initialData, departments }) => {
+export const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, onSave, initialData, departments, readOnly = false }) => {
   const [activeTab, setActiveTab] = useState<"work" | "personal" | "education" | "experience" | "jobHistory">("work");
   
   const [formData, setFormData] = useState<Partial<Employee>>({
@@ -205,7 +206,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, o
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 shrink-0">
           <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
-            {initialData ? "編輯員工資料" : "新增員工"}
+            {readOnly ? "檢視員工資料" : initialData ? "編輯員工資料" : "新增員工"}
           </h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
             <X className="h-5 w-5" />
@@ -274,7 +275,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, o
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           {/* Content Area */}
           <div className="p-6 overflow-y-auto flex-1 bg-slate-50/50 dark:bg-slate-900/50">
-            
+            <fieldset disabled={readOnly} className="min-w-0">
             {activeTab === "work" && (
               <div className="space-y-5">
                 <div className="grid grid-cols-2 gap-5">
@@ -706,7 +707,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, o
                 </button>
               </div>
             )}
-
+            </fieldset>
           </div>
 
           {/* Footer Actions */}
@@ -716,8 +717,9 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, o
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-sm transition-colors"
             >
-              取消
+              {readOnly ? "關閉" : "取消"}
             </button>
+            {!readOnly && (
             <button
               type="submit"
               disabled={isSubmitting}
@@ -730,6 +732,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, o
                 </>
               ) : "儲存設定"}
             </button>
+            )}
           </div>
         </form>
       </div>

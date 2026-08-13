@@ -3,7 +3,7 @@
 import React, { useCallback, useState, useEffect } from "react";
 import { crmApi } from "@/features/crm/api/crmApi";
 import { Customer } from "@/features/crm/types/crm";
-import { Users, Search, Building2, User, Plus, Edit2, Trash2 } from "lucide-react";
+import { Users, Search, Building2, User, Plus, Edit2, Trash2, Eye } from "lucide-react";
 import { CustomerModal } from "@/features/crm/components/CustomerModal";
 import { Pagination } from "@/features/core/components/Pagination";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
@@ -13,6 +13,7 @@ export default function CustomersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | undefined>(undefined);
   
   // Pagination
@@ -30,13 +31,21 @@ export default function CustomersPage() {
     fetchCustomers();
   }, [fetchCustomers]);
 
+  const handleView = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setViewMode(true);
+    setIsModalOpen(true);
+  };
+
   const handleEdit = (customer: Customer) => {
     setSelectedCustomer(customer);
+    setViewMode(false);
     setIsModalOpen(true);
   };
 
   const handleCreate = () => {
     setSelectedCustomer(undefined);
+    setViewMode(false);
     setIsModalOpen(true);
   };
 
@@ -162,7 +171,14 @@ export default function CustomersPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button 
+                        <button
+                          onClick={() => handleView(customer)}
+                          className="p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 rounded-sm transition-colors"
+                          title="檢視"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button
                           onClick={() => handleEdit(customer)}
                           className="p-1.5 text-blue-600 hover:bg-blue-50 hover:text-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-sm transition-colors"
                           title="編輯"
@@ -204,6 +220,7 @@ export default function CustomersPage() {
         onClose={() => setIsModalOpen(false)}
         onSuccess={fetchCustomers}
         customer={selectedCustomer}
+        readOnly={viewMode}
       />
     </div>
   );
