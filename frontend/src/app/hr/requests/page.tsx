@@ -163,7 +163,7 @@ export default function RequestsPage() {
                     <td className="px-6 py-4 whitespace-nowrap"><ApprovalFlow instance={approvals[r.id] ?? null} compact /></td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="inline-flex items-center gap-1">
-                        <button onClick={() => openDetail(r)} title="檢視 / 簽核" className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-violet-600 dark:text-violet-400 border border-violet-200 dark:border-violet-800 rounded hover:bg-violet-50 dark:hover:bg-violet-900/20"><Eye className="w-3.5 h-3.5" />檢視</button>
+                        <button onClick={() => openDetail(r)} title="檢視 / 簽核" className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"><Eye className="w-4 h-4" /></button>
                         <button onClick={() => handleDelete(r.id)} title="刪除" className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </td>

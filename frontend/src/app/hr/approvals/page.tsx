@@ -162,8 +162,8 @@ export default function LeaveOvertimeApprovalsPage() {
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-400 truncate max-w-xs" title={lv.reason}>{lv.reason}</td>
                     <td className="px-6 py-4"><ApprovalFlow instance={approval} compact /></td>
                     <td className="px-6 py-4 text-right">
-                      <button onClick={() => openLeaveDetail({ req: lv, approval })} className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                        <Eye className="w-3.5 h-3.5" /> 檢視
+                      <button onClick={() => openLeaveDetail({ req: lv, approval })} title="檢視 / 簽核" className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors">
+                        <Eye className="w-4 h-4" />
                       </button>
                     </td>
                   </tr>
@@ -197,8 +197,8 @@ export default function LeaveOvertimeApprovalsPage() {
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-400 truncate max-w-xs" title={ov.reason}>{ov.reason}</td>
                     <td className="px-6 py-4"><ApprovalFlow instance={approval} compact /></td>
                     <td className="px-6 py-4 text-right">
-                      <button onClick={() => openOvertimeDetail({ req: ov, approval })} className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                        <Eye className="w-3.5 h-3.5" /> 檢視
+                      <button onClick={() => openOvertimeDetail({ req: ov, approval })} title="檢視 / 簽核" className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors">
+                        <Eye className="w-4 h-4" />
                       </button>
                     </td>
                   </tr>

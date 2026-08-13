@@ -188,8 +188,8 @@ export default function OvertimesPage() {
                     <td className="px-6 py-4 whitespace-nowrap"><ApprovalFlow instance={approvals[o.id] ?? null} compact /></td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="inline-flex items-center gap-1">
-                        <button onClick={() => openDetail(o)} title="檢視 / 簽核" className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800 rounded hover:bg-orange-50 dark:hover:bg-orange-900/20">
-                          <Eye className="w-3.5 h-3.5" /> 檢視
+                        <button onClick={() => openDetail(o)} title="檢視 / 簽核" className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors">
+                          <Eye className="w-4 h-4" />
                         </button>
                         <button onClick={() => handleDelete(o.id)} title="刪除（永久移除此筆）" className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded">
                           <Trash2 className="w-4 h-4" />

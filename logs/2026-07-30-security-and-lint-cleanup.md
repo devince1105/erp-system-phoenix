@@ -468,6 +468,10 @@
 - **略過**:leave-balances(只有配額+刪除、無編輯 Modal,欄位已全列於列上,檢視無額外資訊)、settings/organization(小型設定表)。單據/簽核類頁面(leaves、vouchers、purchases…)本來就有檢視,不動。
 - **驗證**:tsc 0 / eslint 0。
 
+### 38.1 檢視鈕樣式收斂
+- 使用者回饋:單據/簽核頁原本的「檢視」是有邊框 + 文字的按鈕,希望改成跟右側 delete 一樣的純圖示鈕,靠 hover tooltip 顯示「檢視」。
+- 8 顆按鈕(leaves / overtimes / business-trips / purchase-requests / expenses / office-expenses / requests / approvals×2)由 `inline-flex ... border ... <Eye/> 檢視` 改為 `p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded` 純圖示 + `title="檢視 / 簽核"`(原生 tooltip)。tsc 0 / eslint 0。
+
 ## 尚待處理 / 建議（後續）
 
 - ~~**CORS 過寬**（`AllowAnyOrigin`）~~ ✅ 已處理（階段 10，`6350917`）：改為 `Cors:AllowedOrigins` 白名單,預設本機開發來源,policy 更名 "AppCors"。正式環境請於設定填入真實網域。
