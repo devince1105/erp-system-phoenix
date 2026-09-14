@@ -38,7 +38,7 @@ public class GoodsReceiptsController : ControllerBase
 
     /// <summary>Receive the full quantity of a confirmed purchase order (進貨).</summary>
     [HttpPost("from-order/{purchaseOrderId}")]
-    public async Task<IActionResult> ReceiveFromOrder(int purchaseOrderId)
+    public async Task<IActionResult> ReceiveFromOrder(int purchaseOrderId, [FromQuery] int? warehouseId = null)
     {
         var order = await _context.PurchaseOrders
             .Include(o => o.Items)
@@ -47,6 +47,19 @@ public class GoodsReceiptsController : ControllerBase
         if (order == null) return NotFound();
         if (order.Status != OrderStatus.Confirmed) return BadRequest("只有已確認的採購單可以進貨。");
         if (order.ReceivedAt != null) return BadRequest("此採購單已進貨。");
+
+        // 決定入庫倉庫（未指定時落入預設倉庫或第一座啟用倉庫）
+        Warehouse? targetWarehouse = null;
+        if (warehouseId.HasValue)
+        {
+            targetWarehouse = await _context.Warehouses.FirstOrDefaultAsync(w => w.Id == warehouseId.Value && w.IsActive);
+            if (targetWarehouse == null) return BadRequest("指定的進貨入庫倉庫不存在或已停用。");
+        }
+        else
+        {
+            targetWarehouse = await _context.Warehouses.FirstOrDefaultAsync(w => w.IsDefault && w.IsActive)
+                ?? await _context.Warehouses.FirstOrDefaultAsync(w => w.IsActive);
+        }
 
         using var scope = new TransactionScope(
             TransactionScopeOption.Required,
@@ -61,9 +74,10 @@ public class GoodsReceiptsController : ControllerBase
             {
                 ReceiptNo = $"{datePrefix}{(countToday + 1):D3}",
                 PurchaseOrderId = order.Id,
+                WarehouseId = targetWarehouse?.Id,
                 ReceiptDate = DateTime.UtcNow,
                 TotalAmount = order.TotalAmount,
-                Memo = $"採購單 {order.OrderNo} 進貨",
+                Memo = $"採購單 {order.OrderNo} 進貨{(targetWarehouse != null ? $" [入庫: {targetWarehouse.Name}]" : "")}",
             };
 
             foreach (var item in order.Items)
@@ -76,15 +90,41 @@ public class GoodsReceiptsController : ControllerBase
                     var before = product.StockQuantity;
                     product.StockQuantity += item.Quantity;
                     product.CostPrice = item.UnitPrice;
+
+                    // 維護該倉庫之庫存映射
+                    if (targetWarehouse != null)
+                    {
+                        var whStock = await _context.WarehouseStocks
+                            .FirstOrDefaultAsync(ws => ws.WarehouseId == targetWarehouse.Id && ws.ProductId == product.Id);
+                        if (whStock == null)
+                        {
+                            whStock = new WarehouseStock
+                            {
+                                WarehouseId = targetWarehouse.Id,
+                                ProductId = product.Id,
+                                Quantity = item.Quantity,
+                                SafetyStock = 10,
+                                UpdatedAt = DateTime.UtcNow
+                            };
+                            _context.WarehouseStocks.Add(whStock);
+                        }
+                        else
+                        {
+                            whStock.Quantity += item.Quantity;
+                            whStock.UpdatedAt = DateTime.UtcNow;
+                        }
+                    }
+
                     _context.StockMovements.Add(new StockMovement
                     {
                         ProductId = product.Id,
+                        WarehouseId = targetWarehouse?.Id,
                         MovementType = StockMovementType.PurchaseIn,
                         Quantity = item.Quantity,
                         QuantityBefore = before,
                         QuantityAfter = product.StockQuantity,
                         ReferenceNo = receipt.ReceiptNo,
-                        Remark = $"進貨單 {receipt.ReceiptNo} 入庫",
+                        Remark = $"進貨單 {receipt.ReceiptNo} 入庫{(targetWarehouse != null ? $"至 {targetWarehouse.Name}" : "")}",
                     });
                 }
             }

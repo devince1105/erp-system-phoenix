@@ -21,6 +21,10 @@ public class InventoryDbContext : DbContext
     public DbSet<GoodsReceiptItem> GoodsReceiptItems => Set<GoodsReceiptItem>();
     public DbSet<DeliveryNote> DeliveryNotes => Set<DeliveryNote>();
     public DbSet<DeliveryNoteItem> DeliveryNoteItems => Set<DeliveryNoteItem>();
+    public DbSet<Warehouse> Warehouses => Set<Warehouse>();
+    public DbSet<WarehouseStock> WarehouseStocks => Set<WarehouseStock>();
+    public DbSet<StockTransfer> StockTransfers => Set<StockTransfer>();
+    public DbSet<StockTransferItem> StockTransferItems => Set<StockTransferItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -57,5 +61,36 @@ public class InventoryDbContext : DbContext
         modelBuilder.Entity<StockMovement>()
             .Property(m => m.CreatedAt)
             .ValueGeneratedOnAdd(); // Only set on insert, never update
+
+        // Multi-Warehouse entities
+        modelBuilder.Entity<Warehouse>().ToTable("Warehouses");
+        modelBuilder.Entity<Warehouse>()
+            .HasIndex(w => w.Code)
+            .IsUnique();
+
+        modelBuilder.Entity<WarehouseStock>().ToTable("WarehouseStocks");
+        modelBuilder.Entity<WarehouseStock>()
+            .HasIndex(ws => new { ws.WarehouseId, ws.ProductId })
+            .IsUnique();
+
+        modelBuilder.Entity<StockTransfer>().ToTable("StockTransfers");
+        modelBuilder.Entity<StockTransfer>()
+            .HasIndex(st => st.TransferNo)
+            .IsUnique();
+        modelBuilder.Entity<StockTransfer>()
+            .Property(st => st.Status)
+            .HasConversion<int>();
+        modelBuilder.Entity<StockTransfer>()
+            .HasOne(st => st.FromWarehouse)
+            .WithMany()
+            .HasForeignKey(st => st.FromWarehouseId)
+            .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<StockTransfer>()
+            .HasOne(st => st.ToWarehouse)
+            .WithMany()
+            .HasForeignKey(st => st.ToWarehouseId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<StockTransferItem>().ToTable("StockTransferItems");
     }
 }

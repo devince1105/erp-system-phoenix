@@ -8,7 +8,9 @@ public enum StockMovementType
     SalesOut = 2,         // 銷貨出庫
     ManualAdjustment = 3, // 人工調整
     ReturnIn = 4,         // 退貨入庫
-    ReturnOut = 5         // 退貨出庫
+    ReturnOut = 5,        // 退貨出庫
+    TransferOut = 6,      // 調撥出庫
+    TransferIn = 7        // 調撥入庫
 }
 
 /// <summary>
@@ -19,6 +21,9 @@ public class StockMovement
 {
     [Key]
     public int Id { get; set; }
+
+    public int? WarehouseId { get; set; }
+    public Warehouse? Warehouse { get; set; }
 
     public int ProductId { get; set; }
     public Product? Product { get; set; }

@@ -8,7 +8,6 @@ import {
   LayoutDashboard, 
   Landmark, 
   Settings, 
-  Puzzle,
   Users,
   PackageSearch,
   BarChart3,
@@ -30,7 +29,10 @@ import {
   CalendarDays,
   Clock3,
   ShoppingCart,
-  Sparkles
+  Sparkles,
+  Warehouse,
+  Boxes,
+  ArrowRightLeft
 } from "lucide-react";
 
 export const Sidebar = () => {
@@ -50,13 +52,12 @@ export const Sidebar = () => {
   ];
 
   const accountingItems = [
-    { name: "會計總覽 (Overview)", href: "/accounting", icon: LayoutDashboard },
-    { name: "傳票管理 (Vouchers)", href: "/accounting/vouchers", icon: Landmark },
-    { name: "會計科目 (Accounts)", href: "/accounting/accounts", icon: Puzzle },
-    { name: "常用分錄 (Templates)", href: "/accounting/journal-templates", icon: Puzzle, roles: ["Admin", "Accountant"] },
+    { name: "會計總覽 (Dashboard)", href: "/accounting", icon: LayoutDashboard },
+    { name: "會計科目 (Accounts)", href: "/accounting/accounts", icon: Landmark },
+    { name: "傳票清單 (Vouchers)", href: "/accounting/vouchers", icon: CheckSquare },
+    { name: "常用分錄 (Journal Templates)", href: "/accounting/journal-templates", icon: CheckSquare, roles: ["Admin", "Accountant"] },
+    { name: "票據管理 (Notes)", href: "/accounting/notes", icon: Receipt, roles: ["Admin", "Accountant"] },
     { name: "固定資產 (Fixed Assets)", href: "/accounting/fixed-assets", icon: Landmark, roles: ["Admin", "Accountant"] },
-    { name: "票據管理 (Notes)", href: "/accounting/notes", icon: Landmark, roles: ["Admin", "Accountant"] },
-    { name: "銀行帳戶 (Banks)", href: "/accounting/banks", icon: Users },
     { name: "損益表 (P&L)", href: "/accounting/reports/profit-and-loss", icon: BarChart3 },
     { name: "資產負債表 (Balance Sheet)", href: "/accounting/reports/balance-sheet", icon: BarChart3 },
     { name: "現金流量表 (Cash Flow)", href: "/accounting/reports/cash-flow", icon: BarChart3 },
@@ -65,6 +66,9 @@ export const Sidebar = () => {
 
   const inventoryItems = [
     { name: "進銷存總覽 (Dashboard)", href: "/inventory", icon: LayoutDashboard },
+    { name: "倉庫主檔 (Warehouses)", href: "/inventory/warehouses", icon: Warehouse },
+    { name: "庫存分佈 (Stock Levels)", href: "/inventory/stocks", icon: Boxes },
+    { name: "庫存調撥 (Transfers)", href: "/inventory/transfers", icon: ArrowRightLeft },
     { name: "商品管理 (Products)", href: "/inventory/products", icon: PackageSearch },
     { name: "客戶與廠商 (Partners)", href: "/inventory/partners", icon: Users },
     { name: "銷貨管理 (Sales)", href: "/inventory/sales", icon: TrendingUp },

@@ -162,6 +162,10 @@ using (var scope = app.Services.CreateScope())
     ERP.Modules.Inventory.Infrastructure.Database.InventoryChainSeeder
         .BackfillAsync(inventoryDb).GetAwaiter().GetResult();
 
+    // Seed default warehouses and backfill initial stock mapping (idempotent).
+    ERP.Modules.Inventory.Infrastructure.Database.MultiWarehouseSeeder
+        .SeedAsync(inventoryDb).GetAwaiter().GetResult();
+
     // Migrate HR Module Database
     var hrDb = scope.ServiceProvider.GetRequiredService<HRDbContext>();
     hrDb.Database.Migrate();

@@ -74,6 +74,31 @@
 
 ---
 
+### 📅 第五期：P2 核心 — 多倉庫與庫存調撥系統（2026-09-14，階段 39～41）
+- **階段 39（資料模型與後端架構）**：
+  - 新增 `Warehouse`（唯一代碼、名稱、地址、聯絡人、預設倉、啟用狀態）。
+  - 新增 `WarehouseStock`（倉庫庫存映射表：WarehouseId, ProductId, Quantity, SafetyStock）。
+  - 新增 `StockTransfer` 與 `StockTransferItem`（調撥主檔與明細，狀態 Draft / Completed / Cancelled）。
+  - 擴充 `StockMovement` 增加 `WarehouseId` 與 `TransferOut = 6`, `TransferIn = 7` 調撥出入庫類型。
+  - 擴充 `GoodsReceipt` 與 `DeliveryNote` 增加 `WarehouseId`（支援指定入庫/出庫倉庫）。
+  - 建立 EF Core Migration `AddMultiWarehouseAndTransfers`。
+  - 實作 `MultiWarehouseSeeder`：自動建立 3 座示範倉庫（台北總倉 WH-TPE、台中物流中心 WH-TXG、高雄營業所 WH-KHH），並將既有全部商品庫存自動映射歸屬至「台北總倉」，歷史資料零遺失。
+- **階段 40（進銷存鏈聯動與業務邏輯）**：
+  - `WarehousesController`：CRUD + 刪除防呆（預設倉、在庫庫存、交易歷史保護）+ 倉庫商品庫存查詢。
+  - `WarehouseStocksController`：跨倉庫庫存分佈透視矩陣查詢 + 安全庫存警戒值 inline 調整。
+  - `StockTransfersController`：調撥單草稿建立、取消與原子交易執行（TransactionScope 扣減來源倉、增加目的倉、寫入兩筆出入庫審計紀錄）。
+  - `GoodsReceiptsController` 與 `DeliveryNotesController`：支援進出貨指定倉庫並同步維護倉庫庫存映射與安全庫存檢查。
+- **階段 41（前端介面實作）**：
+  - `WarehouseModal`（支援新增/編輯與 `readOnly` 唯讀檢視模式）。
+  - `StockTransferModal`（調撥品項動態新增/刪除、來源倉在庫量即時檢查、確認並執行調撥）。
+  - 倉庫管理頁 `/inventory/warehouses`（卡片列表、預設倉徽章、共用 Pagination）。
+  - 各倉庫存分佈看板 `/inventory/stocks`（全商品跨倉庫透視矩陣、安全庫存缺貨告警篩選、安全庫存 inline 點擊修改）。
+  - 庫存調撥作業頁 `/inventory/transfers`（單據狀態標籤篩選、調撥路徑摘要、一鍵取消與檢視執行）。
+  - `Sidebar.tsx` 進銷存選單擴充「倉庫主檔」、「庫存分佈」、「庫存調撥」導航項。
+  - **驗證**：後端 `ERP.slnx` 0 errors / 0 warnings；前端 `next build` 49 頁靜態建置全部通過，`tsc` 0 錯誤，`eslint` 0 警告 / 0 錯誤。
+
+---
+
 ## 二、 目前藍圖達成狀況總覽
 
 | 階段目標 | 模組項目 | 狀態 | 完成率 | 備註 |
@@ -81,31 +106,16 @@
 | **基礎體質** | 資安加固、JWT、ESLint、相依漏洞 | ✅ 完成 | 100% | 後端 0 warn/0 err，前端 0 lint/0 tsc |
 | **P0 核心** | 通用簽核引擎、三本財務報表、示範資料 | ✅ 完成 | 100% | 現金流量表對帳、簽核報表與持久化 |
 | **P1 金流閉環** | 帳齡分析、沖銷拋傳票、進出貨履約鏈、常用分錄 | ✅ 完成 | 100% | 採購進貨/銷售出貨履約鏈閉環完成 |
-| **P2 進階擴充** | 固定資產折舊、票據管理 | 🟡 進行中 | 50% | 折舊 ✅、票據 ✅；**剩餘：多倉庫、自訂報表** |
+| **P2 進階擴充** | 固定資產折舊、票據管理、多倉庫與庫存調撥 | 🟡 進行中 | 75% | 折舊 ✅、票據 ✅、多倉庫調撥 ✅；**剩餘：自訂報表** |
 | **全站體驗** | 分頁共用組件、主檔唯讀檢視、按鈕樣式標準化 | ✅ 完成 | 100% | 全站 RowList 體驗一致 |
 
 ---
 
 ## 三、 後續開發步驟與推進時程排程（Next Milestones）
 
-建議依循以下四個有序步驟依序推進：
+建議依循以下三個有序步驟依序推進：
 
-### 🚩 步驟一：P2 核心 — 多倉庫與庫存調撥系統（優先度：高）
-*目標：打破目前單一全域庫存的限制，支援多實體倉庫（如：台北總倉、台中倉、高雄倉），並提供倉庫間的調撥與即時庫存查詢。*
-
-1. **階段 39（資料模型與後端架構）**：
-   - 新增 `Warehouse`（代碼、名稱、地址、是否預設倉、狀態）。
-   - 新增 `WarehouseStock`（倉庫庫存映射表：WarehouseId, ProductId, Quantity, SafetyStock）。
-   - 新增 `StockTransfer` 與 `StockTransferItem`（調撥單主檔與明細：來源倉、目的倉、狀態、調撥日期、出庫/入庫時間）。
-   - 建立 EF Core Migration 並更新 DB；遷移既有 Product 庫存至預設總倉。
-2. **階段 40（進銷存鏈聯動與業務邏輯）**：
-   - 採購進貨單（Goods Receipt）與銷售出貨單（Delivery Note）增加「指定倉庫」欄位。
-   - 實作調撥業務邏輯：建立調撥單 → 出庫（扣來源倉）→ 入庫（加目的倉），支援事務交易防護。
-   - 調撥單介接通用簽核引擎（選填簽核流程）。
-3. **階段 41（前端介面實作）**：
-   - 倉庫管理頁 `/inventory/warehouses`（新增/編輯/停用/檢視）。
-   - 庫存分佈看板 `/inventory/stocks`（按倉庫或按商品透視分佈量）。
-   - 調撥單管理頁 `/inventory/transfers`（申請、明細 Stepper、出入庫確認）。
+### 🚩 步驟一：P2 核心 — 多倉庫與庫存調撥系統 ✅（階段 39～41 已完成）
 
 ---
 

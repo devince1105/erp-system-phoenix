@@ -1,4 +1,14 @@
-import { Product, Partner, PurchaseOrder, SalesOrder } from "../types/inventory";
+import {
+  Product,
+  Partner,
+  PurchaseOrder,
+  SalesOrder,
+  Warehouse,
+  WarehouseStock,
+  StockMatrixResponse,
+  StockTransfer,
+  CreateStockTransferPayload,
+} from "../types/inventory";
 
 import axiosClient from "@/api/axiosClient";
 
@@ -43,6 +53,51 @@ export const inventoryApi = {
   confirmPurchaseOrder: (id: number) => fetchApi<PurchaseOrder>(`/PurchaseOrders/${id}/confirm`, { method: "POST" }),
 
   // Fulfillment: 進貨 (goods receipt) / 出貨 (delivery) — post stock + payable/receivable.
-  receiveFromOrder: (purchaseOrderId: number) => fetchApi<{ id: number; receiptNo: string }>(`/GoodsReceipts/from-order/${purchaseOrderId}`, { method: "POST" }),
-  shipFromOrder: (salesOrderId: number) => fetchApi<{ id: number; deliveryNo: string }>(`/DeliveryNotes/from-order/${salesOrderId}`, { method: "POST" }),
+  receiveFromOrder: (purchaseOrderId: number, warehouseId?: number) =>
+    fetchApi<{ id: number; receiptNo: string }>(
+      `/GoodsReceipts/from-order/${purchaseOrderId}${warehouseId ? `?warehouseId=${warehouseId}` : ""}`,
+      { method: "POST" }
+    ),
+  shipFromOrder: (salesOrderId: number, warehouseId?: number) =>
+    fetchApi<{ id: number; deliveryNo: string }>(
+      `/DeliveryNotes/from-order/${salesOrderId}${warehouseId ? `?warehouseId=${warehouseId}` : ""}`,
+      { method: "POST" }
+    ),
+
+  // Warehouses (多倉庫管理)
+  getWarehouses: (activeOnly?: boolean) =>
+    fetchApi<Warehouse[]>(activeOnly ? "/Warehouses?activeOnly=true" : "/Warehouses"),
+  getWarehouse: (id: number) => fetchApi<Warehouse>(`/Warehouses/${id}`),
+  createWarehouse: (data: Partial<Warehouse>) =>
+    fetchApi<Warehouse>("/Warehouses", { method: "POST", body: JSON.stringify(data) }),
+  updateWarehouse: (id: number, data: Partial<Warehouse>) =>
+    fetchApi<void>(`/Warehouses/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  deleteWarehouse: (id: number) => fetchApi<void>(`/Warehouses/${id}`, { method: "DELETE" }),
+  getWarehouseStocks: (warehouseId: number) =>
+    fetchApi<WarehouseStock[]>(`/Warehouses/${warehouseId}/stocks`),
+
+  // Warehouse Stocks (跨倉庫庫存分佈與安全庫存)
+  getStockMatrix: (params?: { keyword?: string; warehouseId?: number; lowStockOnly?: boolean }) => {
+    const query = new URLSearchParams();
+    if (params?.keyword) query.set("keyword", params.keyword);
+    if (params?.warehouseId) query.set("warehouseId", params.warehouseId.toString());
+    if (params?.lowStockOnly) query.set("lowStockOnly", "true");
+    const qs = query.toString();
+    return fetchApi<StockMatrixResponse>(`/WarehouseStocks${qs ? `?${qs}` : ""}`);
+  },
+  updateSafetyStock: (warehouseId: number, productId: number, safetyStock: number) =>
+    fetchApi<{ warehouseId: number; productId: number; safetyStock: number }>(
+      `/WarehouseStocks/${warehouseId}/${productId}/safety-stock`,
+      { method: "PUT", body: JSON.stringify({ safetyStock }) }
+    ),
+
+  // Stock Transfers (庫存調撥)
+  getStockTransfers: () => fetchApi<StockTransfer[]>("/StockTransfers"),
+  getStockTransfer: (id: number) => fetchApi<StockTransfer>(`/StockTransfers/${id}`),
+  createStockTransfer: (payload: CreateStockTransferPayload) =>
+    fetchApi<StockTransfer>("/StockTransfers", { method: "POST", body: JSON.stringify(payload) }),
+  executeStockTransfer: (id: number) =>
+    fetchApi<{ id: number; transferNo: string; status: string }>(`/StockTransfers/${id}/execute`, { method: "POST" }),
+  cancelStockTransfer: (id: number) =>
+    fetchApi<{ id: number; transferNo: string; status: string }>(`/StockTransfers/${id}/cancel`, { method: "POST" }),
 };

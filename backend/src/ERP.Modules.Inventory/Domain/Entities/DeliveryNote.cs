@@ -21,6 +21,10 @@ public class DeliveryNote
     [ForeignKey(nameof(SalesOrderId))]
     public SalesOrder? SalesOrder { get; set; }
 
+    public int? WarehouseId { get; set; }
+    [ForeignKey(nameof(WarehouseId))]
+    public Warehouse? Warehouse { get; set; }
+
     public DateTime DeliveryDate { get; set; } = DateTime.UtcNow;
 
     [Column(TypeName = "decimal(18,2)")]
