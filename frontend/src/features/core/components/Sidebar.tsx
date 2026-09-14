@@ -32,7 +32,8 @@ import {
   Sparkles,
   Warehouse,
   Boxes,
-  ArrowRightLeft
+  ArrowRightLeft,
+  FileSpreadsheet
 } from "lucide-react";
 
 export const Sidebar = () => {
@@ -42,6 +43,7 @@ export const Sidebar = () => {
   const canSee = (item: { roles?: string[] }) => !item.roles || item.roles.some((r) => userRoles.includes(r));
   const [isCollapsed, setIsCollapsed] = useState(false);
 
+  // Collapsible module states
   const [isAccountingOpen, setIsAccountingOpen] = useState(true);
   const [isInventoryOpen, setIsInventoryOpen] = useState(true);
   const [isHROpen, setIsHROpen] = useState(true);
@@ -62,6 +64,7 @@ export const Sidebar = () => {
     { name: "資產負債表 (Balance Sheet)", href: "/accounting/reports/balance-sheet", icon: BarChart3 },
     { name: "現金流量表 (Cash Flow)", href: "/accounting/reports/cash-flow", icon: BarChart3 },
     { name: "應收應付帳齡 (Aging)", href: "/accounting/reports/aging", icon: BarChart3, roles: ["Admin", "Accountant"] },
+    { name: "自訂報表 (Custom Reports)", href: "/accounting/reports/custom", icon: FileSpreadsheet, roles: ["Admin", "Accountant"] },
   ];
 
   const inventoryItems = [

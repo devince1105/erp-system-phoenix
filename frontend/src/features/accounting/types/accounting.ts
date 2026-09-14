@@ -153,3 +153,74 @@ export interface CreateBankAccountPayload {
   apiEndpoint?: string;
   apiClientId?: string;
 }
+
+// Custom Financial Reports
+export type CustomReportType = 0 | 1; // 0: IncomeStatementStyle, 1: BalanceSheetStyle
+
+export interface CustomReportSection {
+  id?: number;
+  templateId?: number;
+  title: string;
+  orderIndex: number;
+  accountCodePrefixes?: string;
+  isDebitPositive: boolean;
+  isSubtotal: boolean;
+  formulaExpression?: string;
+}
+
+export interface CustomReportTemplate {
+  id: number;
+  name: string;
+  description?: string;
+  reportType: CustomReportType;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt?: string;
+  sections: CustomReportSection[];
+}
+
+export interface SaveCustomReportTemplatePayload {
+  name: string;
+  description?: string;
+  reportType?: CustomReportType;
+  isActive?: boolean;
+  sections: CustomReportSection[];
+}
+
+export interface CustomReportAccountRow {
+  code: string;
+  title: string;
+  amount: number;
+  compareAmount?: number | null;
+  changeAmount?: number | null;
+  changePercent?: number | null;
+}
+
+export interface CustomReportSectionResult {
+  id: number;
+  title: string;
+  orderIndex: number;
+  isSubtotal: boolean;
+  formulaExpression?: string;
+  accountCodePrefixes?: string;
+  isDebitPositive?: boolean;
+  amount: number;
+  compareAmount?: number | null;
+  changeAmount?: number | null;
+  changePercent?: number | null;
+  accounts: CustomReportAccountRow[];
+}
+
+export interface CustomReportRunResult {
+  templateId: number;
+  templateName: string;
+  description?: string;
+  reportType: string;
+  startDate: string;
+  endDate: string;
+  compareStartDate?: string | null;
+  compareEndDate?: string | null;
+  hasComparison: boolean;
+  sections: CustomReportSectionResult[];
+}
+

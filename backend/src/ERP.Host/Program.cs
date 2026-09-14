@@ -152,6 +152,8 @@ using (var scope = app.Services.CreateScope())
     ERP.Modules.Accounting.Data.JournalTemplateSeeder.SeedAsync(accountingDb).GetAwaiter().GetResult();
     // Ensure depreciation accounts (折舊費用 / 累計折舊) exist.
     ERP.Modules.Accounting.Data.DepreciationAccountSeeder.SeedAsync(accountingDb).GetAwaiter().GetResult();
+    // Seed default custom financial report templates (自訂財務報表範本, idempotent).
+    ERP.Modules.Accounting.Data.CustomReportSeeder.SeedAsync(accountingDb).GetAwaiter().GetResult();
     
     // Migrate Inventory Module Database
     var inventoryDb = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();

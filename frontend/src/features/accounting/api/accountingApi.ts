@@ -8,10 +8,25 @@ import {
   JournalTemplate,
   FixedAsset,
   Note,
-  CreateVoucherPayload as CreateVoucherDto
+  CreateVoucherPayload as CreateVoucherDto,
+  CustomReportTemplate,
+  SaveCustomReportTemplatePayload,
+  CustomReportRunResult
 } from '../types/accounting';
 
-export type { AccountTitle, BankAccount, VoucherDetail, Voucher, JournalTemplate, FixedAsset, Note, CreateVoucherDto };
+export type {
+  AccountTitle,
+  BankAccount,
+  VoucherDetail,
+  Voucher,
+  JournalTemplate,
+  FixedAsset,
+  Note,
+  CreateVoucherDto,
+  CustomReportTemplate,
+  SaveCustomReportTemplatePayload,
+  CustomReportRunResult
+};
 
 export interface ReportItem {
   code?: string;
@@ -197,6 +212,46 @@ export const accountingApi = {
     const res = await axiosClient.post('/settings/company-name', `"${name}"`, {
       headers: { 'Content-Type': 'application/json' }
     });
+    return res.data;
+  },
+
+  // Custom Financial & Management Reports (自訂財務報表)
+  getCustomReportTemplates: async (activeOnly = true) => {
+    const res = await axiosClient.get<CustomReportTemplate[]>(`/customreports/templates?activeOnly=${activeOnly}`);
+    return res.data;
+  },
+  getCustomReportTemplate: async (id: number) => {
+    const res = await axiosClient.get<CustomReportTemplate>(`/customreports/templates/${id}`);
+    return res.data;
+  },
+  createCustomReportTemplate: async (data: SaveCustomReportTemplatePayload) => {
+    const res = await axiosClient.post<CustomReportTemplate>('/customreports/templates', data);
+    return res.data;
+  },
+  updateCustomReportTemplate: async (id: number, data: SaveCustomReportTemplatePayload) => {
+    await axiosClient.put(`/customreports/templates/${id}`, data);
+  },
+  deleteCustomReportTemplate: async (id: number) => {
+    await axiosClient.delete(`/customreports/templates/${id}`);
+  },
+  runCustomReport: async (params: {
+    templateId: number;
+    startDate: string;
+    endDate: string;
+    compareStartDate?: string;
+    compareEndDate?: string;
+  }) => {
+    const query = new URLSearchParams({
+      startDate: params.startDate,
+      endDate: params.endDate,
+    });
+    if (params.compareStartDate && params.compareEndDate) {
+      query.set('compareStartDate', params.compareStartDate);
+      query.set('compareEndDate', params.compareEndDate);
+    }
+    const res = await axiosClient.get<CustomReportRunResult>(
+      `/customreports/${params.templateId}/run?${query.toString()}`
+    );
     return res.data;
   }
 };

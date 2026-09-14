@@ -19,6 +19,8 @@ public class AccountingDbContext : DbContext
     public DbSet<JournalTemplateLine> JournalTemplateLines => Set<JournalTemplateLine>();
     public DbSet<FixedAsset> FixedAssets => Set<FixedAsset>();
     public DbSet<Note> Notes => Set<Note>();
+    public DbSet<CustomReportTemplate> CustomReportTemplates => Set<CustomReportTemplate>();
+    public DbSet<CustomReportSection> CustomReportSections => Set<CustomReportSection>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -32,6 +34,19 @@ public class AccountingDbContext : DbContext
 
         // Define module schema
         modelBuilder.HasDefaultSchema("acc");
+
+        // Custom Reports mapping
+        modelBuilder.Entity<CustomReportTemplate>().ToTable("CustomReportTemplates");
+        modelBuilder.Entity<CustomReportTemplate>()
+            .Property(t => t.ReportType)
+            .HasConversion<int>();
+
+        modelBuilder.Entity<CustomReportSection>().ToTable("CustomReportSections");
+        modelBuilder.Entity<CustomReportSection>()
+            .HasOne(s => s.Template)
+            .WithMany(t => t.Sections)
+            .HasForeignKey(s => s.TemplateId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Seed Default Taiwan Chart of Accounts (標準會計科目表)
         modelBuilder.Entity<AccountTitle>().HasData(
