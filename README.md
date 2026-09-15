@@ -170,6 +170,26 @@ docker compose down
 
 ---
 
+### ⚙️ 進階維運與 CI/CD 遷移模式 (Database Migration)
+
+後端支援獨立 Migration Runner 與命令列參數，方便在 CI/CD 流水線或多節點環境中精準控制：
+
+```bash
+# 1. 獨立執行資料庫遷移（不啟動 Web 服務，Exit Code 0 成功 / 1 失敗）
+./scripts/migrate-db.sh
+
+# 或使用 dotnet 原生指令
+dotnet run --project backend/src/ERP.Host -- --migrate-only
+
+# 2. 多 Pod/水平擴展啟動（跳過 Migration 重複檢查）
+dotnet run --project backend/src/ERP.Host -- --skip-migration
+
+# 3. 強制初始化示範帳號與資料
+./scripts/migrate-db.sh --seed-demo
+```
+
+---
+
 ### 常見問題排查
 
 | 問題 | 解法 |
@@ -177,6 +197,6 @@ docker compose down
 | `dotnet run` 後出現 Migration 錯誤 | 確認 Docker MS-SQL 容器已啟動：`docker compose ps` |
 | 前端 API 請求失敗（CORS / 401） | 確認後端已啟動，檢查 `frontend/src/` 中的 `NEXT_PUBLIC_API_URL` 設定 |
 | SQL Server 連線逾時 | 容器首次啟動需約 10-15 秒初始化，稍等後再試 |
-| Port `5268` 被佔用 | 修改 `backend/src/ERP.Host/Properties/launchSettings.json` 中的 `applicationUrl` |
+| Port `5001` 被佔用 | 確認是否已有舊的後端實例在運行：`lsof -i :5001` 並終止 |
 | `pnpm` 指令找不到 | 確認使用 Node.js v22：`nvm use v22.22.0`，再執行 `npm install -g pnpm` |
 | `pnpm install` 失敗 | 確認 Node.js 版本 ≥ 18，執行 `node -v` 確認 |

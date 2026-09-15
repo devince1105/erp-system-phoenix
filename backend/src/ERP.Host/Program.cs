@@ -1,3 +1,4 @@
+using ERP.Host.Infrastructure;
 using ERP.Modules.Identity;
 using ERP.Modules.Identity.Data;
 using ERP.Modules.Accounting;
@@ -168,58 +169,41 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// 5. Auto Migrate Database on Startup for each Module
-using (var scope = app.Services.CreateScope())
+app.MapControllers();
+
+// 5. Database Migration and Seeding Handling
+var isMigrateOnly = args.Contains("--migrate-only");
+var isSkipMigration = args.Contains("--skip-migration");
+var forceSeedDemo = args.Contains("--seed-demo");
+
+if (isMigrateOnly)
 {
-    // Migrate Identity Module Database
-    var identityDb = scope.ServiceProvider.GetRequiredService<ERPIdentityDbContext>();
-    identityDb.Database.Migrate();
+    var migrationSuccess = await DatabaseMigrationRunner.RunAsync(
+        app.Services, 
+        app.Environment.IsDevelopment(), 
+        forceSeedDemo);
 
-    // Migrate Accounting Module Database
-    var accountingDb = scope.ServiceProvider.GetRequiredService<AccountingDbContext>();
-    accountingDb.Database.Migrate();
-
-    // Seed common journal templates (常用分錄範本) if none exist (idempotent).
-    ERP.Modules.Accounting.Data.JournalTemplateSeeder.SeedAsync(accountingDb).GetAwaiter().GetResult();
-    // Ensure depreciation accounts (折舊費用 / 累計折舊) exist.
-    ERP.Modules.Accounting.Data.DepreciationAccountSeeder.SeedAsync(accountingDb).GetAwaiter().GetResult();
-    // Seed default custom financial report templates (自訂財務報表範本, idempotent).
-    ERP.Modules.Accounting.Data.CustomReportSeeder.SeedAsync(accountingDb).GetAwaiter().GetResult();
-    
-    // Migrate Inventory Module Database
-    var inventoryDb = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
-    inventoryDb.Database.Migrate();
-
-    // Backfill goods-receipts / delivery-notes for pre-existing confirmed orders
-    // after the order → receipt/delivery split (idempotent).
-    ERP.Modules.Inventory.Infrastructure.Database.InventoryChainSeeder
-        .BackfillAsync(inventoryDb).GetAwaiter().GetResult();
-
-    // Seed default warehouses and backfill initial stock mapping (idempotent).
-    ERP.Modules.Inventory.Infrastructure.Database.MultiWarehouseSeeder
-        .SeedAsync(inventoryDb).GetAwaiter().GetResult();
-
-    // Migrate HR Module Database
-    var hrDb = scope.ServiceProvider.GetRequiredService<HRDbContext>();
-    hrDb.Database.Migrate();
-
-    // Seed default approval workflows for any form type that has none (idempotent).
-    scope.ServiceProvider.GetRequiredService<ERP.Modules.HR.Services.ApprovalService>()
-        .SeedWorkflowsAsync().GetAwaiter().GetResult();
-    // Seed the job-grade table (salary bands) if empty (idempotent).
-    ERP.Modules.HR.Data.JobGradeSeeder.SeedAsync(hrDb).GetAwaiter().GetResult();
-
-    // Migrate CRM Module Database
-    var crmDb = scope.ServiceProvider.GetRequiredService<CRMDbContext>();
-    crmDb.Database.Migrate();
-
-    // Migrate MDM Module Database
-    var mdmDb = scope.ServiceProvider.GetRequiredService<MdmDbContext>();
-    mdmDb.Database.Migrate();
-
-    // Development-only: seed demo role accounts (會計/業務/人資) for role testing.
-    if (app.Environment.IsDevelopment())
-        ERP.Modules.Identity.Data.IdentityDemoSeeder.SeedAsync(identityDb).GetAwaiter().GetResult();
+    return migrationSuccess ? 0 : 1;
 }
 
-app.Run();
+if (!isSkipMigration)
+{
+    var migrationSuccess = await DatabaseMigrationRunner.RunAsync(
+        app.Services, 
+        app.Environment.IsDevelopment(), 
+        forceSeedDemo);
+
+    if (!migrationSuccess && !app.Environment.IsDevelopment())
+    {
+        // 在生產環境下若 Migration 失敗，直接拒絕啟動以防資料結構不一致
+        return 1;
+    }
+}
+else
+{
+    var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("ERP.Host.Program");
+    logger.LogInformation("⏩ [--skip-migration] Database migration skipped by configuration/flag.");
+}
+
+await app.RunAsync();
+return 0;
