@@ -113,7 +113,19 @@ erp-system-phoenix/                # 專案總根目錄
 
 ## ▶️ 本地開發啟動指南 (Local Development)
 
-> 專案預設已配置**連線至 Azure 雲端 MS-SQL 資料庫**，**本地端無需啟動 Docker 即可直接開發**！只需開啟兩個終端視窗：
+> 專案預設已配置**連線至 Azure 雲端 MS-SQL 資料庫**，本地端無需啟動 Docker 即可直接開發。
+
+<!--
+### 終端 1 — 啟動資料庫（MS-SQL Docker，本地離線開發備用）
+
+```bash
+# 從專案根目錄執行
+docker compose up -d
+
+# 確認容器正常運作（Status 應為 running）
+docker compose ps
+```
+-->
 
 ### 終端 1 — 啟動後端 API（.NET 10）
 
@@ -130,8 +142,6 @@ dotnet run --launch-profile http
 後端啟動後可存取：
 - **API Base URL**：`http://localhost:5001/api`
 - **預設管理者登入帳號**：`admin` / `Admin123!`
-
----
 
 ### 終端 2 — 啟動前端（Next.js）
 
@@ -150,17 +160,15 @@ pnpm dev
 
 ---
 
-### 💡 (可選) 本地完全離線開發模式
+### 一鍵停止所有服務
 
-若您在無網路環境或希望使用本地 Docker 資料庫：
 ```bash
-# 啟動本地 MS-SQL 容器
-docker compose up -d
-
-# 停止容器
-docker compose down
-
 # 後端與前端按 Ctrl + C 結束
+
+<!--
+# 停止 Docker 資料庫（若有啟用本地 Docker 時）
+docker compose down
+-->
 ```
 
 ---
