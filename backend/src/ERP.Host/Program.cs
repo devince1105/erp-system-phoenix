@@ -112,13 +112,44 @@ builder.Services.AddHRModule(builder.Configuration);
 builder.Services.AddCRMModule(builder.Configuration);
 builder.Services.AddMdmModule(builder.Configuration);
 
-// 3. Configure OpenAPI
-builder.Services.AddOpenApi();
+// 3. Configure OpenAPI & Swagger UI
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.OpenApiInfo
+    {
+        Title = "ERP Phoenix API",
+        Version = "v1",
+        Description = "Enterprise Resource Planning System API"
+    });
+
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using Bearer scheme (e.g. 'Bearer {token}')",
+        Name = "Authorization",
+        In = Microsoft.OpenApi.ParameterLocation.Header,
+        Type = Microsoft.OpenApi.SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    var schemeRef = new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer", null, null);
+    c.AddSecurityRequirement(doc => new Microsoft.OpenApi.OpenApiSecurityRequirement
+    {
+        { schemeRef, new List<string>() }
+    });
+
+    c.CustomSchemaIds(type => type.FullName?.Replace("+", ".") ?? type.Name);
+});
 
 var app = builder.Build();
 
 // 4. Configure HTTP request pipeline.
-app.MapOpenApi();
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ERP Phoenix API v1");
+    c.RoutePrefix = "swagger";
+});
 
 app.UseCors("AppCors");
 app.UseHttpsRedirection();

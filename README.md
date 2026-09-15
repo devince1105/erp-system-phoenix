@@ -113,21 +113,19 @@ erp-system-phoenix/                # 專案總根目錄
 
 ## ▶️ 本地開發啟動指南 (Local Development)
 
-> 專案預設已配置**連線至 Azure 雲端 MS-SQL 資料庫**，本地端無需啟動 Docker 即可直接開發。
+> 專案採用 **本地 Docker MS-SQL 資料庫**，開發過程零網路延遲、離線可用且完全免費。
 
-<!--
-### 終端 1 — 啟動資料庫（MS-SQL Docker，本地離線開發備用）
+### 步驟 1 — 啟動資料庫（Docker MS-SQL）
 
 ```bash
-# 從專案根目錄執行
+# 從專案根目錄啟動資料庫容器（若已在背景運行可略過）
 docker compose up -d
 
-# 確認容器正常運作（Status 應為 running）
+# 確認容器正常運作（Status 應為 Up (healthy)）
 docker compose ps
 ```
--->
 
-### 終端 1 — 啟動後端 API（.NET 10）
+### 步驟 2 — 啟動後端 API（.NET 10）
 
 ```bash
 cd backend/src/ERP.Host
@@ -135,15 +133,16 @@ cd backend/src/ERP.Host
 # 首次執行：還原套件
 dotnet restore
 
-# 啟動開發伺服器（使用 http profile 綁定 5001，自動連線 Azure SQL）
+# 啟動開發伺服器（使用 http profile 綁定 5001，自動連線本地 Docker SQL）
 dotnet run --launch-profile http
 ```
 
 後端啟動後可存取：
+- **可視化 Swagger UI**：`http://localhost:5001/swagger`
 - **API Base URL**：`http://localhost:5001/api`
-- **預設管理者登入帳號**：`admin` / `Admin123!`
+- **預設管理者帳密**：`admin` / `Admin123!`
 
-### 終端 2 — 啟動前端（Next.js）
+### 步驟 3 — 啟動前端（Next.js）
 
 ```bash
 cd frontend
@@ -163,12 +162,10 @@ pnpm dev
 ### 一鍵停止所有服務
 
 ```bash
-# 後端與前端按 Ctrl + C 結束
+# 後端與前端終端機按 Ctrl + C 結束
 
-<!--
-# 停止 Docker 資料庫（若有啟用本地 Docker 時）
+# 停止 Docker 資料庫
 docker compose down
--->
 ```
 
 ---
