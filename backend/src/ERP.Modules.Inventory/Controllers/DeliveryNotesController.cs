@@ -31,9 +31,23 @@ public class DeliveryNotesController : ControllerBase
     {
         return await _context.DeliveryNotes
             .Include(d => d.SalesOrder).ThenInclude(o => o!.Customer)
+            .Include(d => d.Warehouse)
             .Include(d => d.Items).ThenInclude(i => i.Product)
             .OrderByDescending(d => d.DeliveryDate)
             .ToListAsync();
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<DeliveryNote>> GetById(int id)
+    {
+        var note = await _context.DeliveryNotes
+            .Include(d => d.SalesOrder).ThenInclude(o => o!.Customer)
+            .Include(d => d.Warehouse)
+            .Include(d => d.Items).ThenInclude(i => i.Product)
+            .FirstOrDefaultAsync(d => d.Id == id);
+
+        if (note == null) return NotFound();
+        return note;
     }
 
     /// <summary>Ship the full quantity of a confirmed sales order (出貨).</summary>

@@ -163,3 +163,49 @@ export interface CreateStockTransferPayload {
   items: { productId: number; quantity: number }[];
 }
 
+export interface GoodsReceiptItem {
+  id: number;
+  goodsReceiptId: number;
+  productId: number;
+  product?: Product;
+  quantity: number;
+  unitPrice: number;
+}
+
+export interface GoodsReceipt {
+  id: number;
+  receiptNo: string;
+  purchaseOrderId: number;
+  purchaseOrder?: PurchaseOrder;
+  warehouseId?: number;
+  warehouse?: Warehouse;
+  receiptDate: string;
+  totalAmount: number;
+  memo?: string;
+  createdAt: string;
+  items: GoodsReceiptItem[];
+}
+
+export interface DeliveryNoteItem {
+  id: number;
+  deliveryNoteId: number;
+  productId: number;
+  product?: Product;
+  quantity: number;
+  unitPrice: number;
+}
+
+export interface DeliveryNote {
+  id: number;
+  deliveryNo: string;
+  salesOrderId: number;
+  salesOrder?: SalesOrder;
+  warehouseId?: number;
+  warehouse?: Warehouse;
+  deliveryDate: string;
+  totalAmount: number;
+  memo?: string;
+  createdAt: string;
+  items: DeliveryNoteItem[];
+}
+

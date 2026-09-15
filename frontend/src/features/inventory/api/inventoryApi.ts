@@ -8,6 +8,8 @@ import {
   StockMatrixResponse,
   StockTransfer,
   CreateStockTransferPayload,
+  GoodsReceipt,
+  DeliveryNote,
 } from "../types/inventory";
 
 import axiosClient from "@/api/axiosClient";
@@ -53,11 +55,15 @@ export const inventoryApi = {
   confirmPurchaseOrder: (id: number) => fetchApi<PurchaseOrder>(`/PurchaseOrders/${id}/confirm`, { method: "POST" }),
 
   // Fulfillment: 進貨 (goods receipt) / 出貨 (delivery) — post stock + payable/receivable.
+  getGoodsReceipts: () => fetchApi<GoodsReceipt[]>("/GoodsReceipts"),
+  getGoodsReceipt: (id: number) => fetchApi<GoodsReceipt>(`/GoodsReceipts/${id}`),
   receiveFromOrder: (purchaseOrderId: number, warehouseId?: number) =>
     fetchApi<{ id: number; receiptNo: string }>(
       `/GoodsReceipts/from-order/${purchaseOrderId}${warehouseId ? `?warehouseId=${warehouseId}` : ""}`,
       { method: "POST" }
     ),
+  getDeliveryNotes: () => fetchApi<DeliveryNote[]>("/DeliveryNotes"),
+  getDeliveryNote: (id: number) => fetchApi<DeliveryNote>(`/DeliveryNotes/${id}`),
   shipFromOrder: (salesOrderId: number, warehouseId?: number) =>
     fetchApi<{ id: number; deliveryNo: string }>(
       `/DeliveryNotes/from-order/${salesOrderId}${warehouseId ? `?warehouseId=${warehouseId}` : ""}`,

@@ -3,7 +3,7 @@
 import React, { useCallback, useState, useEffect } from "react";
 import { crmApi } from "@/features/crm/api/crmApi";
 import { SalesOpportunity } from "@/features/crm/types/crm";
-import { Briefcase, Plus, DollarSign, Calendar, Building2 } from "lucide-react";
+import { Briefcase, Plus, DollarSign, Calendar, Building2, ShoppingCart } from "lucide-react";
 import { NewOpportunityModal } from "@/features/crm/components/NewOpportunityModal";
 import { ConvertToOrderModal } from "@/features/crm/components/ConvertToOrderModal";
 import { Breadcrumbs } from "@/features/core/components/Breadcrumbs";
@@ -172,12 +172,26 @@ export default function CRMDashboard() {
                             {opp.estimatedValue.toLocaleString()}
                           </div>
                           
-                          {opp.expectedCloseDate && (
+                          {opp.stage !== "Lost" ? (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setConvertingOpportunity(opp);
+                                setIsConvertModalOpen(true);
+                              }}
+                              title="贏單結案並建立進銷存銷售訂單"
+                              className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 font-medium transition-colors border border-emerald-200 dark:border-emerald-800/60"
+                            >
+                              <ShoppingCart className="w-3 h-3" />
+                              {opp.stage === "Closed" ? "加開訂單" : "轉訂單"}
+                            </button>
+                          ) : opp.expectedCloseDate ? (
                             <div className="flex items-center text-[10px] text-slate-400">
                               <Calendar className="h-3 w-3 mr-1" />
                               {new Date(opp.expectedCloseDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                             </div>
-                          )}
+                          ) : null}
                         </div>
                       </div>
                     </div>

@@ -33,7 +33,9 @@ import {
   Warehouse,
   Boxes,
   ArrowRightLeft,
-  FileSpreadsheet
+  FileSpreadsheet,
+  PackageCheck,
+  Truck
 } from "lucide-react";
 
 export const Sidebar = () => {
@@ -72,6 +74,8 @@ export const Sidebar = () => {
     { name: "倉庫主檔 (Warehouses)", href: "/inventory/warehouses", icon: Warehouse },
     { name: "庫存分佈 (Stock Levels)", href: "/inventory/stocks", icon: Boxes },
     { name: "庫存調撥 (Transfers)", href: "/inventory/transfers", icon: ArrowRightLeft },
+    { name: "進貨驗收 (Goods Receipts)", href: "/inventory/goods-receipts", icon: PackageCheck },
+    { name: "出貨裝箱 (Delivery Notes)", href: "/inventory/delivery-notes", icon: Truck },
     { name: "商品管理 (Products)", href: "/inventory/products", icon: PackageSearch },
     { name: "客戶與廠商 (Partners)", href: "/inventory/partners", icon: Users },
     { name: "銷貨管理 (Sales)", href: "/inventory/sales", icon: TrendingUp },

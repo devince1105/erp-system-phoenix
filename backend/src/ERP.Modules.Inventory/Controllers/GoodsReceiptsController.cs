@@ -31,9 +31,23 @@ public class GoodsReceiptsController : ControllerBase
     {
         return await _context.GoodsReceipts
             .Include(r => r.PurchaseOrder).ThenInclude(o => o!.Supplier)
+            .Include(r => r.Warehouse)
             .Include(r => r.Items).ThenInclude(i => i.Product)
             .OrderByDescending(r => r.ReceiptDate)
             .ToListAsync();
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<GoodsReceipt>> GetById(int id)
+    {
+        var receipt = await _context.GoodsReceipts
+            .Include(r => r.PurchaseOrder).ThenInclude(o => o!.Supplier)
+            .Include(r => r.Warehouse)
+            .Include(r => r.Items).ThenInclude(i => i.Product)
+            .FirstOrDefaultAsync(r => r.Id == id);
+
+        if (receipt == null) return NotFound();
+        return receipt;
     }
 
     /// <summary>Receive the full quantity of a confirmed purchase order (進貨).</summary>
