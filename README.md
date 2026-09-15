@@ -113,19 +113,9 @@ erp-system-phoenix/                # 專案總根目錄
 
 ## ▶️ 本地開發啟動指南 (Local Development)
 
-> 建議開三個終端視窗分別執行下方步驟。
+> 專案預設已配置**連線至 Azure 雲端 MS-SQL 資料庫**，**本地端無需啟動 Docker 即可直接開發**！只需開啟兩個終端視窗：
 
-### 終端 1 — 啟動資料庫（MS-SQL Docker）
-
-```bash
-# 從專案根目錄執行
-docker compose up -d
-
-# 確認容器正常運作（Status 應為 running）
-docker compose ps
-```
-
-### 終端 2 — 啟動後端 API（.NET 10）
+### 終端 1 — 啟動後端 API（.NET 10）
 
 ```bash
 cd backend/src/ERP.Host
@@ -133,15 +123,17 @@ cd backend/src/ERP.Host
 # 首次執行：還原套件
 dotnet restore
 
-# 啟動開發伺服器（自動套用 Migration 並 Seed 資料）
-dotnet run
+# 啟動開發伺服器（使用 http profile 綁定 5001，自動連線 Azure SQL）
+dotnet run --launch-profile http
 ```
 
 後端啟動後可存取：
-- **Swagger UI**：`http://localhost:5268/openapi`（或終端顯示的 Port）
-- **API Base URL**：`http://localhost:5268/api`
+- **API Base URL**：`http://localhost:5001/api`
+- **預設管理者登入帳號**：`admin` / `Admin123!`
 
-### 終端 3 — 啟動前端（Next.js）
+---
+
+### 終端 2 — 啟動前端（Next.js）
 
 ```bash
 cd frontend
@@ -158,10 +150,14 @@ pnpm dev
 
 ---
 
-### 一鍵停止所有服務
+### 💡 (可選) 本地完全離線開發模式
 
+若您在無網路環境或希望使用本地 Docker 資料庫：
 ```bash
-# 停止 Docker 資料庫（在專案根目錄）
+# 啟動本地 MS-SQL 容器
+docker compose up -d
+
+# 停止容器
 docker compose down
 
 # 後端與前端按 Ctrl + C 結束
